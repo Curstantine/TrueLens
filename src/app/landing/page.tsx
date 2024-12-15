@@ -3,13 +3,14 @@ import Image, { type StaticImageData } from "next/image";
 
 import { PAPER_URL } from "~/constants";
 
+import Input from "~/app/_components/Input";
+import Button from "~/app/_components/Button";
 import LenisWrapper from "~/app/_components/LenisWrapper";
 
 import LandingOneImage from "~/app/assets/landing-1.png";
 import LandingTwoImage from "~/app/assets/landing-2.png";
 import LandingThreeImage from "~/app/assets/landing-3.png";
-import Input from "~/app/_components/Input";
-import Button from "~/app/_components/Button";
+import LandingFourImage from "~/app/assets/landing-4.png";
 
 export default function Page() {
 	return (
@@ -73,7 +74,7 @@ export default function Page() {
 				>
 					<h1 className="col-span-full mb-8 text-center text-4xl font-semibold">
 						See the{" "}
-						<span className="relative">
+						<span className="relative font-bold">
 							bigger
 							<div className="absolute bottom-1 left-0 -z-10 h-1 w-full bg-primary" />
 						</span>{" "}
@@ -91,11 +92,17 @@ export default function Page() {
 						label="News source aggregation and analysis"
 						description="Aggregation from multiple sources, with bias detection and credibility scoring."
 					/>
+
+					<PowerCard
+						src={LandingFourImage}
+						label="Credibility rankings"
+						description="Credibility rankings for news sources, articles, and authors."
+					/>
 				</section>
 			</main>
 
 			<main className="mx-auto mb-12 mt-24 max-w-xl rounded-lg border border-secondary p-8">
-				<h2 className="text-3xl font-semibold">Join the wait-list</h2>
+				<h2 className="text-3xl font-semibold">Join the waitlist</h2>
 				<span>Join the wait-list to get notified when TrueLens is released!</span>
 
 				<form className="mt-6 flex flex-col gap-4">
