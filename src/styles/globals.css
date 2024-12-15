@@ -1,3 +1,33 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+	:root {
+		--background: 330 8% 95%;
+		--foreground: 340 6% 10%;
+		--primary: 353 78% 37%;
+		--primary-foreground: 0 0% 100%;
+		--secondary: 350 10% 77%;
+		--secondary-foreground: 0 0% 0%;
+		--muted: 315 11% 85%;
+		--muted-foreground: 354 5% 40%;
+		--accent: 318 10% 80%;
+		--accent-foreground: 345 5% 15%;
+		--destructive: 0 50% 50%;
+		--destructive-foreground: 0 6% 90%;
+		--border: 355 20% 77%;
+		--input: 353 20% 50%;
+	}
+}
+
+@layer components {
+	.btn {
+		@apply bg-primary text-primary-foreground;
+	}
+}
+
+html {
+	background-color: hsl(var(--background));
+	color: hsl(var(--foreground));
+}

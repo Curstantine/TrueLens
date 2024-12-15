@@ -4,4 +4,5 @@ export default {
 	plugins: ["prettier-plugin-tailwindcss"],
 	useTabs: true,
 	tabWidth: 4,
+	printWidth: 100,
 };
