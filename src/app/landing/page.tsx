@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { type ReactNode } from "react";
 import Image, { type StaticImageData } from "next/image";
 
@@ -5,7 +6,9 @@ import { PAPER_URL } from "~/constants";
 
 import Input from "~/app/_components/Input";
 import Button from "~/app/_components/Button";
+import Logo from "~/app/_components/icons/Logo";
 import LenisWrapper from "~/app/_components/LenisWrapper";
+import { Spring, CurvedSpring } from "~/app/_components/Spring";
 
 import LandingOneImage from "~/app/assets/landing-1.png";
 import LandingTwoImage from "~/app/assets/landing-2.png";
@@ -25,7 +28,7 @@ export default function Page() {
 
 					<div className="mt-6 inline-flex flex-col items-center justify-center gap-1">
 						<span className="m-0 text-xs text-muted-foreground">Scroll down</span>
-						<div className="iconify tabler--chevron-down size-6 animate-bounce text-primary" />
+						<div className="iconify size-6 animate-bounce text-primary tabler--chevron-down" />
 					</div>
 				</section>
 
@@ -34,9 +37,9 @@ export default function Page() {
 					<ContentSection
 						title="The Problem with Legacy Media"
 						description={[
-							"Over the past decade, online news and ad-driven algorithms have made it profitable for news outlets to embrace a position on the bias spectrum to target specific consumers.",
+							"In today's world, where misinformation is rampant, and legacy media platforms are increasingly influencing people, it is challenging to distinguish the truth from lies.",
 							"Bias in the media affects everything from what events receive coverage, to how a news outlet frames those events in their reporting.",
-							"As media outlets narrow their perspective and range of coverage, it's become impossible to consult a single news story for a well-rounded view on important issues.",
+							"While it is possible for people to resolve these issues by doing research, it requires tremendous effort to critically analyze the information regularly.",
 						]}
 					>
 						<a
@@ -45,7 +48,7 @@ export default function Page() {
 							className="text-sm text-secondary-foreground underline underline-offset-2"
 						>
 							Read our paper
-							<div className="iconify tabler--external-link mb-1 ml-0.5 size-3" />
+							<div className="iconify mb-1 ml-0.5 size-3 tabler--external-link" />
 						</a>
 					</ContentSection>
 				</section>
@@ -55,7 +58,12 @@ export default function Page() {
 					className="grid min-h-[28rem] grid-cols-2 items-center gap-12"
 				>
 					<ContentSection
-						title="Our Solution: TrueLens"
+						title={
+							<div className="inline-flex items-center gap-2">
+								<span>Our solution:</span>
+								<Logo className="mb-1 inline h-12 w-fit" />
+							</div>
+						}
 						description={[
 							"TrueLens is an innovative news platform designed to revolutionize how users consume and understand media content.",
 							"By integrating advanced bias detection, comprehensive credibility scoring, and enhanced media transparency, TrueLens empowers users to navigate news sources with greater insight and critical awareness.",
@@ -64,7 +72,7 @@ export default function Page() {
 					<Image
 						src={LandingOneImage}
 						alt="Landing One Image"
-						className="rounded-lg shadow-lg"
+						className="rounded-lg shadow-md"
 					/>
 				</section>
 
@@ -74,9 +82,11 @@ export default function Page() {
 				>
 					<h1 className="col-span-full mb-8 text-center text-4xl font-semibold">
 						See the{" "}
-						<span className="relative font-bold">
+						<span className="relative font-black">
 							bigger
-							<div className="absolute bottom-1 left-0 -z-10 h-1 w-full bg-primary" />
+							<CurvedSpring className="absolute -top-10 left-0 -z-10 h-10 w-12 -rotate-45 -scale-x-100" />
+							<Spring className="absolute -top-12 left-8 -z-10 h-10 w-12" />
+							<CurvedSpring className="absolute -top-10 right-0 -z-10 h-10 w-12 rotate-45" />
 						</span>{" "}
 						picture
 					</h1>
@@ -111,7 +121,16 @@ export default function Page() {
 				</form>
 			</main>
 
-			<footer className=""></footer>
+			<footer className="flex flex-col bg-primary">
+				<div className="container inline-flex h-8 items-center text-xs text-primary-foreground">
+					<span>&copy; 2024 TrueLens Initiative. All Rights Reserved</span>
+					<div className="flex-1" />
+					<Link href="/consent/privacy" className="mr-8">
+						Privacy Policy
+					</Link>
+					<Link href="/consent/terms">Terms of Service</Link>
+				</div>
+			</footer>
 		</LenisWrapper>
 	);
 }
