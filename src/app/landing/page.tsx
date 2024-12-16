@@ -4,8 +4,7 @@ import Image, { type StaticImageData } from "next/image";
 
 import { PAPER_URL } from "~/constants";
 
-import Input from "~/app/_components/Input";
-import Button from "~/app/_components/Button";
+import JoinForm from "~/app/landing/JoinForm";
 import Logo from "~/app/_components/icons/Logo";
 import LenisWrapper from "~/app/_components/LenisWrapper";
 import { Spring, CurvedSpring } from "~/app/_components/Spring";
@@ -110,15 +109,7 @@ export default function Page() {
 					/>
 				</section>
 
-				<section className="mx-auto mb-12 mt-16 rounded-lg border border-secondary p-8 sm:mt-24 sm:max-w-xl">
-					<h2 className="text-3xl font-semibold">Join the waitlist</h2>
-					<span>Join the wait-list to get notified when TrueLens is released!</span>
-
-					<form className="mt-6 flex flex-col gap-4">
-						<Input id="email" type="email" label="Email" />
-						<Button>Join waitlist</Button>
-					</form>
-				</section>
+				<JoinForm />
 			</main>
 
 			<footer className="flex flex-col bg-primary px-8">
@@ -173,6 +164,7 @@ function PowerCard({ src, label, description }: PowerCardProps) {
 				src={src}
 				alt=""
 				aria-hidden
+				quality={100}
 				className="aspect-[16/10] w-fit self-center rounded-lg border border-secondary shadow-sm transition-shadow group-hover:shadow-md"
 			/>
 			<div className="mt-3 inline-flex max-w-[45ch] select-none flex-col text-base">
