@@ -18,9 +18,9 @@ import LandingFourImage from "~/app/assets/landing-4.png";
 export default function Page() {
 	return (
 		<LenisWrapper>
-			<main className="container">
+			<main className="container px-8 sm:px-0">
 				<section className="flex min-h-screen flex-col items-center justify-center">
-					<h1 className="text-center text-5xl font-semibold">
+					<h1 className="text-center text-4xl font-semibold sm:text-5xl">
 						Discern the truth from lies
 						<span className="text-primary">...</span>
 					</h1>
@@ -32,7 +32,7 @@ export default function Page() {
 					</div>
 				</section>
 
-				<section id="problem" className="grid min-h-[28rem] grid-cols-2 gap-12">
+				<section id="problem" className="grid min-h-[28rem] gap-12 lg:grid-cols-2">
 					<div className=""></div>
 					<ContentSection
 						title="The Problem with Legacy Media"
@@ -55,13 +55,13 @@ export default function Page() {
 
 				<section
 					id="solution"
-					className="grid min-h-[28rem] grid-cols-2 items-center gap-12"
+					className="mt-16 grid min-h-[28rem] items-center gap-6 lg:mt-0 lg:grid-cols-2 lg:gap-12"
 				>
 					<ContentSection
 						title={
 							<div className="inline-flex items-center gap-2">
 								<span>Our solution:</span>
-								<Logo className="mb-1 inline h-12 w-fit" />
+								<Logo className="mb-1 inline h-10 w-fit sm:h-12" />
 							</div>
 						}
 						description={[
@@ -78,15 +78,15 @@ export default function Page() {
 
 				<section
 					id="features"
-					className="mt-24 grid min-h-[28rem] grid-cols-3 justify-items-center"
+					className="mt-24 grid justify-items-center gap-8 md:grid-cols-2 md:gap-x-6 lg:grid-cols-3"
 				>
-					<h1 className="col-span-full mb-8 text-center text-4xl font-semibold">
+					<h1 className="col-span-full text-center text-3xl font-semibold sm:text-4xl">
 						See the{" "}
 						<span className="relative font-black">
 							bigger
-							<CurvedSpring className="absolute -top-10 left-0 -z-10 h-10 w-12 -rotate-45 -scale-x-100" />
-							<Spring className="absolute -top-12 left-8 -z-10 h-10 w-12" />
-							<CurvedSpring className="absolute -top-10 right-0 -z-10 h-10 w-12 rotate-45" />
+							<CurvedSpring className="absolute -left-2 -top-9 -z-10 h-9 w-12 -rotate-45 -scale-x-100 sm:-top-10 sm:left-0 sm:h-10" />
+							<Spring className="absolute -top-10 left-6 -z-10 h-9 w-12 sm:-top-12 sm:left-8 sm:h-10" />
+							<CurvedSpring className="absolute -right-2 -top-9 -z-10 h-9 w-12 rotate-45 sm:-top-10 sm:right-0 sm:h-10" />
 						</span>{" "}
 						picture
 					</h1>
@@ -109,26 +109,31 @@ export default function Page() {
 						description="Credibility rankings for news sources, articles, and authors."
 					/>
 				</section>
+
+				<section className="mx-auto mb-12 mt-16 rounded-lg border border-secondary p-8 sm:mt-24 sm:max-w-xl">
+					<h2 className="text-3xl font-semibold">Join the waitlist</h2>
+					<span>Join the wait-list to get notified when TrueLens is released!</span>
+
+					<form className="mt-6 flex flex-col gap-4">
+						<Input id="email" type="email" label="Email" />
+						<Button>Join waitlist</Button>
+					</form>
+				</section>
 			</main>
 
-			<main className="mx-auto mb-12 mt-24 max-w-xl rounded-lg border border-secondary p-8">
-				<h2 className="text-3xl font-semibold">Join the waitlist</h2>
-				<span>Join the wait-list to get notified when TrueLens is released!</span>
+			<footer className="flex flex-col bg-primary px-8">
+				{/* <div className="container inline-flex h-8 items-center text-xs text-primary-foreground"> */}
 
-				<form className="mt-6 flex flex-col gap-4">
-					<Input id="email" type="email" label="Email" />
-					<Button>Join waitlist</Button>
-				</form>
-			</main>
-
-			<footer className="flex flex-col bg-primary">
-				<div className="container inline-flex h-8 items-center text-xs text-primary-foreground">
-					<span>&copy; 2024 TrueLens Initiative. All Rights Reserved</span>
-					<div className="flex-1" />
-					<Link href="/consent/privacy" className="mr-8">
+				<div className="grid grid-cols-2 grid-rows-[2rem_2rem] items-center justify-items-center text-xs text-primary-foreground md:grid-cols-[1fr_auto_auto] md:grid-rows-[2rem] md:justify-items-start">
+					<span className="order-3 col-span-full md:order-1 md:col-span-1">
+						&copy; 2024 TrueLens Initiative. All Rights Reserved
+					</span>
+					<Link href="/consent/privacy" className="order-1 mr-8 md:order-2">
 						Privacy Policy
 					</Link>
-					<Link href="/consent/terms">Terms of Service</Link>
+					<Link href="/consent/terms" className="order-2 md:order-3">
+						Terms of Service
+					</Link>
 				</div>
 			</footer>
 		</LenisWrapper>
@@ -144,7 +149,7 @@ type ContentSectionProps = {
 function ContentSection({ title, description, children }: ContentSectionProps) {
 	return (
 		<div className="flex max-w-prose flex-col text-pretty">
-			<h2 className="mb-4 text-4xl font-semibold">{title}</h2>
+			<h2 className="mb-4 text-3xl font-semibold md:text-4xl">{title}</h2>
 			{description.map((desc, i) => (
 				<p key={i} className="mb-2">
 					{desc}
@@ -168,7 +173,7 @@ function PowerCard({ src, label, description }: PowerCardProps) {
 				src={src}
 				alt=""
 				aria-hidden
-				className="h-72 w-fit self-center rounded-lg border border-secondary shadow-sm transition-shadow group-hover:shadow-md"
+				className="aspect-[16/10] w-fit self-center rounded-lg border border-secondary shadow-sm transition-shadow group-hover:shadow-md"
 			/>
 			<div className="mt-3 inline-flex max-w-[45ch] select-none flex-col text-base">
 				<span className="font-semibold">{label}</span>
