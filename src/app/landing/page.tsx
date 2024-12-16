@@ -59,8 +59,8 @@ export default function Page() {
 					<ContentSection
 						title={
 							<div className="inline-flex items-center gap-2">
-								<span>Our solution:</span>
-								<Logo className="mb-1 inline h-10 w-fit sm:h-12" />
+								<span className="text-2xl md:text-[inherit]">Our solution:</span>
+								<Logo className="mb-1 inline h-9 w-fit sm:h-12" />
 							</div>
 						}
 						description={[
