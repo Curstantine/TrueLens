@@ -59,6 +59,7 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    comments      Comment[]  // Add the relation to Comment
 }
 
 model VerificationToken {
@@ -74,4 +75,54 @@ model Waitlist {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     email     String   @unique
     createdAt DateTime @default(now())
+}
+
+// Represents a Comment associated with a user and an article
+model Comment {
+    id         String    @id @default(auto()) @map("_id") @db.ObjectId
+    content    String
+    createDate DateTime  @default(now())
+    user       User      @relation(fields: [userId], references: [id])
+    userId     String    @db.ObjectId
+    article    Article   @relation(fields: [articleId], references: [id])
+    articleId  String    @db.ObjectId
+}
+
+// Represents a Reporter who writes articles for a NewsOutlet
+model Reporter {
+    id        String      @id @default(auto()) @map("_id") @db.ObjectId
+    name      String
+    email     String      @unique
+    articles  Article[]
+    outlet    NewsOutlet  @relation(fields: [outletId], references: [id])
+    outletId  String      @db.ObjectId
+}
+
+// Represents a Story that groups related articles
+model Story {
+    id          String     @id @default(auto()) @map("_id") @db.ObjectId
+    title       String
+    description String
+    articles    Article[]
+}
+
+// Represents an Article written by a reporter and belonging to a story
+model Article {
+    id             String     @id @default(auto()) @map("_id") @db.ObjectId
+    title          String
+    content        String
+    publicationDate DateTime  @default(now())
+    reporter       Reporter   @relation(fields: [reporterId], references: [id])
+    reporterId     String     @db.ObjectId
+    story          Story      @relation(fields: [storyId], references: [id])
+    storyId        String     @db.ObjectId
+    comments       Comment[]
+}
+
+// Represents a NewsOutlet that employs reporters
+model NewsOutlet {
+    id           String      @id @default(auto()) @map("_id") @db.ObjectId
+    name         String
+    headquarters String
+    reporters    Reporter[]
 }
