@@ -1,6 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config '../../tailwind.config.ts';
+
+@utility btn {
+	@apply bg-primary text-primary-foreground;
+}
 
 @layer base {
 	:root {
@@ -18,12 +21,6 @@
 		--destructive-foreground: 0 6% 90%;
 		--border: 355 20% 77%;
 		--input: 353 20% 50%;
-	}
-}
-
-@layer components {
-	.btn {
-		@apply bg-primary text-primary-foreground;
 	}
 }
 
