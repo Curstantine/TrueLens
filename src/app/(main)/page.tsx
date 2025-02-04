@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
+import Image, { type StaticImageData } from "next/image";
 
 import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
 import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
-import Image, { StaticImageData } from "next/image";
 
 export const metadata: Metadata = {
 	title: "TrueLens - Home",
