@@ -161,11 +161,11 @@ export const articleRouter = createTRPCRouter({
 
   // Delete an article
   delete: publicProcedure
-    .input(z.string().min(1, "Article ID is required"))
+    .input(z.object({ id: z.string().min(1, "Article ID is required") }))
     .mutation(async ({ ctx, input }) => {
       try {
         return await db.article.delete({
-          where: { id: input },
+          where: { id: input.id },
         });
       } catch (error) {
         console.error("Error deleting article:", error);
@@ -176,3 +176,5 @@ export const articleRouter = createTRPCRouter({
       }
     }),
 });
+
+
