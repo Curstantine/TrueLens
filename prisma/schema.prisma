@@ -35,7 +35,8 @@ model Session {
     sessionToken String   @unique
     userId       String   @db.ObjectId
     expires      DateTime
-    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -44,12 +45,82 @@ model User {
     email         String?   @unique
     emailVerified DateTime?
     image         String?
-    accounts      Account[]
-    sessions      Session[]
+
+    accounts Account[]
+    sessions Session[]
+    comments Comment[]
+}
+
+model VerificationToken {
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
 }
 
 model Waitlist {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     email     String   @unique
     createdAt DateTime @default(now())
+}
+
+// Represents a Comment associated with a user and an article
+model Comment {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    content   String
+    articleId String   @db.ObjectId
+    createdBy String   @map("userId") @db.ObjectId
+    createdAt DateTime @default(now())
+
+    article Article @relation(fields: [articleId], references: [id])
+    user    User    @relation(fields: [createdBy], references: [id])
+}
+
+// Represents a Reporter who writes articles for a NewsOutlet
+model Reporter {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String
+    email     String   @unique
+    outletId  String   @db.ObjectId
+    createdAt DateTime @default(now())
+
+    articles Article[]
+    outlet   NewsOutlet @relation(fields: [outletId], references: [id])
+}
+
+// Represents a Story that groups related articles
+model Story {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    title       String
+    description String
+    createdAt   DateTime @default(now())
+
+    articles Article[]
+}
+
+// Represents an Article written by a reporter and belonging to a story
+model Article {
+    id          String   @id @default(auto()) @map("_id") @db.ObjectId
+    title       String
+    content     String
+    reporterId  String   @db.ObjectId
+    storyId     String   @db.ObjectId
+    publishedAt DateTime @default(now())
+    createdAt   DateTime @default(now())
+
+    story    Story     @relation(fields: [storyId], references: [id])
+    reporter Reporter  @relation(fields: [reporterId], references: [id])
+    comments Comment[]
+}
+
+// Represents a NewsOutlet that employs reporters
+model NewsOutlet {
+    id           String   @id @default(auto()) @map("_id") @db.ObjectId
+    name         String
+    headquarters String
+    createdAt    DateTime @default(now())
+
+    reporters Reporter[]
 }
