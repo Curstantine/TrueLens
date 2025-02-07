@@ -2,6 +2,10 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
+ 
+/*create the artical
+api address= http://localhost:3000/api/trpc/article.create
+*/
 
 export const articleRouter = createTRPCRouter({
   create: publicProcedure
@@ -81,7 +85,10 @@ export const articleRouter = createTRPCRouter({
       }
     }),
 
-  // Fetch all articles
+  /* Get all articles
+    api address=http://localhost:3000/api/trpc/article.getAll
+  */
+
   getAll: publicProcedure.query(async () => {
     try {
       return await db.article.findMany({
@@ -96,34 +103,42 @@ export const articleRouter = createTRPCRouter({
     }
   }),
 
-  // Fetch a single article by ID
+  /*
+  get artical by id
+  api address="http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"67a49a00d656ae8ea680d2dd"}}"
+  */
   getById: publicProcedure
-    .input(z.string().min(1, "Article ID is required"))
-    .query(async ({ ctx, input }) => {
-      try {
-        const article = await db.article.findUnique({
-          where: { id: input },
-          include: { reporter: true, story: true, comments: true },
-        });
+  .input(z.object({ id: z.string().min(1, "Article ID is required") })) // Expecting an object, not a raw string
+  .query(async ({ input }) => {
+    console.log("Received input for article.getById:", input);
 
-        if (!article) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Article not found.",
-          });
-        }
+    // Validate input properly
+    if (!input?.id) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Article ID is required but was not provided correctly.",
+      });
+    }
 
-        return article;
-      } catch (error) {
-        console.error("Error fetching article by ID:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to fetch the article.",
-        });
-      }
-    }),
+    const article = await db.article.findUnique({
+      where: { id: input.id }, // Ensure input is used properly
+      include: { reporter: true, story: true, comments: true },
+    });
 
-  // Update an article
+    if (!article) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Article not found.",
+      });
+    }
+
+    return article;
+  }),
+
+  /*
+  update artical 
+  api address=http://localhost:3000/api/trpc/article.update
+  */
   update: publicProcedure
     .input(
       z.object({
@@ -159,7 +174,9 @@ export const articleRouter = createTRPCRouter({
       }
     }),
 
-  // Delete an article
+  /* Delete an article
+ api address=http://localhost:3000/api/trpc/article.delete
+  */
   delete: publicProcedure
     .input(z.object({ id: z.string().min(1, "Article ID is required") }))
     .mutation(async ({ ctx, input }) => {
