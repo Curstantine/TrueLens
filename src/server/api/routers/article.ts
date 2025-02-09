@@ -4,10 +4,20 @@ import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
 export const articleRouter = createTRPCRouter({
-  /*
-  crate the artical
-  api call:http://localhost:3000/api/trpc/article.create
-  */
+  /**
+   * Create a new article.
+   * API Call: POST http://localhost:3000/api/trpc/article.create
+   * 
+   * Expected Input:
+   * {
+   * "json": {
+   *   "title": "Article Title",
+   *   "content": "Article content here...",
+   *   "reporterId": "reporter_unique_id",
+   *   "storyId": "story_unique_id"
+   *    }
+   * }
+   */
   create: publicProcedure
     .input(
       z.object({
@@ -21,7 +31,7 @@ export const articleRouter = createTRPCRouter({
       try {
         console.log("Received input for article.create:", input);
 
-        // Check if reporter exists
+        // Validate that the reporter exists
         const reporterExists = await db.reporter.findUnique({
           where: { id: input.reporterId },
           select: { id: true },
@@ -30,7 +40,7 @@ export const articleRouter = createTRPCRouter({
           throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found." });
         }
 
-        // Check if story exists
+        // Validate that the story exists
         const storyExists = await db.story.findUnique({
           where: { id: input.storyId },
           select: { id: true },
@@ -39,17 +49,20 @@ export const articleRouter = createTRPCRouter({
           throw new TRPCError({ code: "NOT_FOUND", message: "Story not found." });
         }
 
-        // Create the article
+        // Create a new article
         return await db.article.create({ data: input });
       } catch (error) {
         console.error("Error creating article:", error);
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create article." });
       }
     }),
-/*
-get All articles
-api call: http://localhost:3000/api/trpc/article.getAll
-*/
+
+  /**
+   * Get all articles.
+   * API Call: GET http://localhost:3000/api/trpc/article.getAll
+   * 
+   * Returns an array of articles including related reporter, story, and comments.
+   */
   getAll: publicProcedure.query(async () => {
     try {
       return await db.article.findMany({ include: { reporter: true, story: true, comments: true } });
@@ -58,20 +71,23 @@ api call: http://localhost:3000/api/trpc/article.getAll
       throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch articles." });
     }
   }),
-/* 
-get article by id
-api call: http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"67a4c66041ba6ab17a00ef85"}}
-*/
+
+  /**
+   * Get an article by its ID.
+   * API Call: GET http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"article_id_here"}}
+   */
   getById: publicProcedure
     .input(z.object({ id: z.string().min(1, "Article ID is required") }))
     .query(async ({ input }) => {
       try {
         console.log("Received input for article.getById:", input);
 
+        // Fetch the article by ID
         const article = await db.article.findUnique({
           where: { id: input.id },
           include: { reporter: true, story: true, comments: true },
         });
+        
         if (!article) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
         }
@@ -81,11 +97,22 @@ api call: http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"67
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch article." });
       }
     }),
-/*
-update the data
-api call: http://localhost:3000/api/trpc/article.update
-*/
-    update: publicProcedure
+
+  /**
+   * Update an existing article.
+   * API Call: PATCH http://localhost:3000/api/trpc/article.update
+   * 
+   * Expected Input:
+   * {
+   *  "json": {
+   *   "id": "article_unique_id",
+   *   "title": "Updated Title (optional)",
+   *   "content": "Updated Content (optional)",
+   *   "authorId": "Updated Author ID (optional)"
+   * }
+   * }
+   */
+  update: publicProcedure
     .input(
       z.object({
         id: z.string().min(1, "ID is required"), // Ensure ID is provided
@@ -98,15 +125,12 @@ api call: http://localhost:3000/api/trpc/article.update
       try {
         const { id, ...updateData } = input;
 
-        if (!id) {
-          throw new Error("Article ID is required");
-        }
-
-        // Ensure updateData is not empty
+        // Ensure there is at least one field to update
         if (Object.keys(updateData).length === 0) {
-          throw new Error("At least one field must be provided for update");
+          throw new TRPCError({ code: "BAD_REQUEST", message: "At least one field must be provided for update." });
         }
 
+        // Update the article
         const updatedArticle = await db.article.update({
           where: { id },
           data: updateData,
@@ -115,8 +139,32 @@ api call: http://localhost:3000/api/trpc/article.update
         return updatedArticle;
       } catch (error) {
         console.error("Error updating article:", error);
-        throw new Error("Failed to update article");
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to update article." });
       }
     }),
 
+    /**
+   * Delete an article by ID.
+   * API Call: DELETE http://localhost:3000/api/trpc/article.delete
+   *Expected Input:
+   * {"json":
+   *   { "id": "67a49b25d656ae8ea680d2df"}
+   *    }
+   */
+  delete: publicProcedure
+  .input(z.object({ id: z.string().min(1, "Article ID is required") }))
+  .mutation(async ({ input }) => {
+    try {
+      const article = await db.article.findUnique({ where: { id: input.id } });
+      if (!article) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
+      }
+
+      await db.article.delete({ where: { id: input.id } });
+      return { message: "Article deleted successfully." };
+    } catch (error) {
+      console.error("Error deleting article:", error);
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to delete article." });
+    }
+  }),
 });
