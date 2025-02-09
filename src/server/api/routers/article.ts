@@ -2,12 +2,12 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
- 
-/*create the artical
-api address= http://localhost:3000/api/trpc/article.create
-*/
 
 export const articleRouter = createTRPCRouter({
+  /*
+  crate the artical
+  api call:http://localhost:3000/api/trpc/article.create
+  */
   create: publicProcedure
     .input(
       z.object({
@@ -17,30 +17,17 @@ export const articleRouter = createTRPCRouter({
         storyId: z.string().min(1, "Story ID is required"),
       })
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       try {
-        // Log the incoming input
         console.log("Received input for article.create:", input);
-
-        // Check if input is defined and contains the necessary fields
-        if (!input || !input.title || !input.content || !input.reporterId || !input.storyId) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Missing required fields: title, content, reporterId, or storyId.",
-          });
-        }
 
         // Check if reporter exists
         const reporterExists = await db.reporter.findUnique({
           where: { id: input.reporterId },
           select: { id: true },
         });
-
         if (!reporterExists) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Reporter with the provided ID does not exist.",
-          });
+          throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found." });
         }
 
         // Check if story exists
@@ -48,150 +35,88 @@ export const articleRouter = createTRPCRouter({
           where: { id: input.storyId },
           select: { id: true },
         });
-
         if (!storyExists) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Story with the provided ID does not exist.",
-          });
+          throw new TRPCError({ code: "NOT_FOUND", message: "Story not found." });
         }
 
         // Create the article
-        const article = await db.article.create({
-          data: {
-            title: input.title,
-            content: input.content,
-            reporterId: input.reporterId,
-            storyId: input.storyId,
-          },
-        });
-
-        console.log("Article created successfully:", article);
-        return article;
-
+        return await db.article.create({ data: input });
       } catch (error) {
         console.error("Error creating article:", error);
-
-        // Enhanced error handling
-        if (error instanceof TRPCError) {
-          throw error; // rethrow known errors
-        } else {
-          // Handle unexpected errors
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: `An unexpected error occurred: ${ error}`,
-          });
-        }
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to create article." });
       }
     }),
-
-  /* Get all articles
-    api address=http://localhost:3000/api/trpc/article.getAll
-  */
-
+/*
+get All articles
+api call: http://localhost:3000/api/trpc/article.getAll
+*/
   getAll: publicProcedure.query(async () => {
     try {
-      return await db.article.findMany({
-        include: { reporter: true, story: true, comments: true },
-      });
+      return await db.article.findMany({ include: { reporter: true, story: true, comments: true } });
     } catch (error) {
       console.error("Error fetching articles:", error);
-      throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch articles.",
-      });
+      throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch articles." });
     }
   }),
-
-  /*
-  get artical by id
-  api address="http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"67a49a00d656ae8ea680d2dd"}}"
-  */
+/* 
+get article by id
+api call: http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"67a4c66041ba6ab17a00ef85"}}
+*/
   getById: publicProcedure
-  .input(z.object({ id: z.string().min(1, "Article ID is required") })) // Expecting an object, not a raw string
-  .query(async ({ input }) => {
-    console.log("Received input for article.getById:", input);
+    .input(z.object({ id: z.string().min(1, "Article ID is required") }))
+    .query(async ({ input }) => {
+      try {
+        console.log("Received input for article.getById:", input);
 
-    // Validate input properly
-    if (!input?.id) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Article ID is required but was not provided correctly.",
-      });
-    }
-
-    const article = await db.article.findUnique({
-      where: { id: input.id }, // Ensure input is used properly
-      include: { reporter: true, story: true, comments: true },
-    });
-
-    if (!article) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Article not found.",
-      });
-    }
-
-    return article;
-  }),
-
-  /*
-  update artical 
-  api address=http://localhost:3000/api/trpc/article.update
-  */
-  update: publicProcedure
+        const article = await db.article.findUnique({
+          where: { id: input.id },
+          include: { reporter: true, story: true, comments: true },
+        });
+        if (!article) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
+        }
+        return article;
+      } catch (error) {
+        console.error("Error fetching article:", error);
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Failed to fetch article." });
+      }
+    }),
+/*
+update the data
+api call: http://localhost:3000/api/trpc/article.update
+*/
+    update: publicProcedure
     .input(
       z.object({
-        id: z.string().min(1, "Article ID is required"),
+        id: z.string().min(1, "ID is required"), // Ensure ID is provided
         title: z.string().optional(),
         content: z.string().optional(),
+        authorId: z.string().optional(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-
-      // Ensure at least one field is being updated
-      if (Object.keys(data).length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "At least one field (title or content) must be updated.",
-        });
-      }
-
+    .mutation(async ({ input }) => {
       try {
+        const { id, ...updateData } = input;
+
+        if (!id) {
+          throw new Error("Article ID is required");
+        }
+
+        // Ensure updateData is not empty
+        if (Object.keys(updateData).length === 0) {
+          throw new Error("At least one field must be provided for update");
+        }
+
         const updatedArticle = await db.article.update({
           where: { id },
-          data,
+          data: updateData,
         });
 
         return updatedArticle;
       } catch (error) {
         console.error("Error updating article:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to update the article.",
-        });
+        throw new Error("Failed to update article");
       }
     }),
 
-  /* Delete an article
- api address=http://localhost:3000/api/trpc/article.delete
-  */
-  delete: publicProcedure
-    .input(z.object({ id: z.string().min(1, "Article ID is required") }))
-    .mutation(async ({ ctx, input }) => {
-      try {
-        return await db.article.delete({
-          where: { id: input.id },
-        });
-      } catch (error) {
-        console.error("Error deleting article:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to delete the article.",
-        });
-      }
-    }),
 });
-
-
