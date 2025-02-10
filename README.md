@@ -27,11 +27,7 @@ For an example, say we need to create a user route:
 - `src/server/api/routers/user.ts`
 
     ```tsx
-    import {
-    	createTRPCRouter,
-    	protectedProcedure,
-    	publicProcedure,
-    } from "~/server/api/trpc";
+    import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 
     export const UserRouter = createTRPCRouter({
     	hello: publicProcedure // <- unauthenticated access
@@ -64,6 +60,11 @@ For an example, say we need to create a user route:
     	user: userRouter,
     });
     ```
+
+### Guide (Schema)
+
+- Database schema resides in the [`prisma/schema.prisma`](./prisma/schema.prisma) file.
+- After doing changes to the schema file, run `pnpm db:push` to update the changes and generate the necessary types. Be careful when running this in a production deployment.
 
 ### Additional documentation
 
