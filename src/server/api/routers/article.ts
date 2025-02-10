@@ -6,17 +6,6 @@ import { TRPCError } from "@trpc/server";
 export const articleRouter = createTRPCRouter({
 	/**
 	 * Create a new article.
-	 * API Call: POST http://localhost:3000/api/trpc/article.create
-	 *
-	 * Expected Input:
-	 * {
-	 * "json": {
-	 *   "title": "Article Title",
-	 *   "content": "Article content here...",
-	 *   "reporterId": "reporter_unique_id",
-	 *   "storyId": "story_unique_id"
-	 *    }
-	 * }
 	 */
 	create: publicProcedure
 		.input(
@@ -62,7 +51,6 @@ export const articleRouter = createTRPCRouter({
 
 	/**
 	 * Get all articles.
-	 * API Call: GET http://localhost:3000/api/trpc/article.getAll
 	 *
 	 * Returns an array of articles including related reporter, story, and comments.
 	 */
@@ -82,7 +70,6 @@ export const articleRouter = createTRPCRouter({
 
 	/**
 	 * Get an article by its ID.
-	 * API Call: GET http://localhost:3000/api/trpc/article.getById?input={"json":{"id":"article_id_here"}}
 	 */
 	getById: publicProcedure
 		.input(z.object({ id: z.string().min(1, "Article ID is required") }))
@@ -111,17 +98,6 @@ export const articleRouter = createTRPCRouter({
 
 	/**
 	 * Update an existing article.
-	 * API Call: PATCH http://localhost:3000/api/trpc/article.update
-	 *
-	 * Expected Input:
-	 * {
-	 *  "json": {
-	 *   "id": "article_unique_id",
-	 *   "title": "Updated Title (optional)",
-	 *   "content": "Updated Content (optional)",
-	 *   "authorId": "Updated Author ID (optional)"
-	 * }
-	 * }
 	 */
 	update: publicProcedure
 		.input(
@@ -162,11 +138,6 @@ export const articleRouter = createTRPCRouter({
 
 	/**
 	 * Delete an article by ID.
-	 * API Call: DELETE http://localhost:3000/api/trpc/article.delete
-	 *Expected Input:
-	 * {"json":
-	 *   { "id": "67a49b25d656ae8ea680d2df"}
-	 *    }
 	 */
 	delete: publicProcedure
 		.input(z.object({ id: z.string().min(1, "Article ID is required") }))
