@@ -167,7 +167,7 @@ function PowerCard({ src, label, description }: PowerCardProps) {
 				alt=""
 				aria-hidden
 				quality={100}
-				className="aspect-[16/10] w-fit self-center rounded-lg border border-secondary shadow-sm transition-shadow group-hover:shadow-md"
+				className="aspect-16/10 w-fit self-center rounded-lg border border-secondary shadow-xs transition-shadow group-hover:shadow-md"
 			/>
 			<div className="mt-3 inline-flex max-w-[45ch] select-none flex-col text-base">
 				<span className="font-semibold">{label}</span>

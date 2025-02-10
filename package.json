@@ -40,6 +40,7 @@
 	"devDependencies": {
 		"@iconify-json/tabler": "^1.2.11",
 		"@iconify/tailwind": "^1.2.0",
+		"@tailwindcss/postcss": "^4.0.0",
 		"@types/eslint": "^8.56.10",
 		"@types/node": "^20.14.10",
 		"@types/react": "^18.3.3",
@@ -50,13 +51,13 @@
 		"eslint-config-next": "^15.0.1",
 		"postcss": "^8.4.39",
 		"prettier": "^3.3.2",
-		"prettier-plugin-tailwindcss": "^0.6.5",
-		"prisma": "^6.3.0",
-		"tailwindcss": "^3.4.3",
+		"prettier-plugin-tailwindcss": "^0.6.11",
+		"prisma": "^5.14.0",
+		"tailwindcss": "^4.0.0",
 		"typescript": "^5.5.3"
 	},
 	"ct3aMetadata": {
 		"initVersion": "7.38.1"
 	},
-	"packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
+	"packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0"
 }

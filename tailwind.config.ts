@@ -1,5 +1,5 @@
 import { type Config } from "tailwindcss";
-import { fontFamily } from "tailwindcss/defaultTheme";
+import defaults from "tailwindcss/defaultTheme";
 import { addIconSelectors } from "@iconify/tailwind";
 
 export default {
@@ -58,7 +58,8 @@ export default {
 			input: "hsl(var(--input) / <alpha-value>)",
 		},
 		fontFamily: {
-			sans: ["var(--font-inter)", ...fontFamily.sans],
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+			sans: ["var(--font-inter)", ...defaults.fontFamily.sans],
 		},
 		extend: {
 			transitionProperty: {
