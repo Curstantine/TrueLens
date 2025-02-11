@@ -63,4 +63,32 @@ export const newsOutletRouter = createTRPCRouter({
           });
         }
       }),
+      //update news outlet by id
+      update: publicProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          name: z.string().optional(),
+          headquarters: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const updatedNewsOutlet = await db.newsOutlet.update({
+            where: { id: input.id },
+            data: {
+              name: input.name,
+              headquarters: input.headquarters,
+            },
+          });
+          return updatedNewsOutlet;
+        } catch (error) {
+          console.error("Error updating news outlet:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to update news outlet",
+          });
+        }
+      }),
+      
 });
