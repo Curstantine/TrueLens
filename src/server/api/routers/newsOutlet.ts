@@ -42,4 +42,25 @@ export const newsOutletRouter = createTRPCRouter({
           });
         }
       }),
+
+      //get news outlet by id
+      getById: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        try {
+          const newsOutlet = await db.newsOutlet.findUnique({
+            where: { id: input.id },
+          });
+          if (!newsOutlet) {
+            throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
+          }
+          return newsOutlet;
+        } catch (error) {
+          console.error("Error fetching news outlet:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch news outlet",
+          });
+        }
+      }),
 });
