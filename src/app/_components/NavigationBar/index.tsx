@@ -1,10 +1,11 @@
 import Link from "next/link";
+
 import Logo from "~/app/_components/icons/Logo";
 import Search from "~/app/_components/Search";
 
 export default function NavigationBar() {
 	return (
-		<nav className="container sticky top-0 flex h-14 items-center">
+		<nav className="sticky top-0 container flex h-14 items-center">
 			<Link href="/">
 				<Logo className="h-8 w-fit" />
 			</Link>
@@ -19,13 +20,13 @@ export default function NavigationBar() {
 				</li>
 
 				<li>
-					<Link href="/contact">Pricing</Link>
+					<Link href="/contact">Plans</Link>
 				</li>
 
 				<li>
 					<Link
 						href="/auth/signin"
-						className="rounded-md bg-primary px-4 py-1.5 text-primary-foreground"
+						className="bg-primary text-primary-foreground rounded-md px-4 py-1.5"
 					>
 						Sign-in
 					</Link>
