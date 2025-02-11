@@ -18,13 +18,7 @@ export default function Page() {
 			</div>
 
 			<form className="flex flex-col gap-3">
-				<Input
-					id="email"
-					type="email"
-					label="Email"
-					name="email"
-					placeholder="johndoe@gmail.com"
-				/>
+				<Input id="email" type="email" label="Email" name="email" />
 				<Input id="password" type="password" label="Password" name="password" />
 
 				<div className="text-muted-foreground mb-4 inline-flex items-center justify-between text-xs">
