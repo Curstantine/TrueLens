@@ -30,4 +30,16 @@ export const newsOutletRouter = createTRPCRouter({
         }
       }),
 
+      //get all news outlets
+      getAll: publicProcedure.query(async () => {
+        try {
+          return await db.newsOutlet.findMany();
+        } catch (error) {
+          console.error("Error fetching news outlets:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch news outlets",
+          });
+        }
+      }),
 });
