@@ -63,6 +63,7 @@ export const newsOutletRouter = createTRPCRouter({
           });
         }
       }),
+
       //update news outlet by id
       update: publicProcedure
       .input(
@@ -90,5 +91,22 @@ export const newsOutletRouter = createTRPCRouter({
           });
         }
       }),
-      
+
+      //delete news outlet by id
+      delete: publicProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        try {
+          await db.newsOutlet.delete({
+            where: { id: input.id },
+          });
+          return { message: "News outlet deleted successfully" };
+        } catch (error) {
+          console.error("Error deleting news outlet:", error);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to delete news outlet",
+          });
+        }
+      }),
 });
