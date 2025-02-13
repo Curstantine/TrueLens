@@ -24,13 +24,24 @@ export const newsOutletRouter = createTRPCRouter({
     }),
 
       //get all news outlets
+      //http://localhost:3000/api/trpc/newsOutlet.getAll?input={"json":{}}
       //@example
-      // http://localhost:3000/api/trpc/newsOutlet.getAll
-      getAll: publicProcedure.query(async () => {
-        return db.newsOutlet.findMany();
+      //http://localhost:3000/api/trpc/newsOutlet.getAll?input={"json":{"limit":10,"offset":0}}
+      
+      getAll: publicProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(100).default(100),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        return db.newsOutlet.findMany({
+          take: input.limit,
+          skip: input.offset,
+        });
       }),
   
-
       //get news outlet by id
       //@example
       // http://localhost:3000/api/trpc/newsOutlet.getById?input={"json":{"id":"67ab90f882cbf670ef001dc2"}}
