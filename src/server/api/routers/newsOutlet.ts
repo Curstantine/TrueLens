@@ -15,29 +15,20 @@ export const newsOutletRouter = createTRPCRouter({
     *   }
     */
     create: publicProcedure
-      .input(
-        z.object({
-          name: z.string().min(1, "Name is required"),
-          headquarters: z.string().min(1, "Headquarters is required"),
-        })
-      )
-      .mutation(async ({ input }) => {
-        try {
-          const newsOutlet = await db.newsOutlet.create({
-            data: {
-              name: input.name,
-              headquarters: input.headquarters,
-            },
-          });
-          return newsOutlet;
-        } catch (error) {
-          console.error("Error creating news outlet:", error);
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to create news outlet",
-          });
-        }
-      }),
+    .input(
+      z.object({
+        name: z.string().min(1, "Name is required"),
+        headquarters: z.string().min(1, "Headquarters is required"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      return db.newsOutlet.create({
+        data: {
+          name: input.name,
+          headquarters: input.headquarters,
+        },
+      });
+    }),
 
       //get all news outlets
       //@example
