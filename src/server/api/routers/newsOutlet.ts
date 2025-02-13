@@ -6,13 +6,6 @@ import { TRPCError } from "@trpc/server";
 export const newsOutletRouter = createTRPCRouter({
     /* Create newsOutlet
     *  http://localhost:3000/api/trpc/newsOutlet.create
-    *  @example
-    *    {
-    *    "json": {
-    *       "name": "Sakthi News",
-    *       "headquarters": "Sakthi TV"
-    *   }
-    *   }
     */
     create: publicProcedure
     .input(
@@ -55,16 +48,7 @@ export const newsOutletRouter = createTRPCRouter({
 
       //update news outlet by id
       // http://localhost:3000/api/trpc/newsOutlet.update
-      //@example
-      /*
-      *{
-      *"json":{
-      *"id": "67ab90f882cbf670ef001dc2",
-      *"name": "Updated News Outlet Name",
-      *"headquarters": "Updated Headquarters Location"
-      *}
-      *}
-      */
+      
       update: publicProcedure
       .input(
         z.object({
@@ -85,14 +69,6 @@ export const newsOutletRouter = createTRPCRouter({
 
       //delete news outlet by id
       // http://localhost:3000/api/trpc/newsOutlet.delete
-      //@example
-      /*
-      *{
-      *"json":{
-      *"id":"67ab90f882cbf670ef001dc2"
-      *}
-      *}
-      */
       delete: publicProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
