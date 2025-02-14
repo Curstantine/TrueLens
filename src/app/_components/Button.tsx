@@ -1,18 +1,26 @@
-import clsx from "clsx/lite";
-import { type ReactNode, type ButtonHTMLAttributes } from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import type { ButtonHTMLAttributes } from "react";
 
-type Props = ButtonHTMLAttributes<HTMLButtonElement> & { children: ReactNode };
+const btn = cva(
+	"inline-flex h-9 items-center justify-center rounded-md text-sm transition-colors_opacity disabled:pointer-events-none disabled:opacity-50",
+	{
+		variants: {
+			intent: {
+				primary: "bg-primary text-primary-foreground hover:bg-primary/85",
+				border: "bg-transparent border border-input text-input hover:bg-input hover:text-background",
+			},
+		},
+		defaultVariants: {
+			intent: "primary",
+		},
+	},
+);
 
-export default function Button({ children, className, ...rest }: Props) {
+type Props = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof btn>;
+
+export default function Button({ children, className, intent, ...rest }: Props) {
 	return (
-		<button
-			className={clsx(
-				"inline-flex h-9 items-center justify-center rounded-md bg-primary text-sm text-primary-foreground transition-colors_opacity hover:bg-primary/85",
-				"disabled:pointer-events-none disabled:opacity-50",
-				className,
-			)}
-			{...rest}
-		>
+		<button className={btn({ intent, className })} {...rest}>
 			{children}
 		</button>
 	);

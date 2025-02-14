@@ -1,7 +1,7 @@
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 // import GitHubProvider from "next-auth/providers/github";
-// import GoogleProvider from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 
 import { db } from "~/server/db";
 
@@ -15,6 +15,8 @@ declare module "next-auth" {
 	interface Session extends DefaultSession {
 		user: {
 			id: string;
+			name: string;
+			email: string;
 			// ...other properties
 			// role: UserRole;
 		} & DefaultSession["user"];
@@ -33,7 +35,7 @@ declare module "next-auth" {
  */
 export const authConfig = {
 	providers: [
-		// GoogleProvider,
+		GoogleProvider,
 		// GitHubProvider,
 		/**
 		 * ...add more providers here.
@@ -47,6 +49,15 @@ export const authConfig = {
 	],
 	adapter: PrismaAdapter(db),
 	callbacks: {
+		signIn: ({ account, profile }) => {
+			console.log(account, profile);
+			if (account?.provider === "google") {
+				if (!profile || !profile.email) return false;
+				return profile.email_verified === true;
+			}
+
+			return true;
+		},
 		session: ({ session, user }) => ({
 			...session,
 			user: {

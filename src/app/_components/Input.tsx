@@ -14,7 +14,7 @@ export default function Input({ id, label, ...rest }: Props) {
 			<input
 				id={id}
 				{...rest}
-				className="h-10 rounded-md border border-border bg-transparent px-2 text-sm transition-colors_opacity focus-visible:border-input focus-visible:outline-hidden"
+				className="border-border transition-colors_opacity focus-visible:border-input h-9 rounded-md border bg-transparent px-2 text-sm focus-visible:outline-hidden"
 			/>
 		</div>
 	);
