@@ -49,5 +49,26 @@ export const storyRouter = createTRPCRouter({
 
       return story;
     }),
+
+    //update story by id
+    update: publicProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, "Story ID is required"),
+        title: z.string().min(1, "Title is required"),
+        description: z.string().min(1, "Description is required"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const story = await db.story.update({
+        where: { id: input.id },
+        data: {
+          title: input.title,
+          description: input.description,
+        },
+      });
+
+      return story;
+    }),
     
     });
