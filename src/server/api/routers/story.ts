@@ -20,5 +20,11 @@ export const storyRouter = createTRPCRouter({
           },
         });
       }),
+      //get all stories
+      getAll: publicProcedure.query(() => {
+        return db.story.findMany({
+          include: { articles: true },
+        });
+      }),
 
     });
