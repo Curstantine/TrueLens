@@ -6,14 +6,14 @@ export default function Search({ className }: Props) {
 	return (
 		<label
 			className={clsx(
-				"relative rounded-md bg-muted outline-1 outline-transparent transition-colors focus-within:outline-input",
+				"bg-muted focus-within:outline-input relative rounded-md outline-1 outline-transparent transition-colors",
 				className,
 			)}
 		>
-			<div className="iconify absolute left-2 top-1.5 size-5 text-muted-foreground tabler--search" />
+			<div className="iconify text-muted-foreground tabler--search absolute top-1.5 left-2 size-5" />
 			<input
 				placeholder="Search"
-				className="h-8 min-w-64 bg-transparent pl-10 pr-4 placeholder:text-muted-foreground focus:outline-hidden"
+				className="placeholder:text-muted-foreground h-8 min-w-64 bg-transparent pr-4 pl-10 focus:outline-hidden"
 			/>
 		</label>
 	);

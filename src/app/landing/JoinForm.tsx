@@ -15,7 +15,7 @@ export default function JoinForm() {
 	});
 
 	return (
-		<section className="mx-auto mb-12 mt-16 rounded-lg border border-secondary p-8 sm:mt-24 sm:max-w-xl">
+		<section className="border-secondary mx-auto mt-16 mb-12 rounded-lg border p-8 sm:mt-24 sm:max-w-xl">
 			<h2 className="text-3xl font-semibold">Join the waitlist</h2>
 			<span>Join the wait-list to get notified when TrueLens is released!</span>
 
@@ -32,13 +32,13 @@ export default function JoinForm() {
 				<Input id="email" type="email" label="Email" name="email" />
 				<Button type="submit" disabled={createWaitlist.isPending} className="gap-2">
 					{createWaitlist.isPending && (
-						<div className="iconify size-5 animate-spin tabler--loader-2" />
+						<div className="iconify tabler--loader-2 size-5 animate-spin" />
 					)}
 					{createWaitlist.isPending ? "Joining..." : "Join waitlist"}
 				</Button>
 
 				{createWaitlist.error && (
-					<p className="-mt-2 text-xs text-destructive">{createWaitlist.error.message}</p>
+					<p className="text-destructive -mt-2 text-xs">{createWaitlist.error.message}</p>
 				)}
 			</form>
 		</section>
