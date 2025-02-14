@@ -70,5 +70,14 @@ export const storyRouter = createTRPCRouter({
 
       return story;
     }),
+    //delete story by id
+    /* Delete story */
+   delete: publicProcedure
+    .input(z.string().min(1, "Story ID is required"))
+    .mutation(async ({ input }) => {
+      return db.story.delete({
+       where: { id: input },
+      });
+    }),
     
     });
