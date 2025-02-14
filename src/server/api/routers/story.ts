@@ -4,7 +4,9 @@ import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
 export const storyRouter = createTRPCRouter({
-    /* Create Story */
+    /* Create Story
+    * api address = http://localhost:3000/api/trpc/story.create
+    */
     create: publicProcedure
       .input(
         z.object({
@@ -20,7 +22,9 @@ export const storyRouter = createTRPCRouter({
           },
         });
       }),
+
       //get all stories
+      //api address= http://localhost:3000/api/trpc/story.getAll
       getAll: publicProcedure.query(() => {
         return db.story.findMany({
           include: { articles: true },
@@ -28,29 +32,33 @@ export const storyRouter = createTRPCRouter({
       }),
 
       //get story by id
+      //@example
+      //api address = http://localhost:3000/api/trpc/story.getById?input={"json":{"id":"67ab90f882cbf670ef001dc2"}}
       getById: publicProcedure
-    .input(
-      z.object({
-        id: z.string().min(1, "Story ID is required"),
-      })
-    )
-    .query(async ({ input }) => {
-      const story = await db.story.findUnique({
-        where: { id: input.id },
-        include: { articles: true },
-      });
-
-      if (!story) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Story not found.",
+      .input(
+        z.object({
+          id: z.string().min(1, "Story ID is required"),
+        })
+      )
+      .query(async ({ input }) => {
+          const story = await db.story.findUnique({
+          where: { id: input.id },
+          include: { articles: true },
         });
-      }
 
-      return story;
-    }),
+        if (!story) {
+         throw new TRPCError({
+           code: "NOT_FOUND",
+           message: "Story not found.",
+          });
+       }
+
+        return story;
+      }),
 
     //update story by id
+    //@example
+    //api address= http://localhost:3000/api/trpc/story.update
     update: publicProcedure
     .input(
       z.object({
@@ -70,13 +78,16 @@ export const storyRouter = createTRPCRouter({
 
       return story;
     }),
+
     //delete story by id
-    /* Delete story */
-   delete: publicProcedure
-    .input(z.string().min(1, "Story ID is required"))
+    /* Delete story 
+    *api address= http://localhost:3000/api/trpc/story.delete
+    */
+    delete: publicProcedure
+    .input(z.object({ id: z.string().min(1, "Story ID is required") })) 
     .mutation(async ({ input }) => {
       return db.story.delete({
-       where: { id: input },
+        where: { id: input.id }, 
       });
     }),
     
