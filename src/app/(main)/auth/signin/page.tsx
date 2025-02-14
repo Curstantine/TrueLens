@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { signIn } from "~/server/auth";
+
 import Button from "~/app/_components/Button";
 import GoogleLogo from "~/app/_components/icons/GoogleLogo";
 import Input from "~/app/_components/Input";
-import { signIn } from "~/server/auth";
 
 export const metadata: Metadata = {
 	title: "TrueLens - Sign In",
@@ -42,7 +43,7 @@ export default function Page() {
 				className="flex flex-col"
 				action={async () => {
 					"use server";
-					await signIn("google");
+					await signIn("google", { redirectTo: "/" });
 				}}
 			>
 				<Button type="submit" intent="border" className="gap-x-2">

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import Logo from "~/app/_components/icons/Logo";
+import Profile, { ProfileSkeleton } from "~/app/_components/NavigationBar/Profile";
 import Search from "~/app/_components/Search";
 
 export default function NavigationBar() {
@@ -14,7 +16,7 @@ export default function NavigationBar() {
 
 			<Search className="mr-6" />
 
-			<ul className="inline-flex gap-4">
+			<ul className="mr-6 inline-flex items-center gap-4">
 				<li>
 					<Link href="/about">About</Link>
 				</li>
@@ -22,16 +24,11 @@ export default function NavigationBar() {
 				<li>
 					<Link href="/contact">Plans</Link>
 				</li>
-
-				<li>
-					<Link
-						href="/auth/signin"
-						className="bg-primary text-primary-foreground rounded-md px-4 py-1.5"
-					>
-						Sign-in
-					</Link>
-				</li>
 			</ul>
+
+			<Suspense fallback={<ProfileSkeleton />}>
+				<Profile />
+			</Suspense>
 		</nav>
 	);
 }
