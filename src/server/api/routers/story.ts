@@ -27,4 +27,27 @@ export const storyRouter = createTRPCRouter({
         });
       }),
 
+      //get story by id
+      getById: publicProcedure
+    .input(
+      z.object({
+        id: z.string().min(1, "Story ID is required"),
+      })
+    )
+    .query(async ({ input }) => {
+      const story = await db.story.findUnique({
+        where: { id: input.id },
+        include: { articles: true },
+      });
+
+      if (!story) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Story not found.",
+        });
+      }
+
+      return story;
+    }),
+    
     });
