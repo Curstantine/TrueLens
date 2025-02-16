@@ -4,9 +4,7 @@ import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
 export const newsOutletRouter = createTRPCRouter({
-    /* Create newsOutlet
-    *  http://localhost:3000/api/trpc/newsOutlet.create
-    */
+    /* Create newsOutlet*/
     create: publicProcedure
     .input(
       z.object({
@@ -24,10 +22,6 @@ export const newsOutletRouter = createTRPCRouter({
     }),
 
       //get all news outlets
-      //http://localhost:3000/api/trpc/newsOutlet.getAll?input={"json":{}}
-      //@example
-      //http://localhost:3000/api/trpc/newsOutlet.getAll?input={"json":{"limit":10,"offset":0}}
-      
       getAll: publicProcedure
       .input(
         z.object({
@@ -43,8 +37,6 @@ export const newsOutletRouter = createTRPCRouter({
       }),
   
       //get news outlet by id
-      //@example
-      // http://localhost:3000/api/trpc/newsOutlet.getById?input={"json":{"id":"67ab90f882cbf670ef001dc2"}}
       getById: publicProcedure
       .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
@@ -57,9 +49,7 @@ export const newsOutletRouter = createTRPCRouter({
         return newsOutlet;
       }),
 
-      //update news outlet by id
-      // http://localhost:3000/api/trpc/newsOutlet.update
-      
+      //update news outlet by id  
       update: publicProcedure
       .input(
         z.object({
@@ -79,7 +69,6 @@ export const newsOutletRouter = createTRPCRouter({
       }),
 
       //delete news outlet by id
-      // http://localhost:3000/api/trpc/newsOutlet.delete
       delete: publicProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {

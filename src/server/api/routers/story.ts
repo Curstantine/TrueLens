@@ -4,9 +4,7 @@ import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
 export const storyRouter = createTRPCRouter({
-    /* Create Story
-    * api address = http://localhost:3000/api/trpc/story.create
-    */
+    /* Create Story*/
     create: publicProcedure
       .input(
         z.object({
@@ -24,16 +22,21 @@ export const storyRouter = createTRPCRouter({
       }),
 
       //get all stories
-      //api address= http://localhost:3000/api/trpc/story.getAll
-      getAll: publicProcedure.query(() => {
+      getAll: publicProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(100).default(100),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
         return db.story.findMany({
-          include: { articles: true },
+          take: input.limit,
+          skip: input.offset,
         });
       }),
 
       //get story by id
-      //@example
-      //api address = http://localhost:3000/api/trpc/story.getById?input={"json":{"id":"67ab90f882cbf670ef001dc2"}}
       getById: publicProcedure
       .input(
         z.object({
@@ -57,8 +60,6 @@ export const storyRouter = createTRPCRouter({
       }),
 
     //update story by id
-    //@example
-    //api address= http://localhost:3000/api/trpc/story.update
     update: publicProcedure
     .input(
       z.object({
@@ -80,9 +81,6 @@ export const storyRouter = createTRPCRouter({
     }),
 
     //delete story by id
-    /* Delete story 
-    *api address= http://localhost:3000/api/trpc/story.delete
-    */
     delete: publicProcedure
     .input(z.object({ id: z.string().min(1, "Story ID is required") })) 
     .mutation(async ({ input }) => {
