@@ -4,7 +4,6 @@ import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
 export const storyRouter = createTRPCRouter({
-	/* Create Story*/
 	create: publicProcedure
 		.input(
 			z.object({
@@ -20,8 +19,6 @@ export const storyRouter = createTRPCRouter({
 				},
 			});
 		}),
-
-	//get all stories
 	getAll: publicProcedure
 		.input(
 			z.object({
@@ -36,7 +33,6 @@ export const storyRouter = createTRPCRouter({
 			});
 		}),
 
-	//get story by id
 	getById: publicProcedure
 		.input(
 			z.object({
@@ -59,7 +55,6 @@ export const storyRouter = createTRPCRouter({
 			return story;
 		}),
 
-	//update story by id
 	update: publicProcedure
 		.input(
 			z.object({
@@ -80,7 +75,6 @@ export const storyRouter = createTRPCRouter({
 			return story;
 		}),
 
-	//delete story by id
 	delete: publicProcedure
 		.input(z.object({ id: z.string().min(1, "Story ID is required") }))
 		.mutation(async ({ input }) => {
