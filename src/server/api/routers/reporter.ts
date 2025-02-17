@@ -62,4 +62,22 @@ export const reporterRouter = createTRPCRouter({
         include: { outlet: true },
       });
     }),
+
+    //Get by ID
+     // Get by ID
+  getById: publicProcedure
+  .input(z.object({ id: z.string() }))
+  .query(async ({ input }) => {
+    const reporter = await db.reporter.findUnique({
+      where: { id: input.id },
+      include: { outlet: true },
+    });
+    if (!reporter) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Reporter not found",
+      });
+    }
+    return reporter;
+  }),
 });
