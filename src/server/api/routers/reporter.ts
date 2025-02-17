@@ -62,7 +62,7 @@ export const reporterRouter = createTRPCRouter({
         include: { outlet: true },
       });
     }),
-    
+
      // Get by ID
   getById: publicProcedure
   .input(z.object({ id: z.string() }))
@@ -79,4 +79,59 @@ export const reporterRouter = createTRPCRouter({
     }
     return reporter;
   }),
+
+// Update by id 
+update: publicProcedure
+  .input(
+    z.object({
+      id: z.string(),
+      name: z.string().optional(),
+      email: z.string().email("Invalid email address").optional(),
+      outletId: z.string().optional(),
+    })
+  )
+  .mutation(async ({ input }) => {
+    // Validate that the ID is a valid MongoDB ObjectId
+    if (input.outletId && !/^[a-f\d]{24}$/i.test(input.outletId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Invalid outletId format. Must be a valid MongoDB ObjectId.",
+      });
+    }
+
+    // Ensure the reporter exists
+    const existingReporter = await db.reporter.findUnique({
+      where: { id: input.id },
+    });
+    if (!existingReporter) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Reporter not found",
+      });
+    }
+
+    // If outletId is provided, ensure the outlet exists
+    if (input.outletId) {
+      const outletExists = await db.newsOutlet.findUnique({
+        where: { id: input.outletId },
+        select: { id: true },
+      });
+      if (!outletExists) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "News Outlet with the provided ID does not exist.",
+        });
+      }
+    }
+
+    return await db.reporter.update({
+      where: { id: input.id },
+      data: {
+        name: input.name,
+        email: input.email,
+        outletId: input.outletId,
+      },
+    });
+  }),
+  
 });
