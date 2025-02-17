@@ -21,6 +21,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
 	return (
 		<html lang="en" className={`${InterFont.variable}`}>
+			<head>
+				<script src="https://unpkg.com/react-scan/dist/auto.global.js" async />
+			</head>
 			<body>
 				<TRPCReactProvider>{children}</TRPCReactProvider>
 				<Toaster />
