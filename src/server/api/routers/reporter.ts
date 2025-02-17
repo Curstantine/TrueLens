@@ -133,5 +133,21 @@ update: publicProcedure
       },
     });
   }),
-  
+
+  //Delete reporter by id 
+   delete: publicProcedure
+   .input(z.object({ id: z.string() }))
+   .mutation(async ({ input }) => {
+     const existingReporter = await db.reporter.findUnique({
+       where: { id: input.id },
+     });
+     if (!existingReporter) {
+       throw new TRPCError({
+         code: "NOT_FOUND",
+         message: "Reporter not found",
+       });
+     }
+     await db.reporter.delete({ where: { id: input.id } });
+     return { message: "Reporter deleted successfully" };
+   }),
 });
