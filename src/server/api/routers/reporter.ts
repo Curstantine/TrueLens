@@ -62,8 +62,7 @@ export const reporterRouter = createTRPCRouter({
         include: { outlet: true },
       });
     }),
-
-    //Get by ID
+    
      // Get by ID
   getById: publicProcedure
   .input(z.object({ id: z.string() }))
