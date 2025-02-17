@@ -1,6 +1,4 @@
 import { type Config } from "tailwindcss";
-import defaults from "tailwindcss/defaultTheme";
-import { addIconSelectors } from "@iconify/tailwind";
 
 export default {
 	content: ["./src/**/*.tsx"],
@@ -58,8 +56,7 @@ export default {
 			input: "hsl(var(--input) / <alpha-value>)",
 		},
 		fontFamily: {
-			// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-			sans: ["var(--font-inter)", ...defaults.fontFamily.sans],
+			sans: ["var(--font-inter)"],
 		},
 		extend: {
 			transitionProperty: {
@@ -68,5 +65,5 @@ export default {
 			},
 		},
 	},
-	plugins: [addIconSelectors(["tabler"])],
+	plugins: [],
 } satisfies Config;
