@@ -1,18 +1,19 @@
 "use client";
 
 import clsx from "clsx";
-import Link from "next/link";
 import {
 	type FocusEventHandler,
 	type MouseEventHandler,
 	type ReactNode,
 	type RefObject,
-	type ComponentType,
 	useRef,
 } from "react";
 import { createPortal } from "react-dom";
+import { signOut } from "next-auth/react";
 
 import { useDelayedToggleState } from "~/utils/hooks";
+
+import { ListItemButton, ListItemLink } from "~/app/_components/list/ListItem";
 
 import LogoutRoundedIcon from "~/app/_components/icons/material/LogoutRounded";
 import PersonOutlineRoundedIcon from "~/app/_components/icons/material/PersonOutlineRounded";
@@ -110,28 +111,12 @@ function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
 			<ul className="">
 				<ListItemLink href="/profile" label="Profile" icon={PersonOutlineRoundedIcon} />
 				<ListItemLink href="/settings" label="Settings" icon={SettingsOutlineRounded} />
-				<ListItemLink href="/auth/logout" label="Logout" icon={LogoutRoundedIcon} />
+				<ListItemButton
+					label="Sign out"
+					icon={LogoutRoundedIcon}
+					onClick={() => signOut()}
+				/>
 			</ul>
 		</div>
-	);
-}
-
-type ListItemLinkProps = {
-	href: string;
-	label: string;
-	icon?: ComponentType<{ className: string }>;
-};
-
-function ListItemLink({ href, label, icon: Icon }: ListItemLinkProps) {
-	return (
-		<li className="w-full">
-			<Link
-				href={href}
-				className="hover:bg-secondary/40 text-muted-foreground hover:text-secondary-foreground flex h-11 items-center px-4 transition-colors"
-			>
-				{Icon && <Icon className="mr-3 size-6" />}
-				{label}
-			</Link>
-		</li>
 	);
 }
