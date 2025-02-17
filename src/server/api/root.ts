@@ -14,7 +14,7 @@ export const appRouter = createTRPCRouter({
 	article: articleRouter,
 	newsOutlet: newsOutletRouter,
 	story: storyRouter,
-	reporter:reporterRouter,
+	reporter: reporterRouter,
 });
 
 // export type definition of API
