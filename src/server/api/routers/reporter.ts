@@ -46,4 +46,20 @@ export const reporterRouter = createTRPCRouter({
         },
       });
     }),
+
+    //get all reporter
+    getAll: publicProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(100),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .query(async ({ input }) => {
+      return await db.reporter.findMany({
+        take: input.limit,
+        skip: input.offset,
+        include: { outlet: true },
+      });
+    }),
 });
