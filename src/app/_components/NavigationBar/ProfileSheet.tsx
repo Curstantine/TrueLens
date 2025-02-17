@@ -11,10 +11,12 @@ import {
 	useRef,
 } from "react";
 import { createPortal } from "react-dom";
-import PersonOutlineRoundedIcon from "~/app/_components/icons/material/PersonOutlineRounded";
-import SettingsOutlineRounded from "~/app/_components/icons/material/SettingsOutlineRounded";
 
 import { useDelayedToggleState } from "~/utils/hooks";
+
+import LogoutRoundedIcon from "~/app/_components/icons/material/LogoutRounded";
+import PersonOutlineRoundedIcon from "~/app/_components/icons/material/PersonOutlineRounded";
+import SettingsOutlineRounded from "~/app/_components/icons/material/SettingsOutlineRounded";
 
 type Props = { name: string; email: string; children: ReactNode };
 
@@ -41,9 +43,9 @@ export default function ProfileSheet({ name, email, children }: Props) {
 		e.stopPropagation();
 
 		const related = e.relatedTarget as HTMLElement | null;
-		if (related?.contains(buttonRef.current) || related?.contains(dialogRef.current)) return;
+		if (related !== null) return;
 
-		// open(false);
+		open(false);
 	};
 
 	return (
@@ -108,6 +110,7 @@ function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
 			<ul className="">
 				<ListItemLink href="/profile" label="Profile" icon={PersonOutlineRoundedIcon} />
 				<ListItemLink href="/settings" label="Settings" icon={SettingsOutlineRounded} />
+				<ListItemLink href="/auth/logout" label="Logout" icon={LogoutRoundedIcon} />
 			</ul>
 		</div>
 	);
