@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
-import Image, { type StaticImageData } from "next/image";
+
+import StoryCard from "~/app/_components/card/StoryCard";
+import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
 
 import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
 import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
+import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
 
 export const metadata: Metadata = {
 	title: "TrueLens - Home",
@@ -11,42 +14,13 @@ export const metadata: Metadata = {
 
 export default function Page() {
 	return (
-		<main className="">
+		<main>
 			<Hero />
-			<section className="cols-span-full container grid grid-cols-[1fr_--spacing(80)]">
-				<div></div>
-				<div className="flex flex-col gap-y-1 pt-4">
-					<span className="px-2 font-medium">Outlet Credibility Ranking</span>
-					<ul>
-						<OutletRankingItem
-							place={1}
-							name="Ada Derana"
-							credibility={50}
-							publications={120}
-							logo={AdaDeranaLogo}
-						/>
-						<OutletRankingItem
-							place={2}
-							name="NewsFirst"
-							credibility={50}
-							publications={120}
-							logo={NewsFirstLogo}
-						/>
-						<OutletRankingItem
-							place={3}
-							name="Hiru News"
-							credibility={50}
-							publications={120}
-							logo={HiruNewsLogo}
-						/>
-						<OutletRankingItem
-							place={4}
-							name="The Morning"
-							credibility={50}
-							publications={120}
-						/>
-					</ul>
-				</div>
+
+			<section className="container grid grid-cols-[1fr_--spacing(80)]">
+				<RecentStories />
+
+				<OutletRanking />
 			</section>
 		</main>
 	);
@@ -71,45 +45,53 @@ function Hero() {
 	);
 }
 
-type OutletRankingItemProps = {
-	place: number;
-	name: string;
-	credibility: number;
-	publications: number;
-	logo?: StaticImageData;
-};
-
-function OutletRankingItem({
-	place,
-	name,
-	credibility,
-	publications,
-	logo,
-}: OutletRankingItemProps) {
+function RecentStories() {
 	return (
-		<li
-			style={{ gridTemplateAreas: `"logo name" "logo credibility"` }}
-			className="hover:bg-muted/30 active:bg-muted/50 grid cursor-pointer grid-cols-[--spacing(12)_1fr] items-center gap-x-2 p-2 transition-colors"
-		>
-			{logo !== undefined ? (
-				<Image
-					src={logo}
-					alt=""
-					quality={100}
-					sizes="256px"
-					className="bg-fit h-fit w-10 [grid-area:logo]"
-				/>
-			) : (
-				<div className="bg-muted size-12 rounded-full [grid-area:logo]" />
-			)}
-			{/* prettier-ignore */}
-			<span className="leading-tight h-6 [grid-area:name]">#{place} {name}</span>
-			<div className="text-muted-foreground inline-flex text-xs leading-tight [grid-area:credibility]">
-				<span>{credibility}% Credibility</span>
-				{/* prettier-ignore */}
-				<span aria-hidden className="mx-1">•</span>
-				<span className="">{publications} Publications</span>
+		<div className="space-y-4 pt-6 pb-2">
+			<h1 className="text-2xl font-semibold">Recent Stories</h1>
+
+			<div className="grid grid-cols-[repeat(auto-fill,--spacing(90))] gap-4">
+				<StoryCard id="1" title="IMF delegation meets President and key ministers" />
+				<StoryCard id="2" title="President Dissanayake to visit India in December" />
 			</div>
-		</li>
+		</div>
+	);
+}
+
+function OutletRanking() {
+	return (
+		<div className="flex flex-col gap-y-1 pt-6">
+			<h2 className="px-2 font-medium">Outlet Credibility Ranking</h2>
+			<ul>
+				<OutletRankingItem
+					place={1}
+					name="Ada Derana"
+					credibility={50}
+					publications={120}
+					logo={AdaDeranaLogo}
+				/>
+				<OutletRankingItem
+					place={2}
+					name="NewsFirst"
+					credibility={50}
+					publications={120}
+					logo={NewsFirstLogo}
+				/>
+				<OutletRankingItem
+					place={3}
+					name="Hiru News"
+					credibility={50}
+					publications={120}
+					logo={HiruNewsLogo}
+				/>
+				<OutletRankingItem
+					place={4}
+					name="The Morning"
+					credibility={50}
+					publications={120}
+					logo={TheMorningLogo}
+				/>
+			</ul>
+		</div>
 	);
 }
