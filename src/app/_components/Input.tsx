@@ -5,16 +5,21 @@ type Props = InputHTMLAttributes<HTMLInputElement> & {
 	label: string;
 };
 
-export default function Input({ id, label, ...rest }: Props) {
+export default function Input({ id, label, disabled, ...rest }: Props) {
 	return (
 		<div className="inline-flex flex-col gap-1">
-			<label htmlFor={id} className="text-sm">
+			<label
+				htmlFor={id}
+				aria-disabled={disabled}
+				className="text-sm aria-disabled:opacity-75"
+			>
 				{label}
 			</label>
 			<input
-				id={id}
 				{...rest}
-				className="border-border transition-colors_opacity focus-visible:border-input h-9 rounded-md border bg-transparent px-2 text-sm focus-visible:outline-hidden"
+				id={id}
+				disabled={disabled}
+				className="border-border transition-colors_opacity focus-visible:border-input h-9 rounded-md border bg-transparent px-2 text-sm focus-visible:outline-hidden disabled:opacity-75"
 			/>
 		</div>
 	);

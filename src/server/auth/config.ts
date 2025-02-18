@@ -37,6 +37,7 @@ export const authConfig = {
 	pages: {
 		signIn: "/auth/signin",
 		signOut: "/auth/signout",
+		newUser: "/auth/signup/complete",
 	},
 	providers: [
 		GoogleProvider,
