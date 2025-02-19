@@ -39,12 +39,21 @@ model Session {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+//use enum for different users 
+enum UserRole {
+    ADMIN
+    MODERATOR
+    FREE
+    PAID
+}
+
 model User {
     id            String    @id @default(auto()) @map("_id") @db.ObjectId
     name          String?
     email         String?   @unique
     emailVerified DateTime?
     image         String?
+    role          UserRole  @default(FREE)  // Default role is FREE user
 
     accounts Account[]
     sessions Session[]
