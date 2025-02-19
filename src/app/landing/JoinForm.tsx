@@ -4,8 +4,8 @@ import { toast } from "sonner";
 
 import { api } from "~/trpc/react";
 
-import Button from "~/app/_components/Button";
-import Input from "~/app/_components/Input";
+import Button from "~/app/_components/form/Button";
+import Input from "~/app/_components/form/Input";
 
 export default function JoinForm() {
 	const createWaitlist = api.waitlist.create.useMutation({
@@ -15,7 +15,7 @@ export default function JoinForm() {
 	});
 
 	return (
-		<section className="border-secondary mx-auto mt-16 mb-12 rounded-lg border p-8 sm:mt-24 sm:max-w-xl">
+		<section className="mx-auto mt-16 mb-12 rounded-lg border border-secondary p-8 sm:mt-24 sm:max-w-xl">
 			<h2 className="text-3xl font-semibold">Join the waitlist</h2>
 			<span>Join the wait-list to get notified when TrueLens is released!</span>
 
@@ -38,7 +38,7 @@ export default function JoinForm() {
 				</Button>
 
 				{createWaitlist.error && (
-					<p className="text-destructive -mt-2 text-xs">{createWaitlist.error.message}</p>
+					<p className="-mt-2 text-xs text-destructive">{createWaitlist.error.message}</p>
 				)}
 			</form>
 		</section>

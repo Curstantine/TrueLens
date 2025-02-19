@@ -37,6 +37,8 @@
 	--color-border: hsl(355 20% 77%);
 	--color-input: hsl(353 20% 50%);
 
+	--color-surface-1: color-mix(in oklch, var(--color-background) 75%, var(--color-secondary));
+
 	--font-sans:
 		var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
 		"Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";

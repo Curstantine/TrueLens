@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
-import Logo from "~/app/_components/icons/Logo";
 import Profile, { ProfileSkeleton } from "~/app/_components/NavigationBar/Profile";
-import Search from "~/app/_components/Search";
+import Search from "~/app/_components/form/Search";
+
+import Logo from "~/app/_components/icons/Logo";
 
 export default function NavigationBar() {
 	return (
-		<nav className="bg-background sticky top-0 z-50">
+		<nav className="sticky top-0 z-50 bg-background">
 			<div className="container flex h-14 items-center">
 				<Link href="/">
 					<Logo className="h-8 w-fit" />
