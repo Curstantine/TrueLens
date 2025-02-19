@@ -37,7 +37,7 @@ function Hero() {
 				</div>
 
 				<div className="flex rounded-md bg-background px-4 py-2 text-sm shadow-lg">
-					<span>12 Reports, 72% Factuality</span>
+					<span>12 Reports, 72% Factualit</span>
 				</div>
 			</div>
 		</section>
