@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { auth, signOut } from "~/server/auth";
 
-import Button from "~/app/_components/Button";
+import Button from "~/app/_components/form/Button";
 
 export const metadata: Metadata = {
 	title: "TrueLens - Sign Out",
@@ -18,7 +18,7 @@ export default async function Page() {
 		<main className="mx-auto flex min-h-[calc(100lvh---spacing(14))] max-w-md flex-col justify-center py-24">
 			<div className="mb-4 flex flex-col">
 				<h1 className="mb-0 text-2xl leading-tight font-medium">Sign Out</h1>
-				<span className="text-muted-foreground text-sm">
+				<span className="text-sm text-muted-foreground">
 					Are you sure you want to sign out?
 				</span>
 			</div>
