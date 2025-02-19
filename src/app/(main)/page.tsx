@@ -16,7 +16,6 @@ export default function Page() {
 	return (
 		<main>
 			<Hero />
-
 			<section className="container grid grid-cols-[1fr_--spacing(80)]">
 				<RecentStories />
 
@@ -28,16 +27,16 @@ export default function Page() {
 
 function Hero() {
 	return (
-		<section id="hero" className="bg-accent relative col-span-full min-h-90">
+		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
 			<div className="absolute inset-0 container flex items-end justify-between px-4 pb-6 2xl:px-0">
-				<div className="bg-background flex max-w-lg flex-col rounded-md px-4 py-2 shadow-lg">
-					<span className="text-muted-foreground text-sm">Breaking News</span>
+				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
+					<span className="text-sm text-muted-foreground">Breaking News</span>
 					<h1 className="text-xl leading-tight font-semibold">
 						Parliament sets up information counter for freshly elected MPs
 					</h1>
 				</div>
 
-				<div className="bg-background flex rounded-md px-4 py-2 text-sm shadow-lg">
+				<div className="flex rounded-md bg-background px-4 py-2 text-sm shadow-lg">
 					<span>12 Reports, 72% Factuality</span>
 				</div>
 			</div>
