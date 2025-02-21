@@ -55,7 +55,7 @@ model User {
     emailVerified DateTime?
     name          String?
     image         String?
-    role          UserRole  @default(FREE) // Default role is FREE user
+    role          UserRole  @default(FREE)
     country       String?
     isOnboarded   Boolean   @default(false)
     createdAt     DateTime  @default(now())
