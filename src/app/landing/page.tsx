@@ -9,10 +9,13 @@ import Logo from "~/app/_components/icons/Logo";
 import LenisWrapper from "~/app/_components/LenisWrapper";
 import { Spring, CurvedSpring } from "~/app/_components/Spring";
 
+import LandingZeroImage from "~/app/assets/landing-0.jpg";
 import LandingOneImage from "~/app/assets/landing-1.png";
 import LandingTwoImage from "~/app/assets/landing-2.png";
 import LandingThreeImage from "~/app/assets/landing-3.png";
 import LandingFourImage from "~/app/assets/landing-4.png";
+import LinkIcon from "~/app/_components/icons/material/Link";
+import KeyboardArrowDownRoundedIcon from "~/app/_components/icons/material/KeyboardArrowDownRounded";
 
 export default function Page() {
 	return (
@@ -25,14 +28,38 @@ export default function Page() {
 					</h1>
 					<span>See the bigger picture clearly.</span>
 
-					<div className="mt-6 inline-flex flex-col items-center justify-center gap-1">
-						<span className="text-muted-foreground m-0 text-xs">Scroll down</span>
-						<div className="iconify text-primary tabler--chevron-down size-6 animate-bounce" />
+					<div className="mt-6 inline-flex flex-col items-center justify-center">
+						<span className="m-0 text-xs text-muted-foreground">Scroll down</span>
+						<KeyboardArrowDownRoundedIcon className="size-6 animate-bounce text-primary" />
 					</div>
 				</section>
 
 				<section id="problem" className="grid min-h-[28rem] gap-12 lg:grid-cols-2">
-					<div className=""></div>
+					<div className="flex flex-col">
+						<Image
+							src={LandingZeroImage}
+							alt="Landing Zero Image"
+							title="Courtesy of Unsplash"
+							className="rounded-lg shadow-md"
+						/>
+						<span className="mt-1 text-xs text-muted-foreground">
+							Courtesy of{" "}
+							<a
+								className="underline"
+								href="https://unsplash.com/@onthesearchforpineapples?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+							>
+								Colin Lloyd
+							</a>{" "}
+							on{" "}
+							<a
+								className="underline"
+								href="https://unsplash.com/photos/man-in-black-jacket-holding-white-and-orange-signage-during-daytime-mPxbXzL1_2E?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash"
+							>
+								Unsplash
+							</a>
+						</span>
+					</div>
+
 					<ContentSection
 						title="The Problem with Legacy Media"
 						description={[
@@ -44,10 +71,10 @@ export default function Page() {
 						<a
 							href={PAPER_URL}
 							target="_blank"
-							className="text-secondary-foreground text-sm underline underline-offset-2"
+							className="text-sm text-secondary-foreground underline underline-offset-2"
 						>
 							Read our paper
-							<div className="iconify tabler--external-link mb-1 ml-0.5 size-3" />
+							<LinkIcon className="mb-2.5 ml-0.5 inline size-3.5" />
 						</a>
 					</ContentSection>
 				</section>
@@ -114,10 +141,10 @@ export default function Page() {
 				<JoinForm />
 			</main>
 
-			<footer className="bg-primary flex flex-col px-8">
+			<footer className="flex flex-col bg-primary px-8">
 				{/* <div className="container inline-flex h-8 items-center text-xs text-primary-foreground"> */}
 
-				<div className="text-primary-foreground grid grid-cols-2 grid-rows-[2rem_2rem] items-center justify-items-center text-xs md:grid-cols-[1fr_auto_auto] md:grid-rows-[2rem] md:justify-items-start">
+				<div className="grid grid-cols-2 grid-rows-[2rem_2rem] items-center justify-items-center text-xs text-primary-foreground md:grid-cols-[1fr_auto_auto] md:grid-rows-[2rem] md:justify-items-start">
 					<span className="order-3 col-span-full md:order-1 md:col-span-1">
 						&copy; 2024 TrueLens Initiative. All Rights Reserved
 					</span>
@@ -167,11 +194,11 @@ function PowerCard({ src, label, description }: PowerCardProps) {
 				alt=""
 				aria-hidden
 				quality={100}
-				className="border-secondary aspect-16/10 w-fit self-center rounded-lg border shadow-xs transition-shadow group-hover:shadow-md"
+				className="aspect-16/10 w-fit self-center rounded-lg border border-secondary shadow-xs transition-shadow group-hover:shadow-md"
 			/>
 			<div className="mt-3 inline-flex max-w-[45ch] flex-col text-base select-none">
 				<span className="font-semibold">{label}</span>
-				<span className="text-secondary-foreground text-sm">{description}</span>
+				<span className="text-sm text-secondary-foreground">{description}</span>
 			</div>
 		</div>
 	);
