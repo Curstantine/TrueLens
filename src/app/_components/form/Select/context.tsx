@@ -14,13 +14,13 @@ export function useSelect() {
 	return context;
 }
 
-export function SelectProvider({
-	children,
-	open,
-}: {
+type SelectProviderProps = {
 	children: React.ReactNode;
 	open: (arg0: boolean) => void;
-}) {
+	onValueChange?: (value: string) => void;
+};
+
+export function SelectProvider({ children, open, onValueChange }: SelectProviderProps) {
 	const [selected, setSelected] = useState<string>("");
 	const selectedLabel = useRef<string>("");
 
@@ -28,9 +28,10 @@ export function SelectProvider({
 		(value: string, label: string) => {
 			selectedLabel.current = label;
 			setSelected(value);
+			onValueChange?.call(null, value);
 			open.call(null, false);
 		},
-		[open],
+		[onValueChange, open],
 	);
 
 	return (

@@ -16,13 +16,14 @@ import Label from "~/app/_components/form/Label";
 import SelectSheet, { type Position } from "~/app/_components/form/Select/Sheet";
 import SelectTrigger from "~/app/_components/form/Select/Trigger";
 
-type Props = {
+export type Props = {
 	label: string;
 	placeholder: string;
+	onValueChange?: (value: string) => void;
 	children: ReactNode;
 };
 
-export default function Select({ label, placeholder, children }: Props) {
+export default function Select({ label, placeholder, onValueChange, children }: Props) {
 	const sheetId = useId();
 	const inputId = useId();
 
@@ -69,7 +70,7 @@ export default function Select({ label, placeholder, children }: Props) {
 	};
 
 	return (
-		<SelectProvider open={open}>
+		<SelectProvider open={open} onValueChange={onValueChange}>
 			<div className="flex flex-col gap-1">
 				<Label htmlFor={inputId}>{label}</Label>
 				<SelectTrigger
