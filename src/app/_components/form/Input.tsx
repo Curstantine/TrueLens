@@ -17,7 +17,7 @@ export default function Input({ id, label, disabled, ...rest }: Props) {
 				{...rest}
 				id={id}
 				disabled={disabled}
-				className="h-9 rounded-md border border-border bg-transparent px-2 text-sm transition-colors_opacity focus-visible:border-input focus-visible:outline-hidden disabled:opacity-75"
+				className="border-border transition-colors_opacity focus-visible:border-input h-9 rounded-md border bg-transparent px-2 text-sm focus-visible:outline-hidden disabled:opacity-50"
 			/>
 		</div>
 	);

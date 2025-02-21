@@ -10,7 +10,7 @@ export default function Label({ htmlFor, "aria-disabled": disabled, children }: 
 		<label
 			htmlFor={htmlFor}
 			aria-disabled={disabled}
-			className="text-sm aria-disabled:opacity-75"
+			className="text-sm aria-disabled:opacity-50"
 		>
 			{children}
 		</label>
