@@ -13,6 +13,7 @@ import Button from "~/app/_components/form/Button";
 import Input from "~/app/_components/form/Input";
 import SelectItem from "~/app/_components/form/Select/Item";
 import HookedSelect from "~/app/_components/form/hooked/Select";
+import HookedInput from "~/app/_components/form/hooked/Input";
 
 type Props = { userId: string; email: string; countries: Pick<ICountryData, "name" | "iso2">[] };
 
@@ -35,7 +36,13 @@ export default function SignUpCompleteForm({ userId, email, countries }: Props) 
 		<form onSubmit={onSubmit} className="flex flex-col gap-3">
 			<input type="hidden" value={userId} readOnly {...register("userId")} />
 			<Input id="email" type="email" label="Email" readOnly disabled value={email} />
-			<Input id="name" type="text" label="Name" {...register("name")} />
+			<HookedInput
+				control={control}
+				id="name"
+				type="text"
+				label="Name"
+				{...register("name")}
+			/>
 
 			<HookedSelect
 				control={control}
