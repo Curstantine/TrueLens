@@ -5,4 +5,5 @@ export default {
 	useTabs: true,
 	tabWidth: 4,
 	printWidth: 100,
+	tailwindStylesheet: "./src/styles/globals.css",
 };

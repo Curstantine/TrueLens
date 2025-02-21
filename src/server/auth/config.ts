@@ -1,9 +1,15 @@
+import { randomUUID } from "node:crypto";
+
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
-// import GitHubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialProvider from "next-auth/providers/credentials";
+import bcrypt from "bcrypt";
+import { encode } from "next-auth/jwt";
 
 import { db } from "~/server/db";
+import { loginSchema } from "~/server/validation/auth";
+import { InvalidCredentialLogin } from "~/server/errors/auth";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -22,11 +28,14 @@ declare module "next-auth" {
 		} & DefaultSession["user"];
 	}
 
-	// interface User {
-	//   // ...other properties
-	//   // role: UserRole;
-	// }
+	interface User {
+		isOnboarded?: boolean;
+		// ...other properties
+		// role: UserRole;
+	}
 }
+
+const adapter = PrismaAdapter(db);
 
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
@@ -34,12 +43,47 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
+	adapter,
 	pages: {
 		signIn: "/auth/signin",
 		signOut: "/auth/signout",
+		newUser: "/auth/signup/complete",
 	},
 	providers: [
 		GoogleProvider,
+		CredentialProvider({
+			credentials: { email: {}, password: {} },
+			authorize: async (credentials) => {
+				const { email, password } = await loginSchema.parseAsync(credentials);
+
+				const user = await db.user.findUnique({
+					where: { email },
+					include: { accounts: true },
+				});
+
+				if (!user) {
+					throw new InvalidCredentialLogin("invalid_email", "Email not found");
+				}
+
+				const credAccount = user.accounts.find((x) => x.provider === "credentials");
+				if (!credAccount || !credAccount?.password) {
+					throw new InvalidCredentialLogin("invalid_provider", "Account not found");
+				}
+
+				const isPasswordValid = await bcrypt.compare(password, credAccount.password);
+				if (!isPasswordValid) {
+					throw new InvalidCredentialLogin("invalid_password", "Invalid password");
+				}
+
+				return {
+					id: user.id,
+					name: user.name,
+					email: user.email,
+					image: user.image,
+					isOnboarded: user.isOnboarded,
+				};
+			},
+		}),
 		// GitHubProvider,
 		/**
 		 * ...add more providers here.
@@ -51,10 +95,10 @@ export const authConfig = {
 		 * @see https://next-auth.js.org/providers/github
 		 */
 	],
-	adapter: PrismaAdapter(db),
 	callbacks: {
 		signIn: ({ account, profile }) => {
-			console.log(account, profile);
+			console.dir({ name: "sign-in", account, profile }, { depth: null });
+
 			if (account?.provider === "google") {
 				if (!profile || !profile.email) return false;
 				return profile.email_verified === true;
@@ -66,8 +110,42 @@ export const authConfig = {
 			...session,
 			user: {
 				...session.user,
+				isOnboarded: user.isOnboarded,
 				id: user.id,
 			},
 		}),
+		jwt: async ({ token, user, account }) => {
+			if (account?.provider === "credentials" && user.id) {
+				const exp = new Date(Date.now() + 60 * 60 * 24 * 7 * 1000);
+				const sessionToken = randomUUID();
+
+				const session = await adapter.createSession!({
+					userId: user.id,
+					sessionToken,
+					expires: exp,
+				});
+
+				token.sessionId = session.sessionToken;
+			}
+
+			console.dir({ name: "jwt", token, user, account }, { depth: null });
+
+			return token;
+		},
+	},
+	jwt: {
+		maxAge: 60 * 60 * 24 * 30,
+		encode: async (arg) => {
+			return (arg.token?.sessionId as string) ?? encode(arg);
+		},
+	},
+	events: {
+		signOut: async (message) => {
+			if ("session" in message && message.session?.sessionToken) {
+				await db.session.deleteMany({
+					where: { sessionToken: message.session.sessionToken },
+				});
+			}
+		},
 	},
 } satisfies NextAuthConfig;
