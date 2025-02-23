@@ -10,8 +10,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { signOut } from "next-auth/react";
-
-import { useDelayedToggleState } from "~/utils/hooks";
+import { useDelayedToggleState } from "@jabascript/react/client";
 
 import { ListItemButton, ListItemLink } from "~/app/_components/list/ListItem";
 
@@ -95,7 +94,7 @@ function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
 			onClick={(e) => e.stopPropagation()}
 			onBlur={onBlur}
 			className={clsx(
-				"bg-background absolute w-72 rounded-md py-3 shadow-lg transition-opacity",
+				"absolute w-72 rounded-md bg-background py-3 shadow-lg transition-opacity",
 				show ? "opacity-100" : "pointer-events-none opacity-0",
 			)}
 		>
@@ -103,7 +102,7 @@ function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
 				<span aria-label="Your name" className="leading-tight font-medium">
 					{name}
 				</span>
-				<span aria-label="Your email" className="text-muted-foreground text-sm">
+				<span aria-label="Your email" className="text-sm text-muted-foreground">
 					{email}
 				</span>
 			</div>

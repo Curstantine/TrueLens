@@ -8,8 +8,8 @@ import {
 	type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { useDelayedToggleState } from "@jabascript/react/client";
 
-import { useDelayedToggleState } from "~/utils/hooks";
 import { SelectProvider } from "~/app/_components/form/Select/context";
 
 import Label from "~/app/_components/form/Label";

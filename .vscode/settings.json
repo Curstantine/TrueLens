@@ -3,7 +3,7 @@
 	"[prisma]": {
 		"editor.defaultFormatter": "Prisma.prisma"
 	},
-	"cSpell.words": ["derana", "hiru", "iconify", "sonner", "tabler", "waitlist"],
+	"cSpell.words": ["derana", "hiru", "iconify", "jabascript", "sonner", "tabler", "waitlist"],
 	"files.associations": {
 		"*.css": "tailwindcss"
 	},
