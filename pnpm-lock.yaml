@@ -12,14 +12,14 @@ importers:
         specifier: ^2.7.4
         version: 2.7.4(@prisma/client@6.4.1(prisma@6.4.1(typescript@5.7.3))(typescript@5.7.3))
       '@hookform/resolvers':
-        specifier: ^4.1.1
-        version: 4.1.1(react-hook-form@7.54.2(react@18.3.1))
+        specifier: ^4.1.2
+        version: 4.1.2(react-hook-form@7.54.2(react@18.3.1))
       '@jabascript/core':
-        specifier: ^0.1.2
-        version: 0.1.2
+        specifier: ^0.1.3
+        version: 0.1.3
       '@jabascript/react':
-        specifier: ^0.1.2
-        version: 0.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        specifier: ^0.1.3
+        version: 0.1.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@prisma/client':
         specifier: ^6.4.1
         version: 6.4.1(prisma@6.4.1(typescript@5.7.3))(typescript@5.7.3)
@@ -362,8 +362,8 @@ packages:
     resolution: {integrity: sha512-JubJ5B2pJ4k4yGxaNLdbjrnk9d/iDz6/q8wOilpIowd6PJPgaxCuHBnBszq7Ce2TyMrywm5r4PnKm6V3iiZF+g==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@hookform/resolvers@4.1.1':
-    resolution: {integrity: sha512-S9YN1RgNWG+klUz5uQaV6rjE4pr6Py2tamj7ekshzLcMyg+/Pal1KZAYgGszV0+doiy41dUiQgXL3uRS9stndQ==}
+  '@hookform/resolvers@4.1.2':
+    resolution: {integrity: sha512-wl6H9c9wLOZMJAqGLEVKzbCkxJuV+BYuLFZFCQtCwMe0b3qQk4kUBd/ZAj13SwcSqcx86rCgSCyngQfmA6DOWg==}
     peerDependencies:
       react-hook-form: ^7.0.0
 
@@ -492,11 +492,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@jabascript/core@0.1.2':
-    resolution: {integrity: sha512-3rw8V0Epehocp/1DpvGVAHmDuzsBp6G2EYBRN7kUiMsimqtWQ5FKVSehrhmM3JpfjXiCJI13UIFVcIjzzhvzXw==}
+  '@jabascript/core@0.1.3':
+    resolution: {integrity: sha512-/ibkgGmjoy6DvV7VZ5MByDdxF80/Mw5ImG5+EMZkp0KZ3AMWaE5cBXUwh0m9I6FBtBjhDz83ov5SPK6Z1j7Qqw==}
 
-  '@jabascript/react@0.1.2':
-    resolution: {integrity: sha512-YnNyNEJqSH1t5Yaul2ad5jNDwP0VUyUwXr63bUiSg4qhQIcEGBgWdFsidG2vxq997SEAe0wohj2qAxt+O08kOg==}
+  '@jabascript/react@0.1.3':
+    resolution: {integrity: sha512-DLMukwApYEoNp+6gVvFhE/j+ccL9oqCBQUgQydrSIg/XIeZAFymM3TRyogpTPqTuQVVyZYXPQ65Nu5RTuoAQ/A==}
     peerDependencies:
       '@types/react': '*'
       '@types/react-dom': '*'
@@ -620,6 +620,9 @@ packages:
 
   '@rushstack/eslint-patch@1.10.5':
     resolution: {integrity: sha512-kkKUDVlII2DQiKy7UstOR1ErJP8kUKAQ4oa+SQtM0K+lPdmmjj0YnnxBgtTVYH7mUKtbsxeFC9y0AmK7Yb78/A==}
+
+  '@standard-schema/utils@0.3.0':
+    resolution: {integrity: sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==}
 
   '@swc/counter@0.1.3':
     resolution: {integrity: sha512-e2BR4lsJkkRlKZ/qCHPw9ZaSxc0MVUd7gtbtaB7aMvHeJVYe8sOB8DBZkP2DtISHGSku9sCK6T6cnY0CtXrOCQ==}
@@ -2572,9 +2575,9 @@ snapshots:
       '@eslint/core': 0.12.0
       levn: 0.4.1
 
-  '@hookform/resolvers@4.1.1(react-hook-form@7.54.2(react@18.3.1))':
+  '@hookform/resolvers@4.1.2(react-hook-form@7.54.2(react@18.3.1))':
     dependencies:
-      caniuse-lite: 1.0.30001700
+      '@standard-schema/utils': 0.3.0
       react-hook-form: 7.54.2(react@18.3.1)
 
   '@humanfs/core@0.19.1': {}
@@ -2665,9 +2668,9 @@ snapshots:
   '@img/sharp-win32-x64@0.33.5':
     optional: true
 
-  '@jabascript/core@0.1.2': {}
+  '@jabascript/core@0.1.3': {}
 
-  '@jabascript/react@0.1.2(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+  '@jabascript/react@0.1.3(@types/react-dom@18.3.5(@types/react@18.3.18))(@types/react@18.3.18)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
@@ -2769,6 +2772,8 @@ snapshots:
   '@rtsao/scc@1.1.0': {}
 
   '@rushstack/eslint-patch@1.10.5': {}
+
+  '@standard-schema/utils@0.3.0': {}
 
   '@swc/counter@0.1.3': {}
 
