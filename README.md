@@ -61,6 +61,10 @@ For an example, say we need to create a user route:
     });
     ```
 
+### Endpoints and Documentation
+
+The backend ships a trpc-ui instance when the `NODE_ENV` is `development`. You can access this at the `/api/mock` path. E.g. [http://localhost:3000/api/mock](http://localhost:3000/api/mock)
+
 ### Guide (Schema)
 
 - Database schema resides in the [`prisma/schema.prisma`](./prisma/schema.prisma) file.
