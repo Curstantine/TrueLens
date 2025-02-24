@@ -7,21 +7,23 @@ import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
 import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
 import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
+import { api, HydrateClient } from "~/trpc/server";
 
 export const metadata: Metadata = {
-	title: "TrueLens - Home",
+	title: "TrueLens",
 };
 
-export default function Page() {
+export default async function Page() {
 	return (
-		<main>
-			<Hero />
-			<section className="container grid grid-cols-[1fr_--spacing(80)]">
-				<RecentStories />
-
-				<OutletRanking />
-			</section>
-		</main>
+		<HydrateClient>
+			<main>
+				<Hero />
+				<section className="container grid grid-cols-[1fr_--spacing(80)]">
+					<RecentStories />
+					<OutletRanking />
+				</section>
+			</main>
+		</HydrateClient>
 	);
 }
 
@@ -44,14 +46,21 @@ function Hero() {
 	);
 }
 
-function RecentStories() {
+async function RecentStories() {
+	const stories = await api.story.getAll({
+		limit: 100,
+		orderBy: "createdAt",
+		orderDirection: "desc",
+	});
+
 	return (
 		<div className="space-y-4 pt-6 pb-2">
 			<h1 className="text-2xl font-semibold">Recent Stories</h1>
 
 			<div className="grid grid-cols-[repeat(auto-fill,--spacing(90))] gap-4">
-				<StoryCard id="1" title="IMF delegation meets President and key ministers" />
-				<StoryCard id="2" title="President Dissanayake to visit India in December" />
+				{stories.map((story) => (
+					<StoryCard key={story.id} id={story.id} title={story.title} />
+				))}
 			</div>
 		</div>
 	);
