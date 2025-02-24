@@ -1,12 +1,8 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const commentRouter = createTRPCRouter({
-	/**
-	 * Create a new comment.
-	 */
 	create: publicProcedure
 		.input(
 			z.object({
@@ -16,10 +12,12 @@ export const commentRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			// Validate if article exists
-			const articleExists = await db.article.findUnique({
-				where: { id: input.articleId },
-				select: { id: true },
-			});
+			const article = await db.article.findUnique({ where: { id: input.articleId } });
+			if (!article) throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
 
-        });
+			const user = await db.user.findUnique({ where: { id: input.createdBy } });
+			if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+
+			return await db.comment.create({ data: input });
+		}),
+});
