@@ -24,12 +24,17 @@ export const storyRouter = createTRPCRouter({
 			z.object({
 				limit: z.number().min(1).max(100).default(100),
 				offset: z.number().min(0).default(0),
+				orderBy: z.enum(["createdAt", "title"]).default("createdAt"),
+				orderDirection: z.enum(["asc", "desc"]).default("desc"),
 			}),
 		)
 		.query(async ({ input }) => {
 			return db.story.findMany({
 				take: input.limit,
 				skip: input.offset,
+				orderBy: {
+					[input.orderBy]: input.orderDirection,
+				},
 			});
 		}),
 

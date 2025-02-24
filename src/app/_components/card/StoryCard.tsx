@@ -24,10 +24,10 @@ export default function StoryCard({ id, title, cover }: Props) {
 					className="rounded-md"
 				/>
 			) : (
-				<div className="bg-muted aspect-video size-full rounded-md"></div>
+				<div className="aspect-video w-full rounded-md bg-muted"></div>
 			)}
 
-			{title}
+			<span>{title}</span>
 		</Link>
 	);
 }
