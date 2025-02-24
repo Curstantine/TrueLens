@@ -21,3 +21,11 @@ export const commentRouter = createTRPCRouter({
 			return await db.comment.create({ data: input });
 		}),
 });
+	getByArticle: publicProcedure
+		.input(z.object({ articleId: z.string().min(1, "Article ID is required") }))
+		.query(async ({ input }) => {
+			return await db.comment.findMany({
+				where: { articleId: input.articleId },
+				include: { user: true },
+			});
+		}),
