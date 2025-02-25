@@ -13,10 +13,16 @@ export const commentRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const article = await db.article.findUnique({ where: { id: input.articleId } });
+			const article = await db.article.findUnique({ 
+				where: { id: input.articleId },
+				select: {id: true},
+			});
 			if (!article) throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
 
-			const user = await db.user.findUnique({ where: { id: input.createdBy } });
+			const user = await db.user.findUnique({ 
+				where: { id: input.createdBy },
+			    select: {id: true},
+			});
 			if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
 
 			return await db.comment.create({ data: input });
