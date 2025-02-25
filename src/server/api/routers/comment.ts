@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const commentRouter = createTRPCRouter({
@@ -69,5 +70,5 @@ export const commentRouter = createTRPCRouter({
 
 			return { message: "Comment deleted successfully." };
 		}),
-
+});
 
