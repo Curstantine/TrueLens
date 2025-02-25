@@ -68,10 +68,12 @@ export const commentRouter = createTRPCRouter({
 			const comment = await db.comment.findUnique({ where: { id: input.id } });
 			if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
 
-			return await db.comment.update({
+			const updatedComment = await db.comment.update({
 				where: { id: input.id },
 				data: { content: input.content },
 			});
+
+			return updatedComment;
 		}),
 
 		delete: publicProcedure
