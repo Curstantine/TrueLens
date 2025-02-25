@@ -29,3 +29,15 @@ export const commentRouter = createTRPCRouter({
 				include: { user: true },
 			});
 		}),
+
+	getById: publicProcedure
+		.input(z.object({ id: z.string().min(1, "Comment ID is required") }))
+		.query(async ({ input }) => {
+			const comment = await db.comment.findUnique({
+				where: { id: input.id },
+				include: { user: true, article: true },
+			});
+			if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
+
+			return comment;
+		}),
