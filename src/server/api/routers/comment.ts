@@ -25,7 +25,15 @@ export const commentRouter = createTRPCRouter({
 			});
 			if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
 
-			return await db.comment.create({ data: input });
+			const newComment = await db.comment.create({
+				data: {
+					content: input.content,
+					articleId: input.articleId,
+					createdBy: input.createdBy,
+				},
+			});
+
+			return newComment;
 		}),
 });
 	getByArticle: publicProcedure
