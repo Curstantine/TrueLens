@@ -46,7 +46,6 @@ async function fetchAndSaveData() {
 
   for (const filename of filenames) {
     const fileUrl = `${baseUrl}${filename}`;
-    console.log(`Fetching data for ${filename} from ${fileUrl}...`);
     try {
       const response = await axios.get(fileUrl);
 
@@ -69,5 +68,4 @@ async function fetchAndSaveData() {
   console.log("Fetching and saving data process ended.");
 }
 
-// Ensure proper export
 export { fetchAndSaveData };
