@@ -63,7 +63,6 @@ async function fetchAndSaveData() {
 
   if (allData.length > 0) {
     fs.writeFileSync(outputFilePath, JSON.stringify(allData, null, 2));
-    console.log(`All data saved in ${outputFilePath}`);
   } else {
     console.error("No data to save.");
   }
