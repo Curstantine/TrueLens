@@ -90,4 +90,4 @@ async function fetchAndSaveData2() {
   console.log("Fetching and saving data process for newsFetching2 ended.");
 }
 
-export { fetchAndSaveData2 }
+export { fetchAndSaveData2 };
