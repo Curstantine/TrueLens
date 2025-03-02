@@ -46,4 +46,4 @@ yarn-error.log*
 .idea
 
 #news repo
-/news_data/
+/newsStore_data/

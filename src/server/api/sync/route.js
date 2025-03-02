@@ -1,88 +1,141 @@
-import simpleGit from "simple-git";
-import fs from "fs/promises";
-import path from "path";
+//node ./src/server/api/sync/route.js
+import fs from 'fs';
+import path from 'path';
+import https from 'https';
+import simpleGit from 'simple-git';
 
-const repoUrl = "https://github.com/nuuuwan/news_lk3_data.git";
-const localRepoPath = path.join(process.cwd(), "news_data");
-const articlesDirs = ["articles", "ext_articles"];
-const outputFilePath = path.join(localRepoPath, "filtered_articles.json");
+const repoOwner = 'nuuuwan';
+const repoName = 'news_long_lk';
+const folderPath = 'data/articles';
+const outputFilePath = path.join('current_data.json');
+const localRepoPath = path.join( 'newsStore_data');
 
 const git = simpleGit();
 
-// Check if a file or directory exists
-async function exists(filePath) {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // Clone or update the Git repository
 async function cloneOrUpdateRepo() {
-  if (!(await exists(localRepoPath))) {
-    console.log("Cloning repository...");
-    await git.clone(repoUrl, localRepoPath, ["--depth", "1"]); // Shallow clone for speed
+  if (!fs.existsSync(localRepoPath)) {
+    console.log('Cloning repository...');
+    await git.clone(`https://github.com/${repoOwner}/${repoName}.git`, localRepoPath);
   } else {
-    console.log("Pulling latest changes...");
-    await git.cwd(localRepoPath).pull("origin", "main");
+    console.log('Pulling latest changes...');
+    await git.cwd(localRepoPath).pull('origin', 'main');
   }
 }
 
-//  Detect if a text is mostly English (at least 90% ASCII)
+// Check if text is mostly English (at least 90% ASCII)
 function isMostlyEnglish(text) {
   if (!text) return false;
   const asciiChars = [...text].filter((char) => char.charCodeAt(0) < 128);
   return (asciiChars.length / text.length) > 0.9;
 }
 
-//  Filter function to check if an article is in English
+// Filter function for English articles
 function filterEnglishArticles(article) {
-  return article.original_lang === "en" || isMostlyEnglish(article.original_title);
+  return (
+    article.original_lang === 'en' ||
+    (article.original_title && isMostlyEnglish(article.original_title))
+  );
 }
 
-//  Process articles directory one by one to avoid memory overload
-async function filterArticles() {
-  let englishArticles = [];
+// Fetch JSON data from the given URL using https
+function fetchJSON(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = '';
 
-  for (const dir of articlesDirs) {
-    const dirPath = path.join(localRepoPath, dir);
-    if (!(await exists(dirPath))) {
-      console.warn(` Warning: ${dirPath} not found! Skipping...`);
+      res.on('data', chunk => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (error) {
+          reject('Error parsing JSON');
+        }
+      });
+
+    }).on('error', (error) => {
+      reject(error);
+    });
+  });
+}
+
+// Get list of article directories from the GitHub repository
+async function getDirectoryList() {
+  const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${folderPath}`;
+  try {
+    const data = await fetchJSON(apiUrl);
+    return data.filter(item => item.type === 'dir').map(item => item.name);
+  } catch (error) {
+    console.error('Error fetching directory list:', error);
+    return [];
+  }
+}
+
+// Load existing data from the output file
+function loadExistingData() {
+  try {
+    if (fs.existsSync(outputFilePath)) {
+      const fileContent = fs.readFileSync(outputFilePath, 'utf8');
+      return JSON.parse(fileContent);
+    }
+  } catch (error) {
+    console.error('Error reading existing data file:', error.message);
+  }
+  return [];
+}
+
+// Fetch and save filtered English articles
+async function fetchAndSaveData() {
+  console.log('Fetching and saving data process started...');
+
+  // Clone or update the repo
+  await cloneOrUpdateRepo();
+
+  // Load existing data
+  const existingData = loadExistingData();
+  const existingIds = new Set(existingData.map(item => item.id));
+
+  // Get list of directories
+  const directories = await getDirectoryList();
+  if (directories.length === 0) {
+    console.error('No article directories found in the repository.');
+    return;
+  }
+
+  let newData = [];
+  for (const dirName of directories) {
+    if (existingIds.has(dirName)) {
+      console.log(`Skipping ${dirName}, already stored.`);
       continue;
     }
 
-    console.log(` Processing directory: ${dirPath}`);
-    const files = await fs.readdir(dirPath);
-    const jsonFiles = files.filter((file) => file.endsWith(".json"));
+    const fileUrl = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${folderPath}/${dirName}/article.json`;
+    console.log(`Fetching data from ${fileUrl}...`);
+    try {
+      const article = await fetchJSON(fileUrl);
 
-    for (const file of jsonFiles) {
-      const filePath = path.join(dirPath, file);
-      try {
-        const data = await fs.readFile(filePath, "utf-8");
-        const article = JSON.parse(data);
-
-        if (filterEnglishArticles(article)) {
-          englishArticles.push(article);
-        }
-      } catch (error) {
-        console.error(` Error parsing ${file}: ${error.message}`);
+      if (filterEnglishArticles(article)) {
+        newData.push({ id: dirName, data: article });
       }
+    } catch (error) {
+      console.error(`Error fetching article.json in ${dirName}:`, error.message);
     }
   }
 
-  // Save filtered articles
-  await fs.writeFile(outputFilePath, JSON.stringify(englishArticles, null, 2));
-  console.log(` Filtered ${englishArticles.length} English articles.`);
+  // Save the new data if found
+  if (newData.length > 0) {
+    const combinedData = [...existingData, ...newData];
+    fs.writeFileSync(outputFilePath, JSON.stringify(combinedData, null, 2));
+    console.log(`Added ${newData.length} new articles. Total stored: ${combinedData.length}`);
+  } else {
+    console.log('No new English articles found to save.');
+  }
+
+  console.log('Fetching and saving data process ended.');
 }
 
-// Run the full process
-(async function run() {
-  try {
-    await cloneOrUpdateRepo(); // Step 1: Clone/Update Repo
-    await filterArticles(); // Step 2: Filter English Articles
-  } catch (error) {
-    console.error(" Error:", error.message);
-  }
-})();
+// Run the script
+fetchAndSaveData().catch((error) => console.error('Error in fetching and saving data:', error));
