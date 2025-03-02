@@ -1,17 +1,16 @@
-import simpleGit from 'simple-git';
-import fs from 'fs';
-import path from 'path';
+import simpleGit from "simple-git";
+import fs from "fs/promises";
+import path from "path";
 
-// Git settings
 const repoUrl = "https://github.com/nuuuwan/news_lk3_data.git";
 const localRepoPath = path.join(process.cwd(), "news_data");
-const articlesPath = path.join(localRepoPath, "articles");
+const articlesDirs = ["articles", "ext_articles"];
 const outputFilePath = path.join(localRepoPath, "filtered_articles.json");
 
 const git = simpleGit();
 
 async function cloneOrUpdateRepo() {
-  if (!fs.existsSync(localRepoPath)) {
+  if (!(await exists(localRepoPath))) {
     console.log("Cloning repository...");
     await git.clone(repoUrl, localRepoPath, ["--depth", "1"]); // Shallow clone for speed
   } else {
@@ -20,10 +19,18 @@ async function cloneOrUpdateRepo() {
   }
 }
 
-// Check if a string is mostly English (at least 90% ASCII characters)
+async function exists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function isMostlyEnglish(text) {
   if (!text) return false;
-  const asciiChars = text.split("").filter(char => char.charCodeAt(0) < 128);
+  const asciiChars = [...text].filter(char => char.charCodeAt(0) < 128);
   return (asciiChars.length / text.length) > 0.9; // 90% ASCII
 }
 
@@ -32,39 +39,43 @@ function filterEnglishArticles(article) {
 }
 
 async function filterArticles() {
-  if (!fs.existsSync(articlesPath)) {
-    console.error("Articles directory not found!");
-    return;
-  }
-
-  const allFiles = fs.readdirSync(articlesPath);
   let englishArticles = [];
 
-  for (const file of allFiles) {
-    if (!file.endsWith(".json")) continue; // Only process JSON files
-
-    const filePath = path.join(articlesPath, file);
-    try {
-      const articleData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-      if (filterEnglishArticles(articleData)) {
-        englishArticles.push(articleData);
-      }
-    } catch (error) {
-      console.error(`Error parsing ${file}: ${error.message}`);
+  for (const dir of articlesDirs) {
+    const dirPath = path.join(localRepoPath, dir);
+    if (!(await exists(dirPath))) {
+      console.warn(`Warning: ${dirPath} not found! Skipping...`);
+      continue;
     }
+
+    const files = await fs.readdir(dirPath);
+    const jsonFiles = files.filter(file => file.endsWith(".json"));
+
+    const filePromises = jsonFiles.map(async (file) => {
+      const filePath = path.join(dirPath, file);
+      try {
+        const data = JSON.parse(await fs.readFile(filePath, "utf-8"));
+        if (filterEnglishArticles(data)) return data;
+      } catch (error) {
+      }
+      return null;
+    });
+
+    const results = await Promise.all(filePromises);
+    englishArticles.push(...results.filter(Boolean));
   }
 
   // Save filtered articles
-  fs.writeFileSync(outputFilePath, JSON.stringify(englishArticles, null, 2));
+  await fs.writeFile(outputFilePath, JSON.stringify(englishArticles, null, 2));
   console.log(`Filtered ${englishArticles.length} English articles.`);
 }
 
-// Execute both steps
+// Execute script
 (async function run() {
   try {
-    await cloneOrUpdateRepo();  // Step 1: Clone/Update Repo
-    await filterArticles();     // Step 2: Filter English Articles
+    await cloneOrUpdateRepo(); // Step 1: Clone/Update Repo
+    await filterArticles();    // Step 2: Filter English Articles
   } catch (error) {
-    console.error("Error:", error.message);
+    console.error("Error:", error);
   }
 })();
