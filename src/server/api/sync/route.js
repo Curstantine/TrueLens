@@ -9,6 +9,17 @@ const outputFilePath = path.join(localRepoPath, "filtered_articles.json");
 
 const git = simpleGit();
 
+// Check if a file or directory exists
+async function exists(filePath) {
+  try {
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Clone or update the Git repository
 async function cloneOrUpdateRepo() {
   if (!(await exists(localRepoPath))) {
     console.log("Cloning repository...");
@@ -19,63 +30,59 @@ async function cloneOrUpdateRepo() {
   }
 }
 
-async function exists(filePath) {
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
+//  Detect if a text is mostly English (at least 90% ASCII)
 function isMostlyEnglish(text) {
   if (!text) return false;
-  const asciiChars = [...text].filter(char => char.charCodeAt(0) < 128);
-  return (asciiChars.length / text.length) > 0.9; // 90% ASCII
+  const asciiChars = [...text].filter((char) => char.charCodeAt(0) < 128);
+  return (asciiChars.length / text.length) > 0.9;
 }
 
+//  Filter function to check if an article is in English
 function filterEnglishArticles(article) {
   return article.original_lang === "en" || isMostlyEnglish(article.original_title);
 }
 
+//  Process articles directory one by one to avoid memory overload
 async function filterArticles() {
   let englishArticles = [];
 
   for (const dir of articlesDirs) {
     const dirPath = path.join(localRepoPath, dir);
     if (!(await exists(dirPath))) {
-      console.warn(`Warning: ${dirPath} not found! Skipping...`);
+      console.warn(` Warning: ${dirPath} not found! Skipping...`);
       continue;
     }
 
+    console.log(` Processing directory: ${dirPath}`);
     const files = await fs.readdir(dirPath);
-    const jsonFiles = files.filter(file => file.endsWith(".json"));
+    const jsonFiles = files.filter((file) => file.endsWith(".json"));
 
-    const filePromises = jsonFiles.map(async (file) => {
+    for (const file of jsonFiles) {
       const filePath = path.join(dirPath, file);
       try {
-        const data = JSON.parse(await fs.readFile(filePath, "utf-8"));
-        if (filterEnglishArticles(data)) return data;
-      } catch (error) {
-      }
-      return null;
-    });
+        const data = await fs.readFile(filePath, "utf-8");
+        const article = JSON.parse(data);
 
-    const results = await Promise.all(filePromises);
-    englishArticles.push(...results.filter(Boolean));
+        if (filterEnglishArticles(article)) {
+          englishArticles.push(article);
+        }
+      } catch (error) {
+        console.error(` Error parsing ${file}: ${error.message}`);
+      }
+    }
   }
 
   // Save filtered articles
   await fs.writeFile(outputFilePath, JSON.stringify(englishArticles, null, 2));
-  console.log(`Filtered ${englishArticles.length} English articles.`);
+  console.log(` Filtered ${englishArticles.length} English articles.`);
 }
 
-// Execute script
+// Run the full process
 (async function run() {
   try {
     await cloneOrUpdateRepo(); // Step 1: Clone/Update Repo
-    await filterArticles();    // Step 2: Filter English Articles
+    await filterArticles(); // Step 2: Filter English Articles
   } catch (error) {
-    console.error("Error:", error);
+    console.error(" Error:", error.message);
   }
 })();
