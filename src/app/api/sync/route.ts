@@ -72,7 +72,9 @@ async function cloneOrReuse() {
 	}
 
 	log("Cloning repository...");
-	await git.clone(`https://github.com/${repoOwner}/${repoName}.git`, sourcePath, { depth: 1 });
+	await git.clone(`https://github.com/${repoOwner}/${repoName}.git`, sourcePath, {
+		"--depth": 1,
+	});
 
 	log("Repository cloned successfully!");
 }
