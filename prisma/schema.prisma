@@ -138,3 +138,10 @@ model NewsOutlet {
 
     reporters Reporter[]
 }
+
+model Configuration {
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    key       String   @unique
+    value     String
+    createdAt DateTime @default(now())
+}
