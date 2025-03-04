@@ -10,8 +10,5 @@
 	"tailwindCSS.experimental.classRegex": [
 		["cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
 		["cx\\(((?:[^()]|\\([^()]*\\))*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-	],
-	"[json]": {
-		"editor.defaultFormatter": "vscode.json-language-features"
-	}
+	]
 }
