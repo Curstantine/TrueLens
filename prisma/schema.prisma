@@ -108,8 +108,9 @@ model Reporter {
 model Story {
     id          String   @id @default(auto()) @map("_id") @db.ObjectId
     title       String
-    description String
+    summary     String[]
     createdAt   DateTime @default(now())
+    lastUpdated DateTime @default(now())
 
     articles Article[]
 }

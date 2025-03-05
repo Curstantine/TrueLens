@@ -8,14 +8,14 @@ export const storyRouter = createTRPCRouter({
 		.input(
 			z.object({
 				title: z.string().min(1, "Title is required"),
-				description: z.string().min(1, "Description is required"),
+				summary: z.array(z.string()).min(1, "Summary is required"),
 			}),
 		)
 		.mutation(async ({ input }) => {
 			return db.story.create({
 				data: {
 					title: input.title,
-					description: input.description,
+					summary: input.summary,
 				},
 			});
 		}),
@@ -64,8 +64,8 @@ export const storyRouter = createTRPCRouter({
 		.input(
 			z.object({
 				id: z.string().min(1, "Story ID is required"),
-				title: z.string().min(1, "Title is required"),
-				description: z.string().min(1, "Description is required"),
+				title: z.optional(z.string().min(1, "Title is required")),
+				summary: z.optional(z.array(z.string()).min(1, "At least one summary is required")),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -73,7 +73,8 @@ export const storyRouter = createTRPCRouter({
 				where: { id: input.id },
 				data: {
 					title: input.title,
-					description: input.description,
+					summary: input.summary,
+					lastUpdated: new Date(),
 				},
 			});
 
@@ -83,8 +84,9 @@ export const storyRouter = createTRPCRouter({
 	delete: publicProcedure
 		.input(z.object({ id: z.string().min(1, "Story ID is required") }))
 		.mutation(async ({ input }) => {
-			return db.story.delete({
-				where: { id: input.id },
-			});
+			return await db.$transaction([
+				db.article.deleteMany({ where: { storyId: input.id } }),
+				db.story.delete({ where: { id: input.id } }),
+			]);
 		}),
 });
