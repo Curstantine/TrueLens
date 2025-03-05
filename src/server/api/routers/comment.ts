@@ -35,7 +35,7 @@ export const commentRouter = createTRPCRouter({
 
 			return newComment;
 		}),
-});
+
 	getByArticle: publicProcedure
 		.input(z.object({ articleId: z.string().min(1, "Article ID is required") }))
 		.query(async ({ input }) => {
@@ -57,7 +57,7 @@ export const commentRouter = createTRPCRouter({
 			return comment;
 		}),
 
-		update: publicProcedure
+	update: publicProcedure
 		.input(
 			z.object({
 				id: z.string().min(1, "Comment ID is required"),
@@ -77,14 +77,14 @@ export const commentRouter = createTRPCRouter({
 		}),
 
 		delete: publicProcedure
-		.input(z.object({ id: z.string().min(1, "Comment ID is required") }))
-		.mutation(async ({ input }) => {
-			const comment = await db.comment.findUnique({ where: { id: input.id } });
-			if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
+			.input(z.object({ id: z.string().min(1, "Comment ID is required") }))
+			.mutation(async ({ input }) => {
+				const comment = await db.comment.findUnique({ where: { id: input.id } });
+				if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
 
-			await db.comment.delete({ where: { id: input.id } });
+				await db.comment.delete({ where: { id: input.id } });
 
-			return { message: "Comment deleted successfully." };
+				return { message: "Comment deleted successfully." };
 		}),
 });
 
