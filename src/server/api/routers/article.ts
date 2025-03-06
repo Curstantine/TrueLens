@@ -17,7 +17,7 @@ export const articleRouter = createTRPCRouter({
 				reporterId: objectId("Reporter ID must be a valid MongoDB ObjectId"),
 				storyId: objectId("Story ID must be a valid MongoDB ObjectId"),
 				externalUrl: z.string().url("External URL must be a valid URL"),
-				publishedAt: z.string().date("Published At must be a valid date"),
+				publishedAt: z.string().datetime("Published At must be a valid datetime"),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -78,7 +78,10 @@ export const articleRouter = createTRPCRouter({
 				reporterId: objectId("Reporter ID must be a valid MongoDB ObjectId").optional(),
 				storyId: objectId("Story ID must be a valid MongoDB ObjectId").optional(),
 				externalUrl: z.string().url("External URL must be a valid URL").optional(),
-				publishedAt: z.string().date("Published At must be a valid date").optional(),
+				publishedAt: z
+					.string()
+					.datetime("Published At must be a valid datetime")
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
