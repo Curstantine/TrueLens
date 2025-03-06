@@ -3,9 +3,11 @@ import type { Metadata } from "next";
 
 import { api } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
+import { getInitials } from "~/utils/grammar";
 
 import GenericErrorView from "~/app/_components/GenericErrorView";
 import { DateSpan, RelativeDateSpan } from "~/app/_components/DateSpan";
+import Avatar from "~/app/_components/Avatar";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -29,6 +31,43 @@ function SummaryItem({ title, value }: { title: string; value: ReactNode }) {
 			<span>{title}</span>
 			<span>{value}</span>
 		</li>
+	);
+}
+
+type ArticleCardProps = {
+	title: string;
+	summary: string;
+	url: string;
+	publishedAt: Date;
+	publisherName: string;
+	publisherLogo: string | null | undefined;
+};
+
+function ArticleCard({
+	title,
+	summary,
+	url,
+	publishedAt,
+	publisherName,
+	publisherLogo,
+}: ArticleCardProps) {
+	return (
+		<a href={url} target="_blank" rel="noreferrer noopener" className="flex flex-col">
+			<div className="inline-flex items-center gap-2">
+				<Avatar
+					avatarUrl={publisherLogo}
+					alt={publisherName}
+					initials={getInitials(publisherName)}
+					className="!size-8 text-xs"
+				/>
+				<span className="text-sm text-muted-foreground">{publisherName}</span>
+			</div>
+
+			<h3 className="font-semibold">{title}</h3>
+			<p className="flex-1 text-sm text-muted-foreground">{summary}</p>
+
+			<DateSpan value={publishedAt} className="text-xs text-muted-foreground" />
+		</a>
 	);
 }
 
@@ -62,7 +101,7 @@ export default async function Page({ params }: Props) {
 						<SummaryItem title="Factually:" value={100} />
 						<SummaryItem
 							title="Last Updated:"
-							value={<RelativeDateSpan value={story.lastUpdated} />}
+							value={<RelativeDateSpan value={story.modifiedAt} />}
 						/>
 					</ul>
 				</div>
@@ -70,7 +109,7 @@ export default async function Page({ params }: Props) {
 
 			<section className="mt-8 max-w-4xl space-y-1">
 				<h2 className="text-xl font-medium">Summary</h2>
-				<ul className="list-inside list-disc space-y-1">
+				<ul className="ml-4 list-disc space-y-1">
 					{story.summary.map((item, index) => (
 						<li key={index}>{item}</li>
 					))}
@@ -79,6 +118,19 @@ export default async function Page({ params }: Props) {
 
 			<section className="mt-8">
 				<h2 className="text-xl font-medium">Publications</h2>
+				<div className="mt-4 grid grid-cols-1 gap-4">
+					{story.articles.map((article) => (
+						<ArticleCard
+							key={article.id}
+							title={article.title}
+							summary={article.content}
+							url={article.externalUrl}
+							publishedAt={article.publishedAt}
+							publisherLogo={undefined}
+							publisherName={article.reporter.outlet.name}
+						/>
+					))}
+				</div>
 			</section>
 		</main>
 	);

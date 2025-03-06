@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
+
+import { objectId } from "~/server/validation/mongo";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { db } from "~/server/db";
 
 export const storyRouter = createTRPCRouter({
 	create: publicProcedure
@@ -39,15 +41,23 @@ export const storyRouter = createTRPCRouter({
 		}),
 
 	getById: publicProcedure
-		.input(
-			z.object({
-				id: z.string().min(1, "Story ID is required"),
-			}),
-		)
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
 			const story = await db.story.findUnique({
 				where: { id: input.id },
-				include: { articles: true },
+				include: {
+					articles: {
+						include: {
+							reporter: {
+								include: {
+									outlet: {
+										select: { id: true, name: true },
+									},
+								},
+							},
+						},
+					},
+				},
 			});
 
 			if (!story) {
@@ -63,7 +73,7 @@ export const storyRouter = createTRPCRouter({
 	update: publicProcedure
 		.input(
 			z.object({
-				id: z.string().min(1, "Story ID is required"),
+				id: objectId("id must be a valid MongoDB ObjectId"),
 				title: z.optional(z.string().min(1, "Title is required")),
 				summary: z.optional(z.array(z.string()).min(1, "At least one summary is required")),
 			}),
@@ -74,7 +84,7 @@ export const storyRouter = createTRPCRouter({
 				data: {
 					title: input.title,
 					summary: input.summary,
-					lastUpdated: new Date(),
+					modifiedAt: new Date(),
 				},
 			});
 
@@ -82,7 +92,7 @@ export const storyRouter = createTRPCRouter({
 		}),
 
 	delete: publicProcedure
-		.input(z.object({ id: z.string().min(1, "Story ID is required") }))
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.mutation(async ({ input }) => {
 			return await db.$transaction([
 				db.article.deleteMany({ where: { storyId: input.id } }),
