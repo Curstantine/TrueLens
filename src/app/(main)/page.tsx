@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { api, HydrateClient } from "~/trpc/server";
+
 import StoryCard from "~/app/_components/card/StoryCard";
 import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
 
@@ -7,7 +9,6 @@ import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
 import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
 import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
-import { api, HydrateClient } from "~/trpc/server";
 
 export const metadata: Metadata = {
 	title: "TrueLens",

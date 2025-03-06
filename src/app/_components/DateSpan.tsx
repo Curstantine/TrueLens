@@ -23,7 +23,7 @@ export function RelativeDateSpan({ value, className }: Props) {
 	const diff = value.getTime() - now.getTime();
 
 	return (
-		<span className={className}>
+		<span className={className} title={formatter.format(value)}>
 			{relativeFormatter.format(Math.round(diff / (1000 * 60 * 60)), "day")}
 		</span>
 	);

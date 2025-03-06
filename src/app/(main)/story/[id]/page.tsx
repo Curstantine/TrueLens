@@ -1,13 +1,19 @@
-import type { ReactNode } from "react";
 import type { Metadata } from "next";
 
 import { api } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
-import { getInitials } from "~/utils/grammar";
 
 import GenericErrorView from "~/app/_components/GenericErrorView";
 import { DateSpan, RelativeDateSpan } from "~/app/_components/DateSpan";
-import Avatar from "~/app/_components/Avatar";
+
+import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
+import { ListItemValuePair } from "~/app/_components/list/ListItem";
+import ArticleCard from "~/app/_components/card/ArticleCard";
+
+import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
+import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
+import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
+import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -20,55 +26,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 	if (data.error) return {};
 
 	return {
-		title: data.value.title,
+		title: data.value.title + " - TrueLens",
 		description: data.value.summary.join(" "),
 	};
-}
-
-function SummaryItem({ title, value }: { title: string; value: ReactNode }) {
-	return (
-		<li className="flex justify-between">
-			<span>{title}</span>
-			<span>{value}</span>
-		</li>
-	);
-}
-
-type ArticleCardProps = {
-	title: string;
-	summary: string;
-	url: string;
-	publishedAt: Date;
-	publisherName: string;
-	publisherLogo: string | null | undefined;
-};
-
-function ArticleCard({
-	title,
-	summary,
-	url,
-	publishedAt,
-	publisherName,
-	publisherLogo,
-}: ArticleCardProps) {
-	return (
-		<a href={url} target="_blank" rel="noreferrer noopener" className="flex flex-col">
-			<div className="inline-flex items-center gap-2">
-				<Avatar
-					avatarUrl={publisherLogo}
-					alt={publisherName}
-					initials={getInitials(publisherName)}
-					className="!size-8 text-xs"
-				/>
-				<span className="text-sm text-muted-foreground">{publisherName}</span>
-			</div>
-
-			<h3 className="font-semibold">{title}</h3>
-			<p className="flex-1 text-sm text-muted-foreground">{summary}</p>
-
-			<DateSpan value={publishedAt} className="text-xs text-muted-foreground" />
-		</a>
-	);
 }
 
 export default async function Page({ params }: Props) {
@@ -87,7 +47,7 @@ export default async function Page({ params }: Props) {
 
 	return (
 		<main className="container">
-			<section className="flex min-h-36 items-end justify-between">
+			<section className="flex min-h-36 flex-col justify-between gap-4 pt-8 lg:flex-row lg:items-end lg:gap-0 lg:pt-0">
 				<div className="flex flex-col">
 					<DateSpan value={story.createdAt} className="text-sm text-muted-foreground" />
 					<span className="text-2xl font-semibold">{story.title}</span>
@@ -97,41 +57,102 @@ export default async function Page({ params }: Props) {
 					<span className="font-medium">Reporting Summary</span>
 
 					<ul className="mt-1 flex flex-col gap-y-1 text-xs text-muted-foreground">
-						<SummaryItem title="Total Sources:" value={story.articles.length} />
-						<SummaryItem title="Factually:" value={100} />
-						<SummaryItem
+						<ListItemValuePair title="Total Sources:" value={story.articles.length} />
+						<ListItemValuePair title="Factually:" value={100} />
+						<ListItemValuePair
 							title="Last Updated:"
-							value={<RelativeDateSpan value={story.modifiedAt} />}
+							value={
+								<RelativeDateSpan value={story.modifiedAt} className="capitalize" />
+							}
 						/>
 					</ul>
 				</div>
 			</section>
 
-			<section className="mt-8 max-w-4xl space-y-1">
-				<h2 className="text-xl font-medium">Summary</h2>
-				<ul className="ml-4 list-disc space-y-1">
-					{story.summary.map((item, index) => (
-						<li key={index}>{item}</li>
-					))}
-				</ul>
-			</section>
-
-			<section className="mt-8">
-				<h2 className="text-xl font-medium">Publications</h2>
-				<div className="mt-4 grid grid-cols-1 gap-4">
-					{story.articles.map((article) => (
-						<ArticleCard
-							key={article.id}
-							title={article.title}
-							summary={article.content}
-							url={article.externalUrl}
-							publishedAt={article.publishedAt}
-							publisherLogo={undefined}
-							publisherName={article.reporter.outlet.name}
-						/>
-					))}
+			<div className="grid justify-between lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8">
+				<div>
+					<SummarySection summary={story.summary} />
+					<PublicationsSection data={story.articles} />
 				</div>
-			</section>
+
+				<div>
+					<OutletRanking />
+				</div>
+			</div>
 		</main>
+	);
+}
+
+type SummarySectionProps = { summary: string[] };
+function SummarySection({ summary }: SummarySectionProps) {
+	return (
+		<section className="mt-8 max-w-4xl space-y-1">
+			<h2 className="text-xl font-medium">Summary</h2>
+			<ul className="ml-4 list-disc space-y-1">
+				{summary.map((item, index) => (
+					<li key={index}>{item}</li>
+				))}
+			</ul>
+		</section>
+	);
+}
+
+type PublicationsSectionProps = { data: Awaited<ReturnType<typeof api.story.getById>>["articles"] };
+function PublicationsSection({ data }: PublicationsSectionProps) {
+	return (
+		<section className="mt-8">
+			<h2 className="text-xl font-medium">Publications</h2>
+			<div className="mt-2 grid grid-cols-1 gap-4">
+				{data.map((article) => (
+					<ArticleCard
+						key={article.id}
+						title={article.title}
+						summary={article.content}
+						url={article.externalUrl}
+						publishedAt={article.publishedAt}
+						publisherLogo={undefined}
+						publisherName={article.reporter.outlet.name}
+					/>
+				))}
+			</div>
+		</section>
+	);
+}
+
+function OutletRanking() {
+	return (
+		<div className="flex flex-col gap-y-1 pt-6">
+			<h2 className="px-2 font-medium">Outlet Credibility Ranking</h2>
+			<ul>
+				<OutletRankingItem
+					place={1}
+					name="Ada Derana"
+					credibility={50}
+					publications={120}
+					logo={AdaDeranaLogo}
+				/>
+				<OutletRankingItem
+					place={2}
+					name="NewsFirst"
+					credibility={50}
+					publications={120}
+					logo={NewsFirstLogo}
+				/>
+				<OutletRankingItem
+					place={3}
+					name="Hiru News"
+					credibility={50}
+					publications={120}
+					logo={HiruNewsLogo}
+				/>
+				<OutletRankingItem
+					place={4}
+					name="The Morning"
+					credibility={50}
+					publications={120}
+					logo={TheMorningLogo}
+				/>
+			</ul>
+		</div>
 	);
 }
