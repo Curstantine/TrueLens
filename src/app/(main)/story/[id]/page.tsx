@@ -46,40 +46,45 @@ export default async function Page({ params }: Props) {
 	const story = data.value;
 
 	return (
-		<main className="container">
-			<section className="flex min-h-36 flex-col justify-between gap-4 pt-8 lg:flex-row lg:items-end lg:gap-0 lg:pt-0">
-				<div className="flex flex-col">
+		<main className="container grid justify-between gap-4 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8">
+			<div role="presentation">
+				<div className="flex min-h-36 flex-col justify-end">
 					<DateSpan value={story.createdAt} className="text-sm text-muted-foreground" />
 					<span className="text-2xl font-semibold">{story.title}</span>
 				</div>
+				<SummarySection summary={story.summary} />
+				<PublicationsSection data={story.articles} />
+			</div>
 
-				<div className="flex w-52 flex-col rounded-sm border-1 border-border p-2 text-sm shadow">
-					<span className="font-medium">Reporting Summary</span>
-
-					<ul className="mt-1 flex flex-col gap-y-1 text-xs text-muted-foreground">
-						<ListItemValuePair title="Total Sources:" value={story.articles.length} />
-						<ListItemValuePair title="Factually:" value={100} />
-						<ListItemValuePair
-							title="Last Updated:"
-							value={
-								<RelativeDateSpan value={story.modifiedAt} className="capitalize" />
-							}
-						/>
-					</ul>
+			<div role="presentation">
+				<div className="flex items-end md:min-h-36">
+					<ReportingSummary
+						articleSize={story.articles.length}
+						factuality={50}
+						modifiedAt={story.modifiedAt}
+					/>
 				</div>
-			</section>
-
-			<div className="grid justify-between lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8">
-				<div>
-					<SummarySection summary={story.summary} />
-					<PublicationsSection data={story.articles} />
-				</div>
-
-				<div>
-					<OutletRanking />
-				</div>
+				<OutletRanking />
 			</div>
 		</main>
+	);
+}
+
+type ReportingSummaryProps = { articleSize: number; factuality: number; modifiedAt: Date };
+function ReportingSummary({ articleSize, factuality, modifiedAt }: ReportingSummaryProps) {
+	return (
+		<div className="flex flex-1 flex-col rounded-sm border-1 border-border p-2 text-sm shadow">
+			<span className="font-medium">Reporting Summary</span>
+
+			<ul className="mt-1 flex flex-col gap-y-1 text-xs text-muted-foreground">
+				<ListItemValuePair title="Total Sources:" value={articleSize} />
+				<ListItemValuePair title="Factually:" value={`${factuality}%`} />
+				<ListItemValuePair
+					title="Last Updated:"
+					value={<RelativeDateSpan value={modifiedAt} className="capitalize" />}
+				/>
+			</ul>
+		</div>
 	);
 }
 
@@ -122,7 +127,7 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 function OutletRanking() {
 	return (
 		<div className="flex flex-col gap-y-1 pt-6">
-			<h2 className="px-2 font-medium">Outlet Credibility Ranking</h2>
+			<h2 className="font-medium">Outlet Credibility Ranking</h2>
 			<ul>
 				<OutletRankingItem
 					place={1}

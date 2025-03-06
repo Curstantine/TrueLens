@@ -16,9 +16,9 @@ export default function NavigationBar() {
 
 				<div className="grow" />
 
-				<Search className="mr-6" />
+				<Search className="mr-6 hidden lg:block" />
 
-				<ul className="mr-6 inline-flex items-center gap-4">
+				<ul className="mr-6 hidden items-center gap-4 md:inline-flex">
 					<li>
 						<Link href="/about">About</Link>
 					</li>
