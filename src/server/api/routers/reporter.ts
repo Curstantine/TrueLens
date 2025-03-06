@@ -1,39 +1,43 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
 
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { db } from "~/server/db";
+import { objectId } from "~/server/validation/mongo";
+
 export const reporterRouter = createTRPCRouter({
-	// Create
 	create: publicProcedure
 		.input(
 			z.object({
 				name: z.string().min(1, "Name is required"),
 				email: z.string().email("Invalid email address"),
 				outletId: z.string().min(1, "News Outlet ID is required"),
+				avatarUrl: z.string().optional(),
+				isSystem: z.boolean().default(false),
 			}),
 		)
 		.mutation(async ({ input }) => {
-			// Ensure email is unique
-			const existingReporter = await db.reporter.findUnique({
+			const reporter = await db.reporter.findUnique({
 				where: { email: input.email },
+				select: { id: true },
 			});
-			if (existingReporter) {
+
+			if (reporter) {
 				throw new TRPCError({
 					code: "CONFLICT",
 					message: "A reporter with this email already exists.",
 				});
 			}
 
-			// Check if the News Outlet exists
-			const outletExists = await db.newsOutlet.findUnique({
+			const outlet = await db.newsOutlet.findUnique({
 				where: { id: input.outletId },
 				select: { id: true },
 			});
-			if (!outletExists) {
+
+			if (!outlet) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "News Outlet with the provided ID does not exist.",
+					message: "News outlet with the provided ID does not exist.",
 				});
 			}
 
@@ -43,11 +47,11 @@ export const reporterRouter = createTRPCRouter({
 					name: input.name,
 					email: input.email,
 					outletId: input.outletId,
+					avatarUrl: input.avatarUrl,
+					isSystem: input.isSystem,
 				},
 			});
 		}),
-
-	//get all reporter
 	getAll: publicProcedure
 		.input(
 			z.object({
@@ -62,62 +66,54 @@ export const reporterRouter = createTRPCRouter({
 				include: { outlet: true },
 			});
 		}),
-
-	// Get by ID
-	getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-		const reporter = await db.reporter.findUnique({
-			where: { id: input.id },
-			include: { outlet: true },
-		});
-		if (!reporter) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				message: "Reporter not found",
-			});
-		}
-		return reporter;
-	}),
-
-	// Update by id
-	update: publicProcedure
-		.input(
-			z.object({
-				id: z.string(),
-				name: z.string().optional(),
-				email: z.string().email("Invalid email address").optional(),
-				outletId: z.string().optional(),
-			}),
-		)
-		.mutation(async ({ input }) => {
-			// Validate that the ID is a valid MongoDB ObjectId
-			if (input.outletId && !/^[a-f\d]{24}$/i.test(input.outletId)) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "Invalid outletId format. Must be a valid MongoDB ObjectId.",
-				});
-			}
-
-			// Ensure the reporter exists
-			const existingReporter = await db.reporter.findUnique({
+	getById: publicProcedure
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.query(async ({ input }) => {
+			const reporter = await db.reporter.findUnique({
 				where: { id: input.id },
+				include: { outlet: true },
 			});
-			if (!existingReporter) {
+
+			if (!reporter) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
 					message: "Reporter not found",
 				});
 			}
 
-			// If outletId is provided, ensure the outlet exists
+			return reporter;
+		}),
+	update: publicProcedure
+		.input(
+			z.object({
+				id: objectId("id must be a valid MongoDB ObjectId"),
+				name: z.string().optional(),
+				email: z.string().email("Invalid email address").optional(),
+				outletId: objectId("id must be a valid MongoDB ObjectId").optional(),
+				avatarUrl: z.string().optional(),
+				isSystem: z.boolean().optional(),
+			}),
+		)
+		.mutation(async ({ input }) => {
+			const reporter = await db.reporter.findUnique({
+				where: { id: input.id },
+				select: { id: true },
+			});
+
+			if (!reporter) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found" });
+			}
+
 			if (input.outletId) {
-				const outletExists = await db.newsOutlet.findUnique({
+				const outlet = await db.newsOutlet.findUnique({
 					where: { id: input.outletId },
 					select: { id: true },
 				});
-				if (!outletExists) {
+
+				if (!outlet) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
-						message: "News Outlet with the provided ID does not exist.",
+						message: "Outlet with the provided id does not exist.",
 					});
 				}
 			}
@@ -128,22 +124,26 @@ export const reporterRouter = createTRPCRouter({
 					name: input.name,
 					email: input.email,
 					outletId: input.outletId,
+					avatarUrl: input.avatarUrl,
+					isSystem: input.isSystem,
 				},
 			});
 		}),
-
-	//Delete reporter by id
-	delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-		const existingReporter = await db.reporter.findUnique({
-			where: { id: input.id },
-		});
-		if (!existingReporter) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				message: "Reporter not found",
+	delete: publicProcedure
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.mutation(async ({ input }) => {
+			const reporter = await db.reporter.findUnique({
+				where: { id: input.id },
+				select: { id: true },
 			});
-		}
-		await db.reporter.delete({ where: { id: input.id } });
-		return { message: "Reporter deleted successfully" };
-	}),
+
+			if (!reporter) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found" });
+			}
+
+			return await db.$transaction([
+				db.article.deleteMany({ where: { reporterId: input.id } }),
+				db.reporter.delete({ where: { id: input.id } }),
+			]);
+		}),
 });

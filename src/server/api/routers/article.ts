@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { objectId } from "~/server/validation/mongo";
 
 export const articleRouter = createTRPCRouter({
 	/**
@@ -13,56 +14,53 @@ export const articleRouter = createTRPCRouter({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				content: z.string().min(1, "Content is required"),
-				reporterId: z.string().min(1, "Reporter ID is required"),
-				storyId: z.string().min(1, "Story ID is required"),
+				reporterId: objectId("Reporter ID must be a valid MongoDB ObjectId"),
+				storyId: objectId("Story ID must be a valid MongoDB ObjectId"),
+				externalUrl: z.string().url("External URL must be a valid URL"),
+				publishedAt: z.string().datetime("Published At must be a valid datetime"),
 			}),
 		)
 		.mutation(async ({ input }) => {
-			// Validate that the reporter exists
-			const reporterExists = await db.reporter.findUnique({
+			const reporter = await db.reporter.findUnique({
 				where: { id: input.reporterId },
 				select: { id: true },
 			});
 
-			if (!reporterExists) {
+			if (!reporter) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found." });
 			}
 
-			// Validate that the story exists
-			const storyExists = await db.story.findUnique({
+			const story = await db.story.findUnique({
 				where: { id: input.storyId },
 				select: { id: true },
 			});
 
-			if (!storyExists) {
+			if (!story) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found." });
 			}
 
-			// Create a new article
-			return await db.article.create({ data: input });
+			return await db.article.create({
+				data: {
+					title: input.title,
+					content: input.content,
+					reporterId: input.reporterId,
+					storyId: input.storyId,
+					externalUrl: input.externalUrl,
+					publishedAt: input.publishedAt,
+				},
+			});
 		}),
-
-	/**
-	 * Get all articles.
-	 *
-	 * Returns an array of articles including related reporter, story, and comments.
-	 */
 	getAll: publicProcedure.query(async () => {
 		return await db.article.findMany({
-			include: { reporter: true, story: true, comments: true },
+			include: { reporter: true, story: true },
 		});
 	}),
-
-	/**
-	 * Get an article by its ID.
-	 */
 	getById: publicProcedure
-		.input(z.object({ id: z.string().min(1, "Article ID is required") }))
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
-			// Fetch the article by ID
 			const article = await db.article.findUnique({
 				where: { id: input.id },
-				include: { reporter: true, story: true, comments: true },
+				include: { reporter: true, story: true },
 			});
 
 			if (!article) {
@@ -71,46 +69,73 @@ export const articleRouter = createTRPCRouter({
 
 			return article;
 		}),
-
-	/**
-	 * Update an existing article.
-	 */
 	update: publicProcedure
 		.input(
 			z.object({
-				id: z.string().min(1, "ID is required"), // Ensure ID is provided
-				title: z.string().optional(),
-				content: z.string().optional(),
-				authorId: z.string().optional(),
+				id: objectId("Article ID must be a valid MongoDB ObjectId"),
+				title: z.string().min(1, "Title is required").optional(),
+				content: z.string().min(1, "Content is required").optional(),
+				reporterId: objectId("Reporter ID must be a valid MongoDB ObjectId").optional(),
+				storyId: objectId("Story ID must be a valid MongoDB ObjectId").optional(),
+				externalUrl: z.string().url("External URL must be a valid URL").optional(),
+				publishedAt: z
+					.string()
+					.datetime("Published At must be a valid datetime")
+					.optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const { id, ...updateData } = input;
-
-			// Ensure there is at least one field to update
-			if (Object.keys(updateData).length === 0) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "At least one field must be provided for update.",
-				});
-			}
-
-			// Update the article
-			const updatedArticle = await db.article.update({
-				where: { id },
-				data: updateData,
+			const article = await db.article.findUnique({
+				where: { id: input.id },
+				select: { id: true },
 			});
 
-			return updatedArticle;
-		}),
+			if (!article) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
+			}
 
-	/**
-	 * Delete an article by ID.
-	 */
+			if (input.reporterId) {
+				const reporter = await db.reporter.findUnique({
+					where: { id: input.reporterId },
+					select: { id: true },
+				});
+
+				if (!reporter) {
+					throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found." });
+				}
+			}
+
+			if (input.storyId) {
+				const story = await db.story.findUnique({
+					where: { id: input.storyId },
+					select: { id: true },
+				});
+
+				if (!story) {
+					throw new TRPCError({ code: "NOT_FOUND", message: "Story not found." });
+				}
+			}
+
+			return await db.article.update({
+				where: { id: input.id },
+				data: {
+					title: input.title,
+					content: input.content,
+					reporterId: input.reporterId,
+					storyId: input.storyId,
+					externalUrl: input.externalUrl,
+					publishedAt: input.publishedAt,
+				},
+			});
+		}),
 	delete: publicProcedure
 		.input(z.object({ id: z.string().min(1, "Article ID is required") }))
 		.mutation(async ({ input }) => {
-			const article = await db.article.findUnique({ where: { id: input.id } });
+			const article = await db.article.findUnique({
+				where: { id: input.id },
+				select: { id: true },
+			});
+
 			if (!article) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
 			}

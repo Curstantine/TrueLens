@@ -82,14 +82,15 @@ model Waitlist {
 
 // Represents a Comment associated with a user and an article
 model Comment {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    content   String
-    articleId String   @db.ObjectId
-    createdBy String   @map("userId") @db.ObjectId
-    createdAt DateTime @default(now())
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    content    String
+    storyId    String   @db.ObjectId
+    userId     String   @db.ObjectId
+    createdAt  DateTime @default(now())
+    modifiedAt DateTime @default(now())
 
-    article Article @relation(fields: [articleId], references: [id])
-    user    User    @relation(fields: [createdBy], references: [id])
+    story Story @relation(fields: [storyId], references: [id])
+    user  User  @relation(fields: [userId], references: [id])
 }
 
 // Represents a Reporter who writes articles for a NewsOutlet
@@ -97,6 +98,8 @@ model Reporter {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     name      String
     email     String   @unique
+    isSystem  Boolean  @default(false)
+    avatarUrl String?
     outletId  String   @db.ObjectId
     createdAt DateTime @default(now())
 
@@ -106,12 +109,14 @@ model Reporter {
 
 // Represents a Story that groups related articles
 model Story {
-    id          String   @id @default(auto()) @map("_id") @db.ObjectId
-    title       String
-    description String
-    createdAt   DateTime @default(now())
+    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    title      String
+    summary    String[]
+    createdAt  DateTime @default(now())
+    modifiedAt DateTime @default(now())
 
     articles Article[]
+    comments Comment[]
 }
 
 // Represents an Article written by a reporter and belonging to a story
@@ -119,14 +124,14 @@ model Article {
     id          String   @id @default(auto()) @map("_id") @db.ObjectId
     title       String
     content     String
+    externalUrl String   @unique
     reporterId  String   @db.ObjectId
     storyId     String   @db.ObjectId
     publishedAt DateTime @default(now())
     createdAt   DateTime @default(now())
 
-    story    Story     @relation(fields: [storyId], references: [id])
-    reporter Reporter  @relation(fields: [reporterId], references: [id])
-    comments Comment[]
+    story    Story    @relation(fields: [storyId], references: [id])
+    reporter Reporter @relation(fields: [reporterId], references: [id])
 }
 
 // Represents a NewsOutlet that employs reporters
@@ -135,6 +140,7 @@ model NewsOutlet {
     name         String
     headquarters String
     createdAt    DateTime @default(now())
+    logoUrl      String?
 
     reporters Reporter[]
 }

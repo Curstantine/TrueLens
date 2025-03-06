@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ComponentType, MouseEventHandler } from "react";
+import type { ComponentType, MouseEventHandler, ReactNode } from "react";
 
 type ListItemLinkProps = {
 	href: string;
@@ -12,7 +12,7 @@ export function ListItemLink({ href, label, icon: Icon }: ListItemLinkProps) {
 		<li className="w-full">
 			<Link
 				href={href}
-				className="hover:bg-secondary/40 text-muted-foreground hover:text-secondary-foreground flex h-11 items-center px-4 transition-colors"
+				className="flex h-11 items-center px-4 text-muted-foreground transition-colors hover:bg-secondary/40 hover:text-secondary-foreground"
 			>
 				{Icon && <Icon className="mr-3 size-6" />}
 				{label}
@@ -31,11 +31,20 @@ export function ListItemButton({ label, icon: Icon, onClick }: ListItemButtonPro
 			<button
 				type="button"
 				onClick={onClick}
-				className="hover:bg-secondary/40 text-muted-foreground hover:text-secondary-foreground flex h-11 w-full cursor-pointer items-center px-4 transition-colors"
+				className="flex h-11 w-full cursor-pointer items-center px-4 text-muted-foreground transition-colors hover:bg-secondary/40 hover:text-secondary-foreground"
 			>
 				{Icon && <Icon className="mr-3 size-6" />}
 				{label}
 			</button>
+		</li>
+	);
+}
+
+export function ListItemValuePair({ title, value }: { title: string; value: ReactNode }) {
+	return (
+		<li className="flex justify-between">
+			<span>{title}</span>
+			<span>{value}</span>
 		</li>
 	);
 }

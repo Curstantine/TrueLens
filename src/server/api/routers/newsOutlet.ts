@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
-import { db } from "../../db";
 import { TRPCError } from "@trpc/server";
+
+import { objectId } from "~/server/validation/mongo";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { db } from "~/server/db";
 
 export const newsOutletRouter = createTRPCRouter({
 	/* Create newsOutlet*/
@@ -10,18 +12,18 @@ export const newsOutletRouter = createTRPCRouter({
 			z.object({
 				name: z.string().min(1, "Name is required"),
 				headquarters: z.string().min(1, "Headquarters is required"),
+				logoUrl: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
-			return db.newsOutlet.create({
+			return await db.newsOutlet.create({
 				data: {
 					name: input.name,
 					headquarters: input.headquarters,
+					logoUrl: input.logoUrl,
 				},
 			});
 		}),
-
-	//get all news outlets
 	getAll: publicProcedure
 		.input(
 			z.object({
@@ -30,47 +32,49 @@ export const newsOutletRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ input }) => {
-			return db.newsOutlet.findMany({
+			return await db.newsOutlet.findMany({
 				take: input.limit,
 				skip: input.offset,
 			});
 		}),
+	getById: publicProcedure
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.query(async ({ input }) => {
+			const outlet = await db.newsOutlet.findUnique({ where: { id: input.id } });
+			if (!outlet) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
+			}
 
-	//get news outlet by id
-	getById: publicProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-		const newsOutlet = await db.newsOutlet.findUnique({
-			where: { id: input.id },
-		});
-		if (!newsOutlet) {
-			throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
-		}
-		return newsOutlet;
-	}),
-
-	//update news outlet by id
+			return outlet;
+		}),
 	update: publicProcedure
 		.input(
 			z.object({
-				id: z.string(),
+				id: objectId("id must be a valid MongoDB ObjectId"),
 				name: z.string().optional(),
 				headquarters: z.string().optional(),
+				logoUrl: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
-			return db.newsOutlet.update({
+			return await db.newsOutlet.update({
 				where: { id: input.id },
 				data: {
-					name: input.name ?? undefined,
-					headquarters: input.headquarters ?? undefined,
+					name: input.name,
+					headquarters: input.headquarters,
+					logoUrl: input.logoUrl,
 				},
 			});
 		}),
 
 	//delete news outlet by id
-	delete: publicProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
-		await db.newsOutlet.delete({
-			where: { id: input.id },
-		});
-		return { message: "News outlet deleted successfully" };
-	}),
+	delete: publicProcedure
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.mutation(async ({ input }) => {
+			return await db.$transaction([
+				db.newsOutlet.delete({ where: { id: input.id } }),
+				db.reporter.deleteMany({ where: { outletId: input.id } }),
+				db.article.deleteMany({ where: { reporter: { outletId: input.id } } }),
+			]);
+		}),
 });
