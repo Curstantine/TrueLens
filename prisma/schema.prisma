@@ -151,3 +151,30 @@ model Configuration {
     value     String
     createdAt DateTime @default(now())
 }
+
+enum PlanBillingCycle {
+  MONTHLY
+  ANNUALLY
+}
+
+model SubscriptionPlan {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  name        String           @unique
+  description String
+  price       Float            @default(0) // 0 for Free, next Pro, next Premium
+  billingCycle PlanBillingCycle
+  features    String[]         // List of features included
+  tier        Int              @default(0) // 0 (Free), 1 (Pro), 2 (Premium)
+  createdAt   DateTime         @default(now())
+}
+
+model UserSubscription {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @unique @db.ObjectId
+  planId     String   @db.ObjectId
+  startedAt  DateTime @default(now())
+  expiresAt  DateTime?
+
+  user       User              @relation(fields: [userId], references: [id])
+  plan       SubscriptionPlan  @relation(fields: [planId], references: [id])
+}
