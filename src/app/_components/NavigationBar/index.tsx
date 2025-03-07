@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import NavBarDecoration from "~/app/_components/NavigationBar/Decoration";
 
 import Profile, { ProfileSkeleton } from "~/app/_components/NavigationBar/Profile";
 import Search from "~/app/_components/form/Search";
@@ -32,6 +33,8 @@ export default function NavigationBar() {
 					<Profile />
 				</Suspense>
 			</div>
+
+			<NavBarDecoration />
 		</nav>
 	);
 }
