@@ -127,8 +127,8 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 function CommentSection() {
 	return (
 		<section className="mt-8">
-			<h2 className="text-xl font-medium">User Comments</h2>
-			<div className="mt-2 grid grid-cols-1 gap-4">
+			<h2 className="text-xl font-medium">Comments</h2>
+			<div className="mt-3 grid grid-cols-1 gap-4">
 				<CommentCard
 					userName="John Doe"
 					userAvatar="https://randomuser.me/api/port"
