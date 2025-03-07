@@ -11,9 +11,8 @@ import { ListItemValuePair } from "~/app/_components/list/ListItem";
 import ArticleCard from "~/app/_components/card/ArticleCard";
 
 import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
-import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
-import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
-import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
+// import NewsLkLogo from "~/app/assets/outlets/newslk.png";
+import CommentCard from "~/app/_components/card/CommentCard";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -46,7 +45,7 @@ export default async function Page({ params }: Props) {
 	const story = data.value;
 
 	return (
-		<main className="container grid justify-between gap-4 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8">
+		<main className="grid justify-between gap-4 px-6 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8 2xl:container">
 			<div role="presentation">
 				<div className="flex min-h-36 flex-col justify-end">
 					<DateSpan value={story.createdAt} className="text-sm text-muted-foreground" />
@@ -54,6 +53,7 @@ export default async function Page({ params }: Props) {
 				</div>
 				<SummarySection summary={story.summary} />
 				<PublicationsSection data={story.articles} />
+				<CommentSection />
 			</div>
 
 			<div role="presentation">
@@ -124,38 +124,48 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 	);
 }
 
+function CommentSection() {
+	return (
+		<section className="mt-8">
+			<h2 className="text-xl font-medium">User Comments</h2>
+			<div className="mt-2 grid grid-cols-1 gap-4">
+				<CommentCard
+					userName="John Doe"
+					userAvatar="https://randomuser.me/api/port"
+					content="This is a comment"
+					createdAt={new Date()}
+				/>
+
+				<CommentCard
+					userName="Jane Doe"
+					userAvatar="https://randomuser.me/api/port"
+					content="This is another comment"
+					createdAt={new Date()}
+				/>
+
+				<CommentCard
+					userName="John Doe"
+					userAvatar="https://randomuser.me/api/port"
+					content="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dignissimos ut, quaerat, aut hic aliquid exercitationem harum consequatur, repudiandae maiores tempora ipsum. Quidem animi voluptas sunt vero illum placeat repellat labore blanditiis adipisci neque, harum, expedita obcaecati, quasi dolor. Quae repudiandae tempora itaque ipsa vitae maiores deleniti quidem corrupti possimus tenetur."
+					createdAt={new Date()}
+				/>
+			</div>
+		</section>
+	);
+}
+
 function OutletRanking() {
 	return (
 		<div className="flex flex-col gap-y-1 pt-6">
 			<h2 className="font-medium">Outlet Credibility Ranking</h2>
 			<ul>
+				<OutletRankingItem place={1} name="News.lk" credibility={50} publications={120} />
 				<OutletRankingItem
-					place={1}
+					place={2}
 					name="Ada Derana"
 					credibility={50}
 					publications={120}
 					logo={AdaDeranaLogo}
-				/>
-				<OutletRankingItem
-					place={2}
-					name="NewsFirst"
-					credibility={50}
-					publications={120}
-					logo={NewsFirstLogo}
-				/>
-				<OutletRankingItem
-					place={3}
-					name="Hiru News"
-					credibility={50}
-					publications={120}
-					logo={HiruNewsLogo}
-				/>
-				<OutletRankingItem
-					place={4}
-					name="The Morning"
-					credibility={50}
-					publications={120}
-					logo={TheMorningLogo}
 				/>
 			</ul>
 		</div>

@@ -1,5 +1,6 @@
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { getInitials } from "~/utils/grammar";
 
 type OutletRankingItemProps = {
 	place: number;
@@ -21,7 +22,7 @@ export default function OutletRankingItem({
 			<Link
 				href={`/outlet/${name}`}
 				style={{ gridTemplateAreas: `"logo name" "logo credibility"` }}
-				className="hover:bg-muted/30 active:bg-muted/50 grid cursor-pointer grid-cols-[--spacing(12)_1fr] items-center gap-x-2 p-2 transition-colors"
+				className="grid cursor-pointer grid-cols-[--spacing(12)_1fr] items-center gap-x-2 p-2 transition-colors hover:bg-muted/30 active:bg-muted/50"
 			>
 				{logo !== undefined ? (
 					<Image
@@ -32,11 +33,13 @@ export default function OutletRankingItem({
 						className="bg-fit h-fit w-10 [grid-area:logo]"
 					/>
 				) : (
-					<div className="bg-muted size-12 rounded-full [grid-area:logo]" />
+					<div className="grid size-10 place-items-center rounded-full bg-muted text-muted-foreground [grid-area:logo]">
+						{getInitials(name)}
+					</div>
 				)}
 				{/* prettier-ignore */}
 				<span className="leading-tight h-6 [grid-area:name]">#{place} {name}</span>
-				<div className="text-muted-foreground inline-flex text-xs leading-tight [grid-area:credibility]">
+				<div className="inline-flex text-xs leading-tight text-muted-foreground [grid-area:credibility]">
 					<span>{credibility}% Credibility</span>
 					{/* prettier-ignore */}
 					<span aria-hidden className="mx-1">•</span>
