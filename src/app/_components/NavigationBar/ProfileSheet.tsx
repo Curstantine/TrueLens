@@ -94,7 +94,7 @@ function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
 			onClick={(e) => e.stopPropagation()}
 			onBlur={onBlur}
 			className={clsx(
-				"absolute w-72 rounded-md bg-background py-3 shadow-lg transition-opacity",
+				"fixed w-72 rounded-md border border-border bg-background py-3 shadow-lg transition-opacity",
 				show ? "opacity-100" : "pointer-events-none opacity-0",
 			)}
 		>
