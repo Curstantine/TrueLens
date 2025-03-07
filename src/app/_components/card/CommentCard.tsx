@@ -15,13 +15,13 @@ export default function CommentCard({ userName, userAvatar, content, createdAt }
 					className="!size-7 text-xs"
 				/>
 				<span className="text-sm text-muted-foreground">{userName}</span>
+
+				<div className="flex flex-1 items-center justify-end">
+					<DateTimeSpan value={createdAt} className="text-xs text-muted-foreground" />
+				</div>
 			</div>
 
 			<p className="flex-1 text-sm whitespace-break-spaces">{content}</p>
-
-			<div className="flex items-center justify-between">
-				<DateTimeSpan value={createdAt} className="text-xs text-muted-foreground" />
-			</div>
 		</div>
 	);
 }

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { api } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
 
 import GenericErrorView from "~/app/_components/GenericErrorView";
@@ -43,30 +43,36 @@ export default async function Page({ params }: Props) {
 	}
 
 	const story = data.value;
+	void api.comment.getByStoryId.prefetch({ storyId: story.id });
 
 	return (
-		<main className="grid justify-between gap-4 px-6 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8 2xl:container">
-			<div role="presentation">
-				<div className="flex min-h-36 flex-col justify-end">
-					<DateSpan value={story.createdAt} className="text-sm text-muted-foreground" />
-					<span className="text-2xl font-semibold">{story.title}</span>
+		<HydrateClient>
+			<main className="grid justify-between gap-4 px-6 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8 2xl:container">
+				<div role="presentation">
+					<div className="flex min-h-36 flex-col justify-end">
+						<DateSpan
+							value={story.createdAt}
+							className="text-sm text-muted-foreground"
+						/>
+						<span className="text-2xl font-semibold">{story.title}</span>
+					</div>
+					<SummarySection summary={story.summary} />
+					<PublicationsSection data={story.articles} />
+					<CommentSection />
 				</div>
-				<SummarySection summary={story.summary} />
-				<PublicationsSection data={story.articles} />
-				<CommentSection />
-			</div>
 
-			<div role="presentation">
-				<div className="flex items-end md:min-h-36">
-					<ReportingSummary
-						articleSize={story.articles.length}
-						factuality={50}
-						modifiedAt={story.modifiedAt}
-					/>
+				<div role="presentation">
+					<div className="flex items-end md:min-h-36">
+						<ReportingSummary
+							articleSize={story.articles.length}
+							factuality={50}
+							modifiedAt={story.modifiedAt}
+						/>
+					</div>
+					<OutletRanking />
 				</div>
-				<OutletRanking />
-			</div>
-		</main>
+			</main>
+		</HydrateClient>
 	);
 }
 
@@ -107,7 +113,7 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 	return (
 		<section className="mt-8">
 			<h2 className="text-xl font-medium">Publications</h2>
-			<div className="mt-2 grid grid-cols-1 gap-4">
+			<div className="mt-2 grid grid-cols-1 gap-2">
 				{data.map((article) => (
 					<ArticleCard
 						key={article.id}
