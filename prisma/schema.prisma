@@ -60,9 +60,10 @@ model User {
     isOnboarded   Boolean   @default(false)
     createdAt     DateTime  @default(now())
 
-    accounts Account[]
-    sessions Session[]
-    comments Comment[]
+    accounts         Account[]
+    sessions         Session[]
+    comments         Comment[]
+    UserSubscription UserSubscription?
 }
 
 model VerificationToken {
@@ -153,28 +154,29 @@ model Configuration {
 }
 
 enum PlanBillingCycle {
-  MONTHLY
-  ANNUALLY
+    MONTHLY
+    ANNUALLY
 }
 
 model SubscriptionPlan {
-  id          String           @id @default(auto()) @map("_id") @db.ObjectId
-  name        String           @unique
-  description String
-  price       Float            @default(0) // 0 for Free, next Pro, next Premium
-  billingCycle PlanBillingCycle
-  features    String[]         // List of features included
-  tier        Int              @default(0) // 0 (Free), 1 (Pro), 2 (Premium)
-  createdAt   DateTime         @default(now())
+    id               String             @id @default(auto()) @map("_id") @db.ObjectId
+    name             String             @unique
+    description      String
+    price            Float              @default(0) // 0 for Free, next Pro, next Premium
+    billingCycle     PlanBillingCycle
+    features         String[] // List of features included
+    tier             Int                @default(0) // 0 (Free), 1 (Pro), 2 (Premium)
+    createdAt        DateTime           @default(now())
+    UserSubscription UserSubscription[]
 }
 
 model UserSubscription {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String   @unique @db.ObjectId
-  planId     String   @db.ObjectId
-  startedAt  DateTime @default(now())
-  expiresAt  DateTime?
+    id        String    @id @default(auto()) @map("_id") @db.ObjectId
+    userId    String    @unique @db.ObjectId
+    planId    String    @db.ObjectId
+    startedAt DateTime  @default(now())
+    expiresAt DateTime?
 
-  user       User              @relation(fields: [userId], references: [id])
-  plan       SubscriptionPlan  @relation(fields: [planId], references: [id])
+    user User             @relation(fields: [userId], references: [id])
+    plan SubscriptionPlan @relation(fields: [planId], references: [id])
 }
