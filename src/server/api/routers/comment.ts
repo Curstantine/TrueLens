@@ -1,87 +1,116 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { objectId } from "~/server/validation/mongo";
 
 export const commentRouter = createTRPCRouter({
-	create: publicProcedure
+	create: protectedProcedure
 		.input(
 			z.object({
 				content: z.string().min(1, "Comment cannot be empty"),
-				articleId: z.string().min(1, "Article ID is required"),
-				createdBy: z.string().min(1, "User ID is required"),
+				storyId: objectId("Story id must be a valid MongoDB ObjectId"),
 			}),
 		)
-		.mutation(async ({ input }) => {
-			const article = await db.article.findUnique({ 
-				where: { id: input.articleId },
-				select: {id: true},
-			});
-			if (!article) throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
+		.mutation(async ({ input, ctx }) => {
+			const [story, user] = await Promise.all([
+				db.story.findUnique({ where: { id: input.storyId } }),
+				db.user.findUnique({ where: { id: ctx.session.user.id } }),
+			]);
 
-			const user = await db.user.findUnique({ 
-				where: { id: input.createdBy },
-			    select: {id: true},
-			});
-			if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found." });
+			if (!story) throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
+			if (!user) throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
 
-			const newComment = await db.comment.create({
+			return await db.comment.create({
 				data: {
 					content: input.content,
-					articleId: input.articleId,
-					createdBy: input.createdBy,
+					storyId: input.storyId,
+					userId: ctx.session.user.id,
 				},
 			});
-
-			return newComment;
 		}),
 
-		getAll: publicProcedure.query(async () => {
+	getAll: publicProcedure
+		.input(
+			z.object({
+				limit: z.number().min(1).max(100).default(100),
+				offset: z.number().min(0).default(0),
+			}),
+		)
+		.query(async ({ input }) => {
 			return await db.comment.findMany({
-			  include: { user: true, article: true }, // Include related user and article data
+				take: input.limit,
+				skip: input.offset,
+				include: { user: true },
 			});
-		  }),
-
+		}),
 	getById: publicProcedure
-		.input(z.object({ id: z.string().min(1, "Comment ID is required") }))
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
 			const comment = await db.comment.findUnique({
 				where: { id: input.id },
-				include: { user: true, article: true },
+				include: { user: true },
 			});
-			if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
+			if (!comment) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found" });
+			}
 
 			return comment;
 		}),
+	getByStoryId: publicProcedure
+		.input(z.object({ storyId: objectId("storyId must be a valid MongoDB ObjectId") }))
+		.query(async ({ input }) => {
+			const comments = await db.comment.findMany({
+				where: { storyId: input.storyId },
+				include: { user: true },
+			});
 
-	update: publicProcedure
+			return comments;
+		}),
+	update: protectedProcedure
 		.input(
 			z.object({
-				id: z.string().min(1, "Comment ID is required"),
+				id: objectId("id must be a valid MongoDB ObjectId"),
 				content: z.string().min(1, "Updated content is required"),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx }) => {
 			const comment = await db.comment.findUnique({ where: { id: input.id } });
-			if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
 
-			const updatedComment = await db.comment.update({
+			if (!comment) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found" });
+			}
+
+			if (comment.userId !== ctx.session.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You cannot update this comment",
+				});
+			}
+
+			return await db.comment.update({
 				where: { id: input.id },
-				data: { content: input.content },
+				data: { content: input.content, modifiedAt: new Date() },
 			});
-
-			return updatedComment;
 		}),
 
-		delete: publicProcedure
-			.input(z.object({ id: z.string().min(1, "Comment ID is required") }))
-			.mutation(async ({ input }) => {
-				const comment = await db.comment.findUnique({ where: { id: input.id } });
-				if (!comment) throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found." });
+	delete: protectedProcedure
+		.input(z.object({ id: z.string().min(1, "Comment ID is required") }))
+		.mutation(async ({ input, ctx }) => {
+			const comment = await db.comment.findUnique({ where: { id: input.id } });
 
-				await db.comment.delete({ where: { id: input.id } });
+			if (!comment) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Comment not found" });
+			}
 
-				return { message: "Comment deleted successfully." };
+			if (comment.userId !== ctx.session.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You cannot delete this comment",
+				});
+			}
+
+			return await db.comment.delete({ where: { id: input.id } });
 		}),
 });
-
