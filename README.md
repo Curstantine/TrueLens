@@ -3,7 +3,7 @@
 ## Prerequisites
 
 1. You need pnpm to use this project. Run `corepack enable` in an elevated terminal to enable pnpm.
-2. You need to create a .env file similar to the content of [.env.example](./.env.example)
+2. You need to create a .env file similar to the content of [.env.example](./.env)
     - Contact me for the MongoDB Atlas URL needed inside the .env file.
 
 ## Building
