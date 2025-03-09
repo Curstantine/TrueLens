@@ -8,15 +8,15 @@ export default function Search({ className }: Props) {
 	return (
 		<label
 			className={clsx(
-				"bg-muted focus-within:outline-input relative rounded-md outline-1 outline-transparent transition-colors",
+				"relative rounded-md bg-muted outline-1 outline-transparent transition-colors focus-within:outline-input",
 				className,
 			)}
 		>
 			<input
 				placeholder="Search"
-				className="placeholder:text-muted-foreground h-8 min-w-64 bg-transparent pr-10 pl-4 focus:outline-hidden"
+				className="h-8 min-w-64 bg-transparent pr-10 pl-4 placeholder:text-muted-foreground focus:outline-hidden"
 			/>
-			<SearchRoundedIcon className="iconify text-muted-foreground tabler--search absolute top-1 right-2 size-6" />
+			<SearchRoundedIcon className="iconify tabler--search absolute top-1 right-2 size-6 text-muted-foreground" />
 		</label>
 	);
 }

@@ -18,7 +18,7 @@ export default function ErrorField<T extends FieldValues, N extends FieldPath<T>
 	return (
 		<span
 			className={clsx(
-				"text-destructive h-0 text-xs opacity-0 transition-opacity",
+				"h-0 text-xs text-destructive opacity-0 transition-opacity",
 				error && "h-3 opacity-100",
 				className,
 			)}

@@ -48,7 +48,7 @@ export default function SignInForm() {
 				{...register("password")}
 			/>
 
-			<div className="text-muted-foreground mb-4 inline-flex items-center justify-between text-xs">
+			<div className="mb-4 inline-flex items-center justify-between text-xs text-muted-foreground">
 				<Link href="/auth/signup">Don&apos;t have an account?</Link>
 				<Link href="/auth/forgot-password">Forgot password?</Link>
 			</div>

@@ -14,7 +14,7 @@ export default async function Profile() {
 		return (
 			<Link
 				href="/auth/signin"
-				className="bg-primary text-primary-foreground rounded-md px-4 py-1.5"
+				className="rounded-md bg-primary px-4 py-1.5 text-primary-foreground"
 			>
 				Sign-in
 			</Link>
@@ -34,7 +34,7 @@ export default async function Profile() {
 
 export function ProfileSkeleton() {
 	return (
-		<div className="bg-muted text-muted-foreground grid size-10 animate-pulse place-items-center rounded-full">
+		<div className="grid size-10 animate-pulse place-items-center rounded-full bg-muted text-muted-foreground">
 			<PersonOutlineRoundedIcon className="size-7" />
 		</div>
 	);
