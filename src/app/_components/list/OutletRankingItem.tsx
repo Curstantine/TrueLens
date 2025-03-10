@@ -1,5 +1,6 @@
 import Image, { StaticImageData } from "next/image";
 import Link from "next/link";
+import { getInitials } from "~/utils/grammar";
 
 type OutletRankingItemProps = {
 	place: number;
@@ -32,7 +33,9 @@ export default function OutletRankingItem({
 						className="bg-fit h-fit w-10 [grid-area:logo]"
 					/>
 				) : (
-					<div className="size-12 rounded-full bg-muted [grid-area:logo]" />
+					<div className="grid size-10 place-items-center rounded-full bg-muted text-muted-foreground [grid-area:logo]">
+						{getInitials(name)}
+					</div>
 				)}
 				{/* prettier-ignore */}
 				<span className="leading-tight h-6 [grid-area:name]">#{place} {name}</span>

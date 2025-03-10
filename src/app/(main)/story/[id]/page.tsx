@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { api } from "~/trpc/server";
+import { api, HydrateClient } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
 
 import GenericErrorView from "~/app/_components/GenericErrorView";
@@ -11,9 +11,8 @@ import { ListItemValuePair } from "~/app/_components/list/ListItem";
 import ArticleCard from "~/app/_components/card/ArticleCard";
 
 import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
-import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
-import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
-import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
+// import NewsLkLogo from "~/app/assets/outlets/newslk.png";
+import CommentCard from "~/app/_components/card/CommentCard";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -44,29 +43,36 @@ export default async function Page({ params }: Props) {
 	}
 
 	const story = data.value;
+	void api.comment.getByStoryId.prefetch({ storyId: story.id });
 
 	return (
-		<main className="container grid justify-between gap-4 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8">
-			<div role="presentation">
-				<div className="flex min-h-36 flex-col justify-end">
-					<DateSpan value={story.createdAt} className="text-sm text-muted-foreground" />
-					<span className="text-2xl font-semibold">{story.title}</span>
+		<HydrateClient>
+			<main className="grid justify-between gap-4 px-6 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8 2xl:container">
+				<div role="presentation">
+					<div className="flex min-h-36 flex-col justify-end">
+						<DateSpan
+							value={story.createdAt}
+							className="text-sm text-muted-foreground"
+						/>
+						<span className="text-2xl font-semibold">{story.title}</span>
+					</div>
+					<SummarySection summary={story.summary} />
+					<PublicationsSection data={story.articles} />
+					<CommentSection />
 				</div>
-				<SummarySection summary={story.summary} />
-				<PublicationsSection data={story.articles} />
-			</div>
 
-			<div role="presentation">
-				<div className="flex items-end md:min-h-36">
-					<ReportingSummary
-						articleSize={story.articles.length}
-						factuality={50}
-						modifiedAt={story.modifiedAt}
-					/>
+				<div role="presentation">
+					<div className="flex items-end md:min-h-36">
+						<ReportingSummary
+							articleSize={story.articles.length}
+							factuality={50}
+							modifiedAt={story.modifiedAt}
+						/>
+					</div>
+					<OutletRanking />
 				</div>
-				<OutletRanking />
-			</div>
-		</main>
+			</main>
+		</HydrateClient>
 	);
 }
 
@@ -107,7 +113,7 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 	return (
 		<section className="mt-8">
 			<h2 className="text-xl font-medium">Publications</h2>
-			<div className="mt-2 grid grid-cols-1 gap-4">
+			<div className="mt-2 grid grid-cols-1 gap-2">
 				{data.map((article) => (
 					<ArticleCard
 						key={article.id}
@@ -124,38 +130,48 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 	);
 }
 
+function CommentSection() {
+	return (
+		<section className="mt-8">
+			<h2 className="text-xl font-medium">Comments</h2>
+			<div className="mt-3 grid grid-cols-1 gap-4">
+				<CommentCard
+					userName="John Doe"
+					userAvatar="https://randomuser.me/api/port"
+					content="This is a comment"
+					createdAt={new Date()}
+				/>
+
+				<CommentCard
+					userName="Jane Doe"
+					userAvatar="https://randomuser.me/api/port"
+					content="This is another comment"
+					createdAt={new Date()}
+				/>
+
+				<CommentCard
+					userName="John Doe"
+					userAvatar="https://randomuser.me/api/port"
+					content="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dignissimos ut, quaerat, aut hic aliquid exercitationem harum consequatur, repudiandae maiores tempora ipsum. Quidem animi voluptas sunt vero illum placeat repellat labore blanditiis adipisci neque, harum, expedita obcaecati, quasi dolor. Quae repudiandae tempora itaque ipsa vitae maiores deleniti quidem corrupti possimus tenetur."
+					createdAt={new Date()}
+				/>
+			</div>
+		</section>
+	);
+}
+
 function OutletRanking() {
 	return (
 		<div className="flex flex-col gap-y-1 pt-6">
 			<h2 className="font-medium">Outlet Credibility Ranking</h2>
 			<ul>
+				<OutletRankingItem place={1} name="News.lk" credibility={50} publications={120} />
 				<OutletRankingItem
-					place={1}
+					place={2}
 					name="Ada Derana"
 					credibility={50}
 					publications={120}
 					logo={AdaDeranaLogo}
-				/>
-				<OutletRankingItem
-					place={2}
-					name="NewsFirst"
-					credibility={50}
-					publications={120}
-					logo={NewsFirstLogo}
-				/>
-				<OutletRankingItem
-					place={3}
-					name="Hiru News"
-					credibility={50}
-					publications={120}
-					logo={HiruNewsLogo}
-				/>
-				<OutletRankingItem
-					place={4}
-					name="The Morning"
-					credibility={50}
-					publications={120}
-					logo={TheMorningLogo}
 				/>
 			</ul>
 		</div>

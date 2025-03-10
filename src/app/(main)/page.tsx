@@ -19,7 +19,7 @@ export default async function Page() {
 		<HydrateClient>
 			<main>
 				<Hero />
-				<section className="container grid lg:grid-cols-[1fr_--spacing(80)]">
+				<section className="grid px-6 lg:grid-cols-[1fr_--spacing(80)] 2xl:container">
 					<RecentStories />
 					<OutletRanking />
 				</section>
@@ -31,7 +31,7 @@ export default async function Page() {
 function Hero() {
 	return (
 		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
-			<div className="absolute inset-0 container flex items-end justify-between px-4 pb-6 2xl:px-0">
+			<div className="absolute inset-0 flex items-end justify-between px-6 pb-6 2xl:container">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
 					<h1 className="text-xl leading-tight font-semibold">
@@ -55,8 +55,8 @@ async function RecentStories() {
 	});
 
 	return (
-		<div className="space-y-4 py-6">
-			<h1 className="text-2xl font-semibold">Recent Stories</h1>
+		<div className="space-y-3 pt-6 pb-2">
+			<h1 className="text-xl font-semibold">Recent Stories</h1>
 
 			<div className="grid grid-cols-[repeat(auto-fill,--spacing(90))] gap-4">
 				{stories.map((story) => (

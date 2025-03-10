@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import NavBarDecoration from "~/app/_components/NavigationBar/Decoration";
 
 import Profile, { ProfileSkeleton } from "~/app/_components/NavigationBar/Profile";
 import Search from "~/app/_components/form/Search";
@@ -9,7 +10,7 @@ import Logo from "~/app/_components/icons/Logo";
 export default function NavigationBar() {
 	return (
 		<nav className="sticky top-0 z-50 bg-background">
-			<div className="container flex h-14 items-center">
+			<div className="flex h-14 items-center px-6 2xl:container">
 				<Link href="/">
 					<Logo className="h-8 w-fit" />
 				</Link>
@@ -32,6 +33,8 @@ export default function NavigationBar() {
 					<Profile />
 				</Suspense>
 			</div>
+
+			<NavBarDecoration />
 		</nav>
 	);
 }
