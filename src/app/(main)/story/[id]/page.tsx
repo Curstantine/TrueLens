@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
 
@@ -31,7 +32,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
 	const { id } = await params;
-	const data = await makeTRPCResult(() => api.story.getById({ id }));
+	const [session, data] = await Promise.all([
+		auth(),
+		makeTRPCResult(() => api.story.getById({ id })),
+	]);
 
 	if (data.error) {
 		return (
@@ -57,7 +61,7 @@ export default async function Page({ params }: Props) {
 					</div>
 					<SummarySection summary={story.summary} />
 					<PublicationsSection data={story.articles} />
-					<CommentSection storyId={story.id} />
+					<CommentSection storyId={story.id} currentUserId={session?.user.id} />
 				</div>
 
 				<div role="presentation">
@@ -111,7 +115,10 @@ type PublicationsSectionProps = { data: Awaited<ReturnType<typeof api.story.getB
 function PublicationsSection({ data }: PublicationsSectionProps) {
 	return (
 		<section className="mt-8">
-			<h2 className="text-xl font-medium">Publications</h2>
+			<h2 className="inline-flex text-xl font-medium">
+				Publications
+				<span className="mt-1 ml-0.5 text-xs text-muted-foreground">({data.length})</span>
+			</h2>
 			<div className="mt-2 grid grid-cols-1 gap-2">
 				{data.map((article) => (
 					<ArticleCard
