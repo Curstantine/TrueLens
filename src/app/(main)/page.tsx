@@ -19,7 +19,7 @@ export default async function Page() {
 		<HydrateClient>
 			<main>
 				<Hero />
-				<section className="container grid grid-cols-[1fr_--spacing(80)]">
+				<section className="container grid lg:grid-cols-[1fr_--spacing(80)]">
 					<RecentStories />
 					<OutletRanking />
 				</section>
@@ -55,7 +55,7 @@ async function RecentStories() {
 	});
 
 	return (
-		<div className="space-y-4 pt-6 pb-2">
+		<div className="space-y-4 py-6">
 			<h1 className="text-2xl font-semibold">Recent Stories</h1>
 
 			<div className="grid grid-cols-[repeat(auto-fill,--spacing(90))] gap-4">

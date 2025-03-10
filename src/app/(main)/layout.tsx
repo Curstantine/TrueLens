@@ -1,4 +1,6 @@
 import type { ReactNode } from "react";
+
+import Footer from "~/app/_components/Footer/Footer";
 import NavigationBar from "~/app/_components/NavigationBar";
 
 type Props = {
@@ -9,7 +11,8 @@ export default function Layout({ children }: Readonly<Props>) {
 	return (
 		<>
 			<NavigationBar />
-			{children}
+			<div className="flex-1">{children}</div>
+			<Footer />
 		</>
 	);
 }

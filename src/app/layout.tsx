@@ -27,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 					<script src="https://unpkg.com/react-scan/dist/auto.global.js" async />
 				</head>
 			)}
-			<body>
+			<body className="flex min-h-screen flex-col">
 				<TRPCReactProvider>{children}</TRPCReactProvider>
 				<Toaster />
 			</body>
