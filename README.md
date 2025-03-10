@@ -5,10 +5,12 @@
 1. You need pnpm to use this project. Run `corepack enable` in an elevated terminal to enable pnpm.
 2. You need to create a .env file similar to the content of [.env.example](./.env.example)
     - Contact me for the MongoDB Atlas URL needed inside the .env file.
+3. You need `python@^3.13.2` to run the analyzer.
+4. Install `pipenv` by `pip install --user pipenv`
 
 ## Building
 
-1. `pnpm i` to install dependencies.
+1. `pnpm i` and `pipenv install` to install dependencies.
 2. `pnpm dev` to start both the frontend and the backend.
 3. `pnpm format:write` to format the code using prettier.
 

@@ -18,30 +18,25 @@ REPO_ROOT = find_repo_root()
 ARTICLES_DIR = REPO_ROOT / "news_filtered_data/news_source_data/data/articles"
 OUTPUT_FILE = REPO_ROOT / "news_filtered_data/news_source_data/data/grouped_articles.json"
 
-def is_ascii(s):
-    # Check if the string contains only ASCII characters
-    return all(ord(c) < 128 for c in s)
 
 def load_articles(directory):
-    # Load articles from JSON files and filter out empty ones
     articles = []
     
-    for file in Path(directory).rglob("*.json"):  # Recursively find all JSON files
+    for file in Path(directory).rglob("*.json"):
         with open(file, "r", encoding="utf-8") as f:
             data = json.load(f)
             text = " ".join(data.get("body_paragraphs", [])).strip()
-                        
-            if text and is_ascii(data["title"]): # Skip empty articles and non-ASCII titles
-                articles.append({
-                    "url": data["url"],
-                    "title": data["title"],
-                    "ut": data["ut"],
-                    "body_paragraphs": text,
-                    "outlet": data.get("outlet", "unknown"),
-                    "reporter": data.get("reporter", None)
-                })
+
+            articles.append({
+                "url": data["url"],
+                "title": data["title"],
+                "ut": data["ut"],
+                "body_paragraphs": text,
+                "outlet": data.get("outlet", "unknown"),
+                "reporter": data.get("reporter", None)
+            })
     
-    return articles # Return the filtered list of articles
+    return articles
 
 def cluster_articles(articles, num_clusters=5):
     # Cluster articles using BERTopic
@@ -83,42 +78,14 @@ def process_articles(articles):
         article.update(create_reporter_and_outlet(article))
     return articles
 
-def create_story_and_calculate_factuality(grouped_articles):
-    # Create stories and calculate factuality for clustered articles
-    class MockTRPCClient:
-        class Story:
-            @staticmethod
-            def create(data):
-                return {"id": 1, "title": data["title"], "articles": data["articles"]}
-        
-        class Article:
-            @staticmethod
-            def update(data):
-                pass
-    
-    trpc_client = MockTRPCClient()
-    
-    for cluster_id, articles in grouped_articles.items():
-        story = trpc_client.Story.create({
-            "title": f"Story for cluster {cluster_id}",
-            "articles": [article["url"] for article in articles]
-        })
-        
-        factuality = calculate_factuality(articles)
-        
-        for article in articles:
-            trpc_client.Article.update({
-                "url": article["url"],
-                "storyId": story["id"],
-                "factuality": factuality
-            })
+
 
 def calculate_factuality(articles):
     # Dummy function to calculate factuality. Replace with actual implementation
     
     return 75  # Placeholder value
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     articles = load_articles(ARTICLES_DIR)
     
     if articles:
@@ -128,8 +95,5 @@ if _name_ == "_main_":
         processed_articles = process_articles(clustered_articles)
         grouped_articles = save_grouped_articles(processed_articles, OUTPUT_FILE)
         print(f"Grouped articles saved to {OUTPUT_FILE}.")
-        
-        create_story_and_calculate_factuality(grouped_articles)
-        print("Stories created and factuality calculated.")
     else:
         print("No valid articles found. Process terminated.")
