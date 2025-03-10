@@ -35,9 +35,9 @@ export default function Footer() {
 				<div className="container flex flex-col items-center justify-between gap-2 py-2 md:h-7 md:flex-row md:gap-0 md:py-0">
 					<p>© 2025 TrueLens Initiative. All Rights Reserved</p>
 					<div className="flex space-x-4">
-						<a href="#" className="hover:underline">
+						<Link href="/policies/privacy" className="hover:underline">
 							Privacy Policy
-						</a>
+						</Link>
 						<a href="#" className="hover:underline">
 							Terms of Service
 						</a>
