@@ -1,79 +1,39 @@
+import Link from "next/link";
+import type { ComponentType, SVGProps } from "react";
+
 import InstagramLogo from "~/app/_components/icons/InstagramLogo";
+import Logo from "~/app/_components/icons/Logo";
 import MaterialSymbolsMailOutline from "~/app/_components/icons/material/MailLogo";
+
+type FooterLink = { label: string; href: string };
+type FooterIconLink = FooterLink & { icon: ComponentType<SVGProps<SVGSVGElement>> };
+
+export const QUICK_LINKS: FooterLink[] = [
+	{ label: "About", href: "/about" },
+	{ label: "Mission", href: "/about/mission" },
+	{ label: "FAQs", href: "/about/faqs" },
+	{ label: "Methodology", href: "/about/methodology" },
+	{ label: "Plans", href: "/plans" },
+];
+
+export const CONTACT_LINKS: FooterIconLink[] = [
+	{ label: "Email", href: "mailto:truelens@gmail.com", icon: MaterialSymbolsMailOutline },
+	{ label: "Instagram", href: "https://instagram.com/truelens", icon: InstagramLogo },
+];
 
 export default function Footer() {
 	return (
-		<footer>
-			{/* Upper Part */}
-			<div className="border-t border-gray-300 bg-gray-100 px-10 py-6">
-				<div className="mx-auto flex max-w-6xl flex-col items-start justify-between md:flex-row">
-					{/* Logo */}
-					<div className="text-2xl font-semibold">
-						True<span className="underline decoration-red-600">Lens</span>
-					</div>
+		<footer className="border-t border-border bg-background">
+			<div className="container flex flex-col items-start justify-between gap-6 py-8 md:flex-row md:gap-0">
+				<Logo className="h-fit w-40 sm:w-48" />
 
-					{/* Quick Links */}
-					<div className="flex flex-wrap gap-10 text-sm text-gray-700">
-						<div className="space-y-2">
-							<h3 className="font-semibold">Quick Links</h3>
-							<ul className="space-y-1">
-								<li>
-									<a href="#" className="hover:underline">
-										About
-									</a>
-								</li>
-								<li>
-									<a href="#" className="hover:underline">
-										Mission
-									</a>
-								</li>
-								<li>
-									<a href="#" className="hover:underline">
-										Pricing
-									</a>
-								</li>
-								<li>
-									<a href="#" className="hover:underline">
-										FAQs
-									</a>
-								</li>
-							</ul>
-						</div>
-						<div className="space-y-2">
-							<h3 className="invisible">Placeholder</h3>{" "}
-							{/* Invisible header for alignment */}
-							<ul className="space-y-1">
-								<li>
-									<a href="#" className="hover:underline">
-										Methodology
-									</a>
-								</li>
-							</ul>
-						</div>
-					</div>
-
-					{/* Contact Us */}
-					<div className="space-y-2 text-sm text-gray-700">
-						<h3 className="font-semibold">Contact Us</h3>
-						<div className="flex items-center gap-2">
-							<MaterialSymbolsMailOutline className="h-4 w-4" />
-							<a href="mailto:truelens@gmail.com" className="hover:underline">
-								truelens@gmail.com
-							</a>
-						</div>
-						<div className="flex items-center gap-3">
-							<a href="#" className="hover:text-gray-900">
-								<InstagramLogo className="h-5 w-5" />
-							</a>
-						</div>
-					</div>
-				</div>
+				<QuickLinks />
+				<ContactUs />
 			</div>
 
-			{/* Bottom Part (Red Section) */}
-			<div className="bg-red-700 px-10 py-3 text-sm text-white">
-				<div className="mx-auto flex max-w-6xl flex-col items-center justify-between md:flex-row">
-					<p>© 2024 TrueLens Initiative. All Rights Reserved</p>
+			<div className="bg-primary text-xs text-primary-foreground">
+				<div className="container flex flex-col items-center justify-between gap-2 py-2 md:h-7 md:flex-row md:gap-0 md:py-0">
+					<p>© 2025 TrueLens Initiative. All Rights Reserved</p>
 					<div className="flex space-x-4">
 						<a href="#" className="hover:underline">
 							Privacy Policy
@@ -85,5 +45,36 @@ export default function Footer() {
 				</div>
 			</div>
 		</footer>
+	);
+}
+
+function QuickLinks() {
+	return (
+		<div className="grid grid-cols-2 gap-2">
+			<h2 className="col-span-2 font-medium text-foreground">Quick Links</h2>
+			{QUICK_LINKS.map(({ label, href }) => (
+				<Link key={label} href={href} className="text-sm hover:underline">
+					{label}
+				</Link>
+			))}
+		</div>
+	);
+}
+
+function ContactUs() {
+	return (
+		<div className="grid grid-cols-1 gap-2">
+			<h2 className="font-medium text-foreground">Contact</h2>
+			{CONTACT_LINKS.map(({ label, href, icon: Icon }) => (
+				<Link
+					key={label}
+					href={href}
+					className="inline-flex items-center gap-1 text-sm hover:underline"
+				>
+					<Icon className="size-4" />
+					<span>{label}</span>
+				</Link>
+			))}
+		</div>
 	);
 }
