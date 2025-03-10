@@ -53,7 +53,7 @@ export default function SignUpForm() {
 				{...register("confirmPassword")}
 			/>
 
-			<div className="text-muted-foreground mb-4 inline-flex items-center justify-between text-xs">
+			<div className="mb-4 inline-flex items-center justify-between text-xs text-muted-foreground">
 				<Link href="/auth/signin">Already have an account?</Link>
 			</div>
 
