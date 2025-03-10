@@ -19,7 +19,7 @@ export default async function Page() {
 		<HydrateClient>
 			<main>
 				<Hero />
-				<section className="grid grid-cols-[1fr_--spacing(80)] px-6 2xl:container">
+				<section className="grid px-6 lg:grid-cols-[1fr_--spacing(80)] 2xl:container">
 					<RecentStories />
 					<OutletRanking />
 				</section>
