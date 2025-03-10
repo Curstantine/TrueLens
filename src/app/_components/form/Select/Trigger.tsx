@@ -31,7 +31,7 @@ export default function SelectTrigger({
 			aria-expanded={isOpen}
 			onClick={onClick}
 			onBlur={onBlur}
-			className="border-border transition-colors_opacity aria-expanded:border-input flex h-9 items-center rounded-md border bg-transparent px-2 text-start text-sm disabled:opacity-75 aria-expanded:outline-hidden"
+			className="flex h-9 items-center rounded-md border border-border bg-transparent px-2 text-start text-sm transition-colors_opacity disabled:opacity-75 aria-expanded:border-input aria-expanded:outline-hidden"
 		>
 			<span
 				className={clsx(
@@ -43,7 +43,7 @@ export default function SelectTrigger({
 			</span>
 			<KeyboardArrowDownRoundedIcon
 				className={clsx(
-					"text-muted-foreground size-5 transform transition-transform",
+					"size-5 transform text-muted-foreground transition-transform",
 					isOpen ? "rotate-180" : "rotate-0",
 				)}
 			/>

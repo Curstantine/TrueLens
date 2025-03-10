@@ -21,7 +21,7 @@ export default async function Page() {
 		<main className="mx-auto max-w-md py-24">
 			<div className="mb-8 flex flex-col">
 				<h1 className="mb-0 text-2xl leading-tight font-medium">Complete your account</h1>
-				<span className="text-muted-foreground text-sm">
+				<span className="text-sm text-muted-foreground">
 					Register an account on TrueLens to get started!
 				</span>
 			</div>
