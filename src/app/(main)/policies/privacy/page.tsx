@@ -1,6 +1,4 @@
-import React from "react";
-
-const Page = () => {
+export default function Page() {
     return (
         <div className="bg-background text-foreground p-6 max-w-4xl mx-auto">
             <h1 className="text-2xl font-bold mb-4">Privacy Policy</h1>
@@ -39,4 +37,4 @@ const Page = () => {
     );
 };
 
-export default Page;
+
