@@ -1,6 +1,4 @@
-import React from "react";
-
-const Page: React.FC = () => {
+export default function Page() {
     const team = [
         { name: "Rachala Ovin", role: "Lead Developer", img: "https://via.placeholder.com/150" },
         { name: "Stephani", role: "Backend Assistant", img: "https://via.placeholder.com/150" },
@@ -55,4 +53,3 @@ const Page: React.FC = () => {
     );
 };
 
-export default Page;
