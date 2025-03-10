@@ -1,4 +1,5 @@
-import { Mail, Instagram, X } from "lucide-react";
+import {BxlInstagram} from "~/app/_components/icons/material/InstagramLogo";
+import MaterialSymbolsMailOutline from "~/app/_components/icons/material/MailLogo";
 
 const Footer = () => {
     return (
@@ -34,17 +35,14 @@ const Footer = () => {
                     <div className="space-y-2 text-sm text-gray-700">
                         <h3 className="font-semibold">Contact Us</h3>
                         <div className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
+                            <MaterialSymbolsMailOutline className="w-4 h-4" />
                             <a href="mailto:truelens@gmail.com" className="hover:underline">
                                 truelens@gmail.com
                             </a>
                         </div>
                         <div className="flex items-center gap-3">
                             <a href="#" className="hover:text-gray-900">
-                                <Instagram className="w-5 h-5" />
-                            </a>
-                            <a href="#" className="hover:text-gray-900">
-                                <X className="w-5 h-5" />
+                                <BxlInstagram className="w-5 h-5" />
                             </a>
                         </div>
                     </div>
