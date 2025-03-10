@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { env } from "~/env";
+import Footer from "~/app/_components/footer/Footer";
 
 const InterFont = Inter({
 	subsets: ["latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 			)}
 			<body>
 				<TRPCReactProvider>{children}</TRPCReactProvider>
+				<Footer/>
 				<Toaster />
 			</body>
 		</html>
