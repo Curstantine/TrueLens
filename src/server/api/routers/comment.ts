@@ -59,11 +59,21 @@ export const commentRouter = createTRPCRouter({
 			return comment;
 		}),
 	getByStoryId: publicProcedure
-		.input(z.object({ storyId: objectId("storyId must be a valid MongoDB ObjectId") }))
+		.input(
+			z.object({
+				storyId: objectId("storyId must be a valid MongoDB ObjectId"),
+				limit: z.number().min(1).max(100).default(100),
+				offset: z.number().min(0).default(0),
+				order: z.enum(["asc", "desc"]).default("desc"),
+			}),
+		)
 		.query(async ({ input }) => {
 			const comments = await db.comment.findMany({
 				where: { storyId: input.storyId },
 				include: { user: true },
+				take: input.limit,
+				skip: input.offset,
+				orderBy: { createdAt: input.order },
 			});
 
 			return comments;

@@ -2,7 +2,7 @@ import Avatar from "~/app/_components/Avatar";
 import { DateTimeSpan } from "~/app/_components/DateSpan";
 import { getInitials } from "~/utils/grammar";
 
-type Props = { userName: string; userAvatar: string; content: string; createdAt: Date };
+type Props = { userName: string; userAvatar: string | null; content: string; createdAt: Date };
 
 export default function CommentCard({ userName, userAvatar, content, createdAt }: Props) {
 	return (

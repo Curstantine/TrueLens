@@ -3,7 +3,7 @@ import type { ComponentType, SVGProps } from "react";
 
 import InstagramLogo from "~/app/_components/icons/InstagramLogo";
 import Logo from "~/app/_components/icons/Logo";
-import MaterialSymbolsMailOutline from "~/app/_components/icons/material/MailLogo";
+import MailOutlineIcon from "~/app/_components/icons/material/MailOutlineIcon";
 
 type FooterLink = { label: string; href: string };
 type FooterIconLink = FooterLink & { icon: ComponentType<SVGProps<SVGSVGElement>> };
@@ -20,7 +20,7 @@ export const CONTACT_LINKS: FooterIconLink[] = [
 	{
 		label: "truelens@gmail.com",
 		href: "mailto:truelens@gmail.com",
-		icon: MaterialSymbolsMailOutline,
+		icon: MailOutlineIcon,
 	},
 	{ label: "@truelens.lk", href: "https://instagram.com/truelens.lk", icon: InstagramLogo },
 ];

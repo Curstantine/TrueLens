@@ -3,16 +3,15 @@ import type { Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
 
-import GenericErrorView from "~/app/_components/GenericErrorView";
 import { DateSpan, RelativeDateSpan } from "~/app/_components/DateSpan";
 
+import GenericErrorView from "~/app/_components/GenericErrorView";
 import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
 import { ListItemValuePair } from "~/app/_components/list/ListItem";
 import ArticleCard from "~/app/_components/card/ArticleCard";
+import CommentSection from "~/app/_components/CommentSection";
 
 import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
-// import NewsLkLogo from "~/app/assets/outlets/newslk.png";
-import CommentCard from "~/app/_components/card/CommentCard";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -47,7 +46,7 @@ export default async function Page({ params }: Props) {
 
 	return (
 		<HydrateClient>
-			<main className="grid justify-between gap-4 px-6 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8 2xl:container">
+			<main className="grid justify-between gap-4 px-6 pb-6 lg:grid-cols-[minmax(--spacing(64),--spacing(200))_--spacing(72)] lg:gap-8 2xl:container">
 				<div role="presentation">
 					<div className="flex min-h-36 flex-col justify-end">
 						<DateSpan
@@ -58,7 +57,7 @@ export default async function Page({ params }: Props) {
 					</div>
 					<SummarySection summary={story.summary} />
 					<PublicationsSection data={story.articles} />
-					<CommentSection />
+					<CommentSection storyId={story.id} />
 				</div>
 
 				<div role="presentation">
@@ -125,36 +124,6 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 						publisherName={article.reporter.outlet.name}
 					/>
 				))}
-			</div>
-		</section>
-	);
-}
-
-function CommentSection() {
-	return (
-		<section className="mt-8">
-			<h2 className="text-xl font-medium">Comments</h2>
-			<div className="mt-3 grid grid-cols-1 gap-4">
-				<CommentCard
-					userName="John Doe"
-					userAvatar="https://randomuser.me/api/port"
-					content="This is a comment"
-					createdAt={new Date()}
-				/>
-
-				<CommentCard
-					userName="Jane Doe"
-					userAvatar="https://randomuser.me/api/port"
-					content="This is another comment"
-					createdAt={new Date()}
-				/>
-
-				<CommentCard
-					userName="John Doe"
-					userAvatar="https://randomuser.me/api/port"
-					content="Lorem ipsum, dolor sit amet consectetur adipisicing elit. Dignissimos ut, quaerat, aut hic aliquid exercitationem harum consequatur, repudiandae maiores tempora ipsum. Quidem animi voluptas sunt vero illum placeat repellat labore blanditiis adipisci neque, harum, expedita obcaecati, quasi dolor. Quae repudiandae tempora itaque ipsa vitae maiores deleniti quidem corrupti possimus tenetur."
-					createdAt={new Date()}
-				/>
 			</div>
 		</section>
 	);
