@@ -1,7 +1,6 @@
 import { stat, copyFile, mkdir } from "node:fs/promises";
-import { join as pathJoin } from "node:path";
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
+import { join as pathJoin, resolve as pathReslove } from "node:path";
+import { spawnSync } from "node:child_process";
 
 import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
@@ -56,19 +55,18 @@ export async function POST() {
 	}
 
 	log("Clustering articles...");
-	const execAsync = promisify(exec);
 
 	try {
-		const { stdout, stderr } = await execAsync("pipenv run python grouping.py", {
+		const file = pathReslove("./src/app/api/sync/grouping.py");
+
+		const pp = spawnSync("pipenv", ["run", "python", file], {
 			cwd: process.cwd(),
+			stdio: "inherit",
 		});
 
-		if (stderr) {
-			console.error("grouping.py stderr:", stderr);
+		if (pp.stderr) {
 			return NextResponse.json({ status: "error" });
 		}
-
-		console.log(stdout);
 	} catch (error) {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
