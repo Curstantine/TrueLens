@@ -173,6 +173,7 @@
                 "sha256:cda06a6f4e65c6c34bed083bb8cdf29fdb1ffcb15580829d79b2906c7bdc6dbc",
                 "sha256:cf094aeea4df4513644333b9dda408ef8ef385d0ab5f3f8681e239a9008cbeb5"
             ],
+            "index": "pypi",
             "version": "==0.8.40"
         },
         "huggingface-hub": {
