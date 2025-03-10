@@ -120,7 +120,8 @@ def save_grouped_articles(articles, output_file):
 
 def create_reporter_and_outlet(article):
     outlet = get_outlet_name(article["url"])
-    reporter = article["reporter"] or f"system-{outlet.lower().split(" ")[0].join('_')}"
+    id = "_".join(outlet.lower().split(" "))
+    reporter = article["reporter"] or f"system-{id}"
 
     return {
         "outlet": outlet,
