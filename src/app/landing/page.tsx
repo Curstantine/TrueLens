@@ -1,21 +1,23 @@
 import Link from "next/link";
-import { type ReactNode } from "react";
-import Image, { type StaticImageData } from "next/image";
+import Image from "next/image";
 
 import { PAPER_URL } from "~/constants";
 
 import JoinForm from "~/app/landing/JoinForm";
-import Logo from "~/app/_components/icons/Logo";
 import LenisWrapper from "~/app/_components/LenisWrapper";
 import { Spring, CurvedSpring } from "~/app/_components/Spring";
+import SideContentSection from "~/app/_components/SideContentSection";
+import FeatureCard from "~/app/_components/card/FeatureCard";
+
+import Logo from "~/app/_components/icons/Logo";
+import LinkIcon from "~/app/_components/icons/material/Link";
+import KeyboardArrowDownRoundedIcon from "~/app/_components/icons/material/KeyboardArrowDownRounded";
 
 import LandingZeroImage from "~/app/assets/landing-0.jpg";
 import LandingOneImage from "~/app/assets/landing-1.png";
 import LandingTwoImage from "~/app/assets/landing-2.png";
 import LandingThreeImage from "~/app/assets/landing-3.png";
 import LandingFourImage from "~/app/assets/landing-4.png";
-import LinkIcon from "~/app/_components/icons/material/Link";
-import KeyboardArrowDownRoundedIcon from "~/app/_components/icons/material/KeyboardArrowDownRounded";
 
 export default function Page() {
 	return (
@@ -60,7 +62,7 @@ export default function Page() {
 						</span>
 					</div>
 
-					<ContentSection
+					<SideContentSection
 						title="The Problem with Legacy Media"
 						description={[
 							"In today's world, where misinformation is rampant, and legacy media platforms are increasingly influencing people, it is challenging to distinguish the truth from lies.",
@@ -76,14 +78,14 @@ export default function Page() {
 							Read our paper
 							<LinkIcon className="mb-2.5 ml-0.5 inline size-3.5" />
 						</a>
-					</ContentSection>
+					</SideContentSection>
 				</section>
 
 				<section
 					id="solution"
 					className="mt-16 grid min-h-[28rem] items-center gap-6 lg:mt-0 lg:grid-cols-2 lg:gap-12"
 				>
-					<ContentSection
+					<SideContentSection
 						title={
 							<div className="inline-flex items-center gap-2">
 								<span className="text-2xl md:[font-size:inherit] md:[line-height:inherit]">
@@ -119,19 +121,19 @@ export default function Page() {
 						picture
 					</h1>
 
-					<PowerCard
+					<FeatureCard
 						src={LandingTwoImage}
 						label="Event summarization"
 						description="Summarized news events provide a comprehensive overview of the most important information."
 					/>
 
-					<PowerCard
+					<FeatureCard
 						src={LandingThreeImage}
 						label="News source aggregation and analysis"
 						description="Aggregation from multiple sources, with bias detection and credibility scoring."
 					/>
 
-					<PowerCard
+					<FeatureCard
 						src={LandingFourImage}
 						label="Credibility rankings"
 						description="Credibility rankings for news sources, articles, and authors."
@@ -157,49 +159,5 @@ export default function Page() {
 				</div>
 			</footer>
 		</LenisWrapper>
-	);
-}
-
-type ContentSectionProps = {
-	title: ReactNode;
-	description: string[];
-	children?: ReactNode;
-};
-
-function ContentSection({ title, description, children }: ContentSectionProps) {
-	return (
-		<div className="flex max-w-prose flex-col text-pretty">
-			<h2 className="mb-4 text-3xl font-semibold md:text-4xl">{title}</h2>
-			{description.map((desc, i) => (
-				<p key={i} className="mb-2">
-					{desc}
-				</p>
-			))}
-			{children}
-		</div>
-	);
-}
-
-type PowerCardProps = {
-	src: StaticImageData;
-	label: string;
-	description: string;
-};
-
-function PowerCard({ src, label, description }: PowerCardProps) {
-	return (
-		<div className="group flex flex-col">
-			<Image
-				src={src}
-				alt=""
-				aria-hidden
-				quality={100}
-				className="aspect-16/10 w-fit self-center rounded-lg border border-secondary shadow-xs transition-shadow group-hover:shadow-md"
-			/>
-			<div className="mt-3 inline-flex max-w-[45ch] flex-col text-base select-none">
-				<span className="font-semibold">{label}</span>
-				<span className="text-sm text-secondary-foreground">{description}</span>
-			</div>
-		</div>
 	);
 }
