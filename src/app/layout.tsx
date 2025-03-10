@@ -29,7 +29,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 			)}
 			<body className="flex min-h-screen flex-col">
 				<TRPCReactProvider>{children}</TRPCReactProvider>
-				<Toaster />
+				<Toaster
+					toastOptions={{
+						classNames: {
+							toast: "!bg-background !text-foreground !border !border-border !font-sans",
+							title: "!font-semibold",
+							icon: "!mr-2",
+							description: "!font-normal !text-muted-foreground",
+						},
+					}}
+				/>
 			</body>
 		</html>
 	);

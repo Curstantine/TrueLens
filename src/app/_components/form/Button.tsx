@@ -8,6 +8,9 @@ const btn = cva(
 			intent: {
 				primary: "bg-primary text-primary-foreground hover:bg-primary/85",
 				border: "bg-transparent border border-input text-input hover:bg-input hover:text-background",
+				destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/85",
+				destructiveBorder:
+					"bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-background",
 			},
 		},
 		defaultVariants: {
