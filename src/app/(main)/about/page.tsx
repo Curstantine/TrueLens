@@ -52,7 +52,9 @@ const TEAM: MemberData[] = [
 	{
 		name: "Mohamed Jiffry Fathima Fayaza",
 		role: "ML Engineer / Data Scientist",
-		links: {},
+		links: {
+			linkedin: "http://www.linkedin.com/in/fayazamjf8",
+		},
 	},
 	{
 		name: "Sheruka Caiden Perera",
