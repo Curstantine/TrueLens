@@ -41,7 +41,7 @@ model Session {
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-//use enum for different users 
+// use enum for different users
 enum UserRole {
     ADMIN
     MODERATOR
@@ -113,6 +113,7 @@ model Story {
     id         String   @id @default(auto()) @map("_id") @db.ObjectId
     title      String
     summary    String[]
+    cover      String?
     createdAt  DateTime @default(now())
     modifiedAt DateTime @default(now())
 

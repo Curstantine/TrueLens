@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 import { api, HydrateClient } from "~/trpc/server";
 
@@ -9,6 +10,8 @@ import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
 import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
 import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
+
+import HeroTempImage from "~/app/assets/placeholder/img.png"
 
 export const metadata: Metadata = {
 	title: "TrueLens",
@@ -31,6 +34,8 @@ export default async function Page() {
 function Hero() {
 	return (
 		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
+
+			<Image src={HeroTempImage} alt="" unoptimized className="h-fit w-full object-cover max-h-90" />
 			<div className="absolute inset-0 container flex items-end justify-between px-4 pb-6 2xl:px-0">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
@@ -58,9 +63,16 @@ async function RecentStories() {
 		<div className="space-y-4 py-6">
 			<h1 className="text-2xl font-semibold">Recent Stories</h1>
 
-			<div className="grid grid-cols-[repeat(auto-fill,--spacing(90))] gap-4">
+			<div className="grid grid-cols-[repeat(auto-fill,--spacing(100))] gap-3">
 				{stories.map((story) => (
-					<StoryCard key={story.id} id={story.id} title={story.title} />
+					<StoryCard
+						key={story.id}
+						id={story.id}
+						title={story.title}
+						cover={story.cover}
+						noOfArticles={story._count.articles}
+						factuality={45}
+					/>
 				))}
 			</div>
 		</div>

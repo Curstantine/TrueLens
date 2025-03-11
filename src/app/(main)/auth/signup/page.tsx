@@ -15,7 +15,7 @@ export default function Page() {
 		<main className="mx-auto max-w-md py-24">
 			<div className="mb-8 flex flex-col">
 				<h1 className="mb-0 text-2xl leading-tight font-medium">Create an account</h1>
-				<span className="text-muted-foreground text-sm">
+				<span className="text-sm text-muted-foreground">
 					Register an account on TrueLens to get started!
 				</span>
 			</div>
@@ -23,9 +23,9 @@ export default function Page() {
 			<SignUpForm />
 
 			<div className="my-6 inline-flex w-full items-center gap-3 text-sm">
-				<div className="bg-muted-foreground h-px flex-1" />
+				<div className="h-px flex-1 bg-muted-foreground" />
 				<span className="text-muted-foreground">Or</span>
-				<div className="bg-muted-foreground h-px flex-1" />
+				<div className="h-px flex-1 bg-muted-foreground" />
 			</div>
 
 			<form
