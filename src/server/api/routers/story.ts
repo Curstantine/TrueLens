@@ -11,6 +11,7 @@ export const storyRouter = createTRPCRouter({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				summary: z.array(z.string()).min(1, "Summary is required"),
+				cover: z.optional(z.string())
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -18,6 +19,7 @@ export const storyRouter = createTRPCRouter({
 				data: {
 					title: input.title,
 					summary: input.summary,
+					cover: input.cover,
 				},
 			});
 		}),
@@ -34,6 +36,16 @@ export const storyRouter = createTRPCRouter({
 			return db.story.findMany({
 				take: input.limit,
 				skip: input.offset,
+				select: {
+					id: true,
+					title: true,
+					createdAt: true,
+					modifiedAt: true,
+					cover: true,
+					_count: {
+						select: { articles: true },
+					},
+				},
 				orderBy: {
 					[input.orderBy]: input.orderDirection,
 				},
@@ -76,6 +88,7 @@ export const storyRouter = createTRPCRouter({
 				id: objectId("id must be a valid MongoDB ObjectId"),
 				title: z.optional(z.string().min(1, "Title is required")),
 				summary: z.optional(z.array(z.string()).min(1, "At least one summary is required")),
+				cover: z.optional(z.string()),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -84,6 +97,7 @@ export const storyRouter = createTRPCRouter({
 				data: {
 					title: input.title,
 					summary: input.summary,
+					cover: input.cover,
 					modifiedAt: new Date(),
 				},
 			});
