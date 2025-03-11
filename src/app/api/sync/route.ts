@@ -7,6 +7,7 @@ import simpleGit from "simple-git";
 
 import { isMostlyEnglish, readMetadata } from "~/app/api/sync/utils";
 import { db } from "~/server/db";
+import { WebScraper } from "~/app/api/sync/web"; 
 
 export const runtime = "nodejs";
 
@@ -71,6 +72,15 @@ export async function POST() {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
+
+	// Example usage of WebScraper
+	const scraper = new WebScraper();
+	const url =
+		"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
+	const outlet = "Daily Mirror";
+
+	const image = await scraper.scrapeCoverImage(url, outlet);
+	console.log("Scraped image URL:", image);
 
 	return NextResponse.json({ status: "ok" });
 }
