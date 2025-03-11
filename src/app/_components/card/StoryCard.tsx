@@ -4,30 +4,42 @@ import Link from "next/link";
 type Props = {
 	id: string;
 	title: string;
-	cover?: string;
+	noOfArticles: number;
+	factuality: number;
+	cover: string | null;
 };
 
-export default function StoryCard({ id, title, cover }: Props) {
+export default function StoryCard({ id, title, cover, noOfArticles, factuality }: Props) {
 	return (
 		<Link
 			draggable={false}
 			href={`/story/${id}`}
-			className="flex flex-col gap-2 leading-tight hover:underline"
+			className="grid grid-cols-[1fr_--spacing(24)] items-center gap-4 rounded-md bg-background border border-border pl-3"
+
 		>
-			{cover !== undefined ? (
+			<div className="flex flex-grow flex-col gap-1">
+				<span className="leading-tight font-semibold text-foreground">{title}</span>
+				<div className="flex items-center gap-1 text-xs text-muted-foreground">
+					<span>Factuality - {factuality}</span>
+					<span>·</span>
+					<span>Sources - {noOfArticles}</span>
+				</div>
+			</div>
+
+			{cover ? (
 				<Image
 					src={cover}
-					alt=""
+					alt="Story Image"
 					quality={100}
-					sizes="50vw"
+					width={96}
+					height={96}
 					draggable={false}
-					className="rounded-md"
+					className="size-24 rounded-r-md object-cover"
+					unoptimized
 				/>
 			) : (
-				<div className="aspect-video w-full rounded-md bg-muted"></div>
+				<div className="h-24 w-24 rounded-r-md bg-muted"></div>
 			)}
-
-			<span>{title}</span>
 		</Link>
 	);
 }
