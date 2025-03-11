@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default async function Page() {
 	return (
 		<HydrateClient>
-			<main>
+			<main className="pb-6">
 				<Hero />
 				<section className="grid px-6 lg:grid-cols-[1fr_--spacing(80)] 2xl:container">
 					<RecentStories />
@@ -31,7 +31,7 @@ export default async function Page() {
 function Hero() {
 	return (
 		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
-			<div className="absolute inset-0 flex items-end justify-between px-6 pb-6 2xl:container">
+			<div className="absolute inset-0 flex flex-col justify-end gap-2 sm:flex-row sm:items-end sm:justify-between px-6 pb-6 2xl:container">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
 					<h1 className="text-xl leading-tight font-semibold">
@@ -39,7 +39,7 @@ function Hero() {
 					</h1>
 				</div>
 
-				<div className="flex rounded-md bg-background px-4 py-2 text-sm shadow-lg">
+				<div className="flex w-fit rounded-md bg-background px-4 py-2 text-sm shadow-lg">
 					<span>12 Reports, 72% Factuality</span>
 				</div>
 			</div>
