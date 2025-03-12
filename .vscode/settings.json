@@ -10,5 +10,6 @@
 	"tailwindCSS.experimental.classRegex": [
 		["cva\\(((?:[^()]|\\([^()]*\\))*)\\)", "[\"'`]([^\"'`]*).*?[\"'`]"],
 		["cx\\(((?:[^()]|\\([^()]*\\))*)\\)", "(?:'|\"|`)([^']*)(?:'|\"|`)"]
-	]
+	],
+	"git.ignoredRepositories": ["news_filtered_data", "news_source_data"]
 }
