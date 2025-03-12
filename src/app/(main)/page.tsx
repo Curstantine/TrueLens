@@ -11,7 +11,7 @@ import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
 import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
 
-import HeroTempImage from "~/app/assets/placeholder/img.png"
+import HeroTempImage from "~/app/assets/placeholder/img.png";
 
 export const metadata: Metadata = {
 	title: "TrueLens",
@@ -34,7 +34,12 @@ export default async function Page() {
 function Hero() {
 	return (
 		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
-			<Image src={HeroTempImage} alt="" unoptimized className="h-fit w-full object-cover max-h-90" />
+			<Image
+				src={HeroTempImage}
+				alt=""
+				unoptimized
+				className="h-fit max-h-90 w-full object-cover"
+			/>
 			<div className="absolute inset-0 container flex items-end justify-between px-4 pb-6 2xl:px-0">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
