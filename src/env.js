@@ -15,6 +15,8 @@ export const env = createEnv({
 		AUTH_GOOGLE_SECRET: z.string(),
 
 		DATABASE_URL: z.string().url(),
+
+		GROQ_API_KEY: z.string(),
 	},
 
 	/**
@@ -37,6 +39,7 @@ export const env = createEnv({
 		AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
 		AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
 		PROFILING: process.env.PROFILING,
+		GROQ_API_KEY: process.env.GROQ_API_KEY,
 	},
 	/**
 	 * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

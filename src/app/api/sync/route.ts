@@ -1,13 +1,16 @@
-import { stat, copyFile, mkdir } from "node:fs/promises";
-import { join as pathJoin, resolve as pathReslove } from "node:path";
+import { stat, copyFile, mkdir, readFile } from "node:fs/promises";
+import { join as pathJoin, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
+import type { Groq } from "groq-sdk";
 
 import { isMostlyEnglish, readMetadata } from "~/app/api/sync/utils";
 import { db } from "~/server/db";
-import { WebScraper } from "~/app/api/sync/web"; 
+import { WebScraper } from "~/app/api/sync/web";
+import { groqClient } from "~/server/ai";
+import { ClusteredArticles, SourceArticle } from "~/app/api/sync/types";
 
 export const runtime = "nodejs";
 
@@ -17,6 +20,7 @@ const repoName = "news_long_lk";
 const sourcePath = pathJoin("news_source_data");
 const sourceDataPath = pathJoin(sourcePath, "data");
 const targetPath = pathJoin("news_filtered_data");
+const clusteredPath = pathJoin("news_filtered_data", "clustered.json");
 
 const log = (msg: string) => console.log(`[sync] ${msg}`);
 
@@ -58,7 +62,7 @@ export async function POST() {
 	log("Clustering articles...");
 
 	try {
-		const file = pathReslove("./src/app/api/sync/grouping.py");
+		const file = pathResolve("./src/app/api/sync/grouping.py");
 
 		const pp = spawnSync("pipenv", ["run", "python", file], {
 			cwd: process.cwd(),
@@ -70,6 +74,27 @@ export async function POST() {
 		}
 	} catch (error) {
 		console.error("Error running grouping.py:", error);
+		return NextResponse.json({ status: "error" });
+	}
+
+	log("Summarizing articles...");
+
+	try {
+		const articles = await readFile(clusteredPath, "utf-8").then(
+			(x) => JSON.parse(x) as ClusteredArticles,
+		);
+		const keys = Object.keys(articles);
+
+		for (const key of keys) {
+			const cluster = articles[key as keyof ClusteredArticles];
+			if (!cluster) continue;
+
+			await summarize(cluster);
+
+			return;
+		}
+	} catch (error) {
+		console.error("Error summarizing articles:", error);
 		return NextResponse.json({ status: "error" });
 	}
 
@@ -97,7 +122,7 @@ async function cloneOrReuse() {
 		await git.cwd(sourcePath).pull("origin", "main");
 		log("Repository updated successfully!");
 
-		return NextResponse.json({ status: "ok" });
+		return;
 	}
 
 	log("Cloning repository...");
@@ -106,4 +131,38 @@ async function cloneOrReuse() {
 	});
 
 	log("Repository cloned successfully!");
+}
+
+async function summarize(articles: SourceArticle[]) {
+	const client = groqClient();
+
+	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
+		{
+			role: "system",
+			content:
+				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format. Points should be formatted inside an array. Return only one summary.",
+		},
+	];
+
+	articles.slice(0, 2).forEach((article) => {
+		messages.push({
+			role: "user",
+			content: `Outlet: ${article.outlet}\nTitle: ${article?.title}\nBody: ${article?.body_paragraphs}`,
+		});
+	});
+
+	const completion = await client.chat.completions.create({
+		model: "deepseek-r1-distill-llama-70b",
+		temperature: 0.6,
+		max_completion_tokens: 4096,
+		top_p: 0.95,
+		stream: false,
+		response_format: {
+			type: "json_object",
+		},
+		stop: null,
+		messages,
+	});
+
+	console.log("Summary:", completion.choices[0]?.message.content);
 }
