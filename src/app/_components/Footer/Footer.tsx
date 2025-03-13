@@ -46,6 +46,7 @@ export default function Footer() {
 						<a href="/policies/tos" className="hover:underline">
 							Terms of Service
 						</a>
+						<a href="/about/faq" className="hover:underline">FAQ</a>
 					</div>
 				</div>
 			</div>
