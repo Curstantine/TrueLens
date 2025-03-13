@@ -43,7 +43,7 @@ export default function Footer() {
 						<Link href="/policies/privacy" className="hover:underline">
 							Privacy Policy
 						</Link>
-						<a href="/policies/termsOfService" className="hover:underline">
+						<a href="/policies/tos" className="hover:underline">
 							Terms of Service
 						</a>
 					</div>
