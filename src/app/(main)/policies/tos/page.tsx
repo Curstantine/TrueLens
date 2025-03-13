@@ -1,4 +1,4 @@
-export default function termsOfServices(){
+export default function page(){
     return (
         <div className="bg-background p-6 text-foreground lg:!max-w-prose 2xl:container">
             <h1 className="mb-4 text-3xl font-bold">Terms of Service</h1>
