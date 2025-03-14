@@ -1,6 +1,6 @@
 "use server";
 
-import bcrypt from "bcrypt";
+import bcrypt from "@node-rs/bcrypt";
 import { redirect } from "next/navigation";
 
 import { actionClient } from "~/server/actions";
