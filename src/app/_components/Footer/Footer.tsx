@@ -11,7 +11,7 @@ type FooterIconLink = FooterLink & { icon: ComponentType<SVGProps<SVGSVGElement>
 export const QUICK_LINKS: FooterLink[] = [
 	{ label: "About", href: "/about" },
 	{ label: "Mission", href: "/about/mission" },
-	{ label: "FAQs", href: "/about/faqs" },
+	{ label: "FAQs", href: "/about/faq" },
 	{ label: "Methodology", href: "/about/methodology" },
 	{ label: "Plans", href: "/plans" },
 ];
@@ -46,7 +46,6 @@ export default function Footer() {
 						<a href="/policies/tos" className="hover:underline">
 							Terms of Service
 						</a>
-						<a href="/about/faq" className="hover:underline">FAQ</a>
 					</div>
 				</div>
 			</div>
