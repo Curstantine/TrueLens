@@ -18,8 +18,8 @@ importers:
         specifier: ^0.1.3
         version: 0.1.3
       '@jabascript/react':
-        specifier: ^0.1.3
-        version: 0.1.3(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+        specifier: ^0.2.0
+        version: 0.2.0(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       '@node-rs/bcrypt':
         specifier: ^1.10.7
         version: 1.10.7
@@ -619,8 +619,8 @@ packages:
   '@jabascript/core@0.1.3':
     resolution: {integrity: sha512-/ibkgGmjoy6DvV7VZ5MByDdxF80/Mw5ImG5+EMZkp0KZ3AMWaE5cBXUwh0m9I6FBtBjhDz83ov5SPK6Z1j7Qqw==}
 
-  '@jabascript/react@0.1.3':
-    resolution: {integrity: sha512-DLMukwApYEoNp+6gVvFhE/j+ccL9oqCBQUgQydrSIg/XIeZAFymM3TRyogpTPqTuQVVyZYXPQ65Nu5RTuoAQ/A==}
+  '@jabascript/react@0.2.0':
+    resolution: {integrity: sha512-O2H8MlWZZL+aOHt86YfCN39zowDa4DcHWzzjxVyAT4mEXV5jGU8wS7tcz7HvLmgFLrGMQR44ebpizVU5KLO9Jw==}
     peerDependencies:
       '@types/react': '*'
       '@types/react-dom': '*'
@@ -3605,7 +3605,7 @@ snapshots:
 
   '@jabascript/core@0.1.3': {}
 
-  '@jabascript/react@0.1.3(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
+  '@jabascript/react@0.2.0(@types/react-dom@19.0.4(@types/react@19.0.10))(@types/react@19.0.10)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)':
     dependencies:
       react: 19.0.0
       react-dom: 19.0.0(react@19.0.0)
