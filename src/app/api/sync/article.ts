@@ -2,7 +2,7 @@ import { db } from "~/server/db";  // Assuming Prisma is used for DB interaction
 
 export async function createStory(title: string, summary: string) {
     const story = await db.story.create({
-        data: { title, summary },
+        data: { title, summary: [summary] },
     });
     return story;
 }
