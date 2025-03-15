@@ -50,7 +50,7 @@ export async function createArticle({
                 data: { 
                     name: systemReporterName, 
                     isSystem: true, 
-                    outlet: { connect: { name: outletName }
+                    outlet: { connect: { name: outletName }}
                 },
             });           
         }
