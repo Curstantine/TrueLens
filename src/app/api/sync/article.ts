@@ -34,7 +34,7 @@ export async function createArticle({
                 data: { 
                     name: reporterName, 
                     isSystem: false, 
-                    outlet: { connect: { name: outletName }
+                    outlet: { connect: { name: outletName }}
                 },
             });            
             reporterId = newReporter.id;
