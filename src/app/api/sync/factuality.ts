@@ -17,6 +17,8 @@ export async function calculateFactuality(articles: any[]): Promise<any> {
             detail += factualityResult.details + " ";
         }
 
+        const reportCount = article.reports.length || 1;
+
         factualityReport[outlet] = {
             factuality: factualityScore / article.reports.length,  // Average the factuality score
             details: detail.trim(),
