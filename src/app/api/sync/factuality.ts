@@ -29,5 +29,5 @@ export async function calculateFactuality(articles: any[]): Promise<any> {
 }
 
 async function getFactualityScore(report: string) {
-    return { score: 0.9, details: "Matches key facts" };  // Placeholder factuality check
+    return { score: 0.85, details: "Matches key facts" };  // Placeholder factuality check
 }
