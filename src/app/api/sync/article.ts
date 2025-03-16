@@ -44,7 +44,7 @@ export async function createArticle({
                     name: reporterName, 
                     isSystem: false, 
                     email: `${reporterName.toLowerCase().replace(/\s/g, '')}@example.com`,
-                    outlet: { connect: { name: outletName }}
+                    outlet: { connect: {id: outlet.id }}
                 },
             });            
             reporterId = newReporter.id;
@@ -60,7 +60,8 @@ export async function createArticle({
                 data: { 
                     name: systemReporterName, 
                     isSystem: true, 
-                    outlet: { connect: { name: outletName }}
+                    email: `${systemReporterName}@example.com`,
+                    outlet: { connect: { id: outlet.id }}
                 },
             });           
         }
