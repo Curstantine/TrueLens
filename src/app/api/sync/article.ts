@@ -1,4 +1,4 @@
-import { db } from "~/server/db";  // Assuming Prisma is used for DB interactions
+import { db } from "~/server/db";  
 
 export async function createStory(title: string, summary: string) {
     const story = await db.story.create({
@@ -20,6 +20,12 @@ export async function createArticle({
     outletName: string;
     storyId: string;
 }) {
+    const outlet = await db.newsOutlet.findFirst({
+        where: { name: outletName }, 
+        select: { id: true },
+    });
+
+    
     let reporterId = null;
 
     if (reporterName) {
