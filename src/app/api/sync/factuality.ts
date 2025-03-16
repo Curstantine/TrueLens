@@ -11,6 +11,14 @@ export async function calculateFactuality(articles: any[]): Promise<any> {
         let factualityScore = 0;
         let detail = "";
 
+        if (article.reports.length === 0) {
+            factualityReport[outlet] = {
+                factuality: 0,
+                details: "No reports available for factuality check",
+            };
+            continue;  // Skip to next article if no reports are present
+        }
+
         for (const report of article.reports) {
             const factualityResult = await getFactualityScore(report);  // Implement this check with Gemini or similar
             factualityScore += factualityResult.score;
