@@ -43,6 +43,7 @@ export async function createArticle({
                 data: { 
                     name: reporterName, 
                     isSystem: false, 
+                    email: `${reporterName.toLowerCase().replace(/\s/g, '')}@example.com`,
                     outlet: { connect: { name: outletName }}
                 },
             });            
