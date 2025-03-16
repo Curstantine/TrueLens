@@ -25,7 +25,10 @@ export async function createArticle({
         select: { id: true },
     });
 
-    
+    if (!outlet) {
+        throw new Error(`⚠️ News outlet "${outletName}" does not exist. Please check the name or add it to the database.`);
+    }
+   
     let reporterId = null;
 
     if (reporterName) {
