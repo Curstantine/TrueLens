@@ -3,7 +3,14 @@ import { calculateFactuality } from "../sync/factuality";
 import { createStory, createArticle } from "./article";
 
 export async function processArticlesAndGenerateReport(articles: any[]) {
-    const normalizedSummary = generateNormalizedSummary(articles.map(article => article.content));
+    if (!articles || articles.length === 0) {
+        throw new Error("⚠ No articles provided for processing.");
+    }
+    
+    const normalizedSummary = generateNormalizedSummary(
+        articles.map(article => article.content || "")
+    );
+    
     const factualityReport = await calculateFactuality(articles);
     const story = await createStory("News Story Title", "This is the summary of the news story.");
 
