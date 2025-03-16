@@ -8,6 +8,7 @@ export async function processArticlesAndGenerateReport(articles: any[]) {
     const story = await createStory("News Story Title", "This is the summary of the news story.");
 
     for (const article of articles) {
+        console.log(`ℹ️ Processing article: ${article.title} from ${article.outletName}`);
         try {
             await createArticle({
                 title: article.title,
