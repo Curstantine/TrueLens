@@ -1,5 +1,5 @@
-import { generateNormalizedSummary } from "../utils/summary";
-import { calculateFactuality } from "../utils/factuality";
+import { generateNormalizedSummary } from "../sync/summary";
+import { calculateFactuality } from "../sync/factuality";
 import { createStory, createArticle } from "./article";
 
 export async function processArticlesAndGenerateReport(articles: any[]) {
