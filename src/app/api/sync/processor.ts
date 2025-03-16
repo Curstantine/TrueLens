@@ -8,14 +8,18 @@ export async function processArticlesAndGenerateReport(articles: any[]) {
     const story = await createStory("News Story Title", "This is the summary of the news story.");
 
     for (const article of articles) {
-        await createArticle({
-            title: article.title,
-            content: article.content,
-            reporterName: article.reporterName,
-            outletName: article.outletName,
-            storyId: story.id,
-        });
-    }
+        try {
+            await createArticle({
+                title: article.title,
+                content: article.content,
+                reporterName: article.reporterName,
+                outletName: article.outletName,
+                storyId: story.id,
+            });
+        } catch (error) {
+            console.error(`⚠️ Failed to process article "${article.title}":`, error);
+        }
+    }    
 
     return {
         summary: normalizedSummary,
