@@ -1,8 +1,9 @@
-import { db } from "~/server/db"; // Import Prisma client
+import { api } from "~/trpc/server"; // Import the tRPC API
 
 export async function createStory(title: string, summary: string) {
-    const story = await db.story.create({
-        data: { title, summary :[summary] },
+    const story = await api.story.create.mutate({
+        title,
+        summary: [summary], 
     });
     return story;
 }
@@ -20,61 +21,46 @@ export async function createArticle({
     outletName: string;
     storyId: string;
 }) {
-    const outlet = await db.newsOutlet.findFirst({
-        where: { name: outletName }, 
-        select: { id: true },
+    // Create news outlet using tRPC API
+    const outlet = await api.newsOutlet.create.mutate({
+        name: outletName,
     });
-    
+
     if (!outlet) {
         throw new Error(`⚠️ News outlet "${outletName}" does not exist. Please check the name or add it to the database.`);
     }
+
     let reporterId = null;
 
     if (reporterName) {
-        const existingReporter = await db.reporter.findFirst({
-            where: { name: reporterName },
+        // Use tRPC API to find or create a reporter
+        const existingReporter = await api.reporter.createOrGet.mutate({
+            name: reporterName,
+            outletId: outlet.id,
         });
 
-        if (existingReporter) {
-            reporterId = existingReporter.id;
-        } else {
-            const newReporter = await db.reporter.create({
-                data: { 
-                    name: reporterName, 
-                    isSystem: false, 
-                    email: `${reporterName.toLowerCase().replace(/\s/g, '')}@example.com`,
-                    outlet: { connect: { id: outlet.id }}
-                },
-            });            
-            reporterId = newReporter.id;
-        }
+        reporterId = existingReporter.id;
     } else {
         const systemReporterName = `system-${outletName}`;
-        let systemReporter = await db.reporter.findFirst({
-            where: { name: systemReporterName },
-        });
 
-        if (!systemReporter) {
-            systemReporter = await db.reporter.create({
-                data: { 
-                    name: systemReporterName, 
-                    isSystem: true, 
-                    email: `${systemReporterName.replace(/\s/g, '')}@example.com`,
-                    outlet: { connect: { id: outlet.id }}
-                },
-            });           
-        }
+        // Use tRPC API to create a system reporter if one doesn't exist
+        const systemReporter = await api.reporter.create.mutate({
+            name: systemReporterName,
+            isSystem: true,
+            email: `${systemReporterName.replace(/\s/g, '')}@example.com`,
+            outletId: outlet.id,
+        });
 
         reporterId = systemReporter.id;
     }
 
-    return await db.article.create({
-        data: {
-            title,
-            content,
-            reporterId,
-            storyId,
-            externalUrl: "",
-        },
+    const article = await api.article.create.mutate({
+        title,
+        content,
+        reporterId,
+        storyId,
+        externalUrl: "",
     });
+
+    return article;
 }
