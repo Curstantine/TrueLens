@@ -96,8 +96,6 @@ export async function POST() {
 
 			const factualized = await factualize(cluster);
 			console.dir({ clusterId: key, factualized }, { depth: null });
-
-			return NextResponse.json({ status: "ok", data: { summarized, factuals: factualized } });
 		}
 	} catch (error) {
 		console.error("Failed to summarizing articles:\n\t", error);
