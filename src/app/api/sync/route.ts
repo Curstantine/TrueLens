@@ -1,16 +1,25 @@
-import { stat, copyFile, mkdir, readFile } from "node:fs/promises";
+import { stat, copyFile, mkdir } from "node:fs/promises";
 import { join as pathJoin, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
 import type { Groq } from "groq-sdk";
+import { wait } from "@jabascript/core";
 
-import { isMostlyEnglish, readMetadata } from "~/app/api/sync/utils";
-import { db } from "~/server/db";
-import { WebScraper } from "~/app/api/sync/web";
+import { env } from "~/env";
 import { groqClient } from "~/server/ai";
-import { ClusteredArticles, SourceArticle } from "~/app/api/sync/types";
+import { db } from "~/server/db";
+
+import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
+// import { WebScraper } from "~/app/api/sync/web";
+import type {
+	ClusteredArticles,
+	ClusteredSummaryFactualityReport,
+	FactualityReport,
+	SourceArticle,
+	SummarizedArticle,
+} from "~/app/api/sync/types";
 
 export const runtime = "nodejs";
 
@@ -20,7 +29,6 @@ const repoName = "news_long_lk";
 const sourcePath = pathJoin("news_source_data");
 const sourceDataPath = pathJoin(sourcePath, "data");
 const targetPath = pathJoin("news_filtered_data");
-const clusteredPath = pathJoin("news_filtered_data", "clustered.json");
 
 const log = (msg: string) => console.log(`[sync] ${msg}`);
 
@@ -69,43 +77,60 @@ export async function POST() {
 			stdio: "inherit",
 		});
 
-		if (pp.stderr) {
-			return NextResponse.json({ status: "error" });
-		}
+		if (pp.stderr) return NextResponse.json({ status: "error" });
 	} catch (error) {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
 
-	log("Summarizing articles...");
+	const summarized: Record<string, ClusteredSummaryFactualityReport> = {};
 
-	try {
-		const articles = await readFile(clusteredPath, "utf-8").then(
-			(x) => JSON.parse(x) as ClusteredArticles,
-		);
-		const keys = Object.keys(articles);
+	const articles = await readClustered(targetPath);
+	const keys = Object.keys(articles) as (keyof ClusteredArticles)[];
 
-		for (const key of keys) {
-			const cluster = articles[key as keyof ClusteredArticles];
-			if (!cluster) continue;
+	for (const key of keys) {
+		if (key === "outliers") continue;
 
-			await summarize(cluster);
+		const cluster = articles[key]!;
+		log(`Summarizing cluster ${key} with ${cluster.length} articles...`);
 
-			return;
+		// TODO(Curstantine): Remove this check is when the debugging is done.
+		if (env.NODE_ENV === "development" && cluster.length > 25) continue;
+
+		try {
+			for (let i = 0; i < cluster.length; i++) {
+				log(`\t\tRunning article [${i + 1}/${cluster.length}]...`);
+				const article = cluster[i] as SummarizedArticle;
+				article.summary = await summarize(article);
+				await wait(500);
+			}
+		} catch (error) {
+			console.error("Failed to summarize articles:\n\t", error);
+			return NextResponse.json({ status: "error" });
 		}
-	} catch (error) {
-		console.error("Error summarizing articles:", error);
-		return NextResponse.json({ status: "error" });
+
+		log(`Factualizing cluster ${key}...`);
+		try {
+			summarized[key] = {
+				articles: cluster,
+				...(await factualize(cluster as SummarizedArticle[])),
+			};
+		} catch (error) {
+			console.error("Failed to factualize articles:\n\t", error);
+			return NextResponse.json({ status: "error" });
+		}
+
+		console.log("Summarized:", summarized[key]);
 	}
 
 	// Example usage of WebScraper
-	const scraper = new WebScraper();
-	const url =
-		"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
-	const outlet = "Daily Mirror";
+	// const scraper = new WebScraper();
+	// const url =
+	// 	"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
+	// const outlet = "Daily Mirror";
 
-	const image = await scraper.scrapeCoverImage(url, outlet);
-	console.log("Scraped image URL:", image);
+	// const image = await scraper.scrapeCoverImage(url, outlet);
+	// console.log("Scraped image URL:", image);
 
 	return NextResponse.json({ status: "ok" });
 }
@@ -133,23 +158,19 @@ async function cloneOrReuse() {
 	log("Repository cloned successfully!");
 }
 
-async function summarize(articles: SourceArticle[]) {
+async function summarize(article: SourceArticle) {
 	const client = groqClient();
-
 	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
 			content:
-				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format. Points should be formatted inside an array. Return only one summary.",
+				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format following { 'summary': string[] }. Points should be formatted inside an array. Return only one summary.",
+		},
+		{
+			role: "system",
+			content: `Outlet: ${article.outlet}\nTitle: ${article?.title}\nBody: ${article?.body_paragraphs}`,
 		},
 	];
-
-	articles.slice(0, 2).forEach((article) => {
-		messages.push({
-			role: "user",
-			content: `Outlet: ${article.outlet}\nTitle: ${article?.title}\nBody: ${article?.body_paragraphs}`,
-		});
-	});
 
 	const completion = await client.chat.completions.create({
 		model: "deepseek-r1-distill-llama-70b",
@@ -164,5 +185,48 @@ async function summarize(articles: SourceArticle[]) {
 		messages,
 	});
 
-	console.log("Summary:", completion.choices[0]?.message.content);
+	const summaryText = completion.choices[0]?.message.content;
+	if (!summaryText) throw new Error("Summary was empty");
+
+	const doc = JSON.parse(summaryText) as Pick<SummarizedArticle, "summary">;
+	return doc.summary;
+}
+
+async function factualize(articles: SummarizedArticle[]) {
+	const client = groqClient();
+	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
+		{
+			role: "system",
+			content:
+				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { 'outlet_name': string, 'title': string, 'factuality': float }",
+		},
+		...articles.map((x) => {
+			// Note(Curstantine):
+			// Limit the article body size to 6000 characters to avoid hitting the token limit.
+			// const body = x.body_paragraphs.split(" ").slice(0, 6000).join(" ");
+			const body = x.summary.join(" ").slice(0, 6000);
+			return {
+				role: "user",
+				content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${body}`,
+			} as Groq.Chat.Completions.ChatCompletionMessageParam;
+		}),
+	];
+
+	const completion = await client.chat.completions.create({
+		model: "deepseek-r1-distill-llama-70b",
+		temperature: 0.6,
+		max_completion_tokens: 4096,
+		top_p: 0.95,
+		stream: false,
+		response_format: {
+			type: "json_object",
+		},
+		stop: null,
+		messages,
+	});
+
+	const reportText = completion.choices[0]?.message.content;
+	if (!reportText) throw new Error("Factuality report was empty");
+
+	return JSON.parse(reportText) as FactualityReport;
 }
