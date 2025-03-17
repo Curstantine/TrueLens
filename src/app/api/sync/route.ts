@@ -7,11 +7,19 @@ import simpleGit from "simple-git";
 import type { Groq } from "groq-sdk";
 import { wait } from "@jabascript/core";
 
-import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
-import { db } from "~/server/db";
-// import { WebScraper } from "~/app/api/sync/web";
+import { env } from "~/env";
 import { groqClient } from "~/server/ai";
-import { ClusteredArticles, SourceArticle, SummarizedArticle } from "~/app/api/sync/types";
+import { db } from "~/server/db";
+
+import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
+// import { WebScraper } from "~/app/api/sync/web";
+import type {
+	ClusteredArticles,
+	ClusteredSummaryFactualityReport,
+	FactualityReport,
+	SourceArticle,
+	SummarizedArticle,
+} from "~/app/api/sync/types";
 
 export const runtime = "nodejs";
 
@@ -75,31 +83,44 @@ export async function POST() {
 		return NextResponse.json({ status: "error" });
 	}
 
-	log("Summarizing articles...");
-	const summarized: Record<string, SourceArticle[]> = {};
+	const summarized: Record<string, ClusteredSummaryFactualityReport> = {};
 
-	try {
-		const articles = await readClustered(targetPath);
-		const keys = Object.keys(articles) as (keyof ClusteredArticles)[];
+	const articles = await readClustered(targetPath);
+	const keys = Object.keys(articles) as (keyof ClusteredArticles)[];
 
-		for (const key of keys) {
-			if (key === "outliers") continue;
+	for (const key of keys) {
+		if (key === "outliers") continue;
 
-			const cluster = articles[key]!;
-			log(`Summarizing cluster ${key} [${cluster.length} articles]...`);
+		const cluster = articles[key]!;
+		log(`Summarizing cluster ${key} with ${cluster.length} articles...`);
 
+		// TODO(Curstantine): Remove this check is when the debugging is done.
+		if (env.NODE_ENV === "development" && cluster.length > 25) continue;
+
+		try {
 			for (let i = 0; i < cluster.length; i++) {
+				log(`\t\tRunning article [${i + 1}/${cluster.length}]...`);
 				const article = cluster[i] as SummarizedArticle;
 				article.summary = await summarize(article);
-				await wait(1000);
+				await wait(500);
 			}
-
-			const factualized = await factualize(cluster);
-			console.dir({ clusterId: key, factualized }, { depth: null });
+		} catch (error) {
+			console.error("Failed to summarize articles:\n\t", error);
+			return NextResponse.json({ status: "error" });
 		}
-	} catch (error) {
-		console.error("Failed to summarizing articles:\n\t", error);
-		return NextResponse.json({ status: "error" });
+
+		log(`Factualizing cluster ${key}...`);
+		try {
+			summarized[key] = {
+				articles: cluster,
+				...(await factualize(cluster as SummarizedArticle[])),
+			};
+		} catch (error) {
+			console.error("Failed to factualize articles:\n\t", error);
+			return NextResponse.json({ status: "error" });
+		}
+
+		console.log("Summarized:", summarized[key]);
 	}
 
 	// Example usage of WebScraper
@@ -137,49 +158,6 @@ async function cloneOrReuse() {
 	log("Repository cloned successfully!");
 }
 
-async function factualize(articles: SourceArticle[]) {
-	const client = groqClient();
-	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
-		{
-			role: "system",
-			content:
-				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { 'outlet_name': string, 'factuality': float }",
-		},
-		...articles.map((x) => {
-			// Note(Curstantine):
-			// Limit the article body size to 6000 characters to avoid hitting the token limit.
-			const body = x.body_paragraphs.split(" ").slice(0, 6000).join(" ");
-			return {
-				role: "user",
-				content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${body}`,
-			} as Groq.Chat.Completions.ChatCompletionMessageParam;
-		}),
-	];
-
-	const completion = await client.chat.completions.create({
-		model: "deepseek-r1-distill-llama-70b",
-		temperature: 0.6,
-		max_completion_tokens: 4096,
-		top_p: 0.95,
-		stream: false,
-		response_format: {
-			type: "json_object",
-		},
-		stop: null,
-		messages,
-	});
-
-	const factual = completion.choices[0]?.message.content;
-	if (!factual) throw new Error("Factuality report was empty");
-
-	return (
-		factual
-			?.split("\n")
-			.map((x) => x.trim())
-			.filter((x) => x.length > 0) || []
-	);
-}
-
 async function summarize(article: SourceArticle) {
 	const client = groqClient();
 	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
@@ -212,4 +190,43 @@ async function summarize(article: SourceArticle) {
 
 	const doc = JSON.parse(summaryText) as Pick<SummarizedArticle, "summary">;
 	return doc.summary;
+}
+
+async function factualize(articles: SummarizedArticle[]) {
+	const client = groqClient();
+	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
+		{
+			role: "system",
+			content:
+				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { 'outlet_name': string, 'title': string, 'factuality': float }",
+		},
+		...articles.map((x) => {
+			// Note(Curstantine):
+			// Limit the article body size to 6000 characters to avoid hitting the token limit.
+			// const body = x.body_paragraphs.split(" ").slice(0, 6000).join(" ");
+			const body = x.summary.join(" ").slice(0, 6000);
+			return {
+				role: "user",
+				content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${body}`,
+			} as Groq.Chat.Completions.ChatCompletionMessageParam;
+		}),
+	];
+
+	const completion = await client.chat.completions.create({
+		model: "deepseek-r1-distill-llama-70b",
+		temperature: 0.6,
+		max_completion_tokens: 4096,
+		top_p: 0.95,
+		stream: false,
+		response_format: {
+			type: "json_object",
+		},
+		stop: null,
+		messages,
+	});
+
+	const reportText = completion.choices[0]?.message.content;
+	if (!reportText) throw new Error("Factuality report was empty");
+
+	return JSON.parse(reportText) as FactualityReport;
 }

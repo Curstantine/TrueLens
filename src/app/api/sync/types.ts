@@ -23,3 +23,7 @@ export interface ClusteredArticles {
 }
 
 export type SummarizedArticle = SourceArticle & { summary: string[] };
+
+export type FactualityReport = { outlet_name: string; title: string; factuality: number };
+
+export type ClusteredSummaryFactualityReport = { articles: SourceArticle[] } & FactualityReport;
