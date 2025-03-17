@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
 import type { Groq } from "groq-sdk";
+import { wait } from "@jabascript/core";
 
 import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
 import { db } from "~/server/db";
@@ -82,22 +83,24 @@ export async function POST() {
 		const keys = Object.keys(articles) as (keyof ClusteredArticles)[];
 
 		for (const key of keys) {
+			if (key === "outliers") continue;
+
 			const cluster = articles[key]!;
 			log(`Summarizing cluster ${key} [${cluster.length} articles]...`);
 
-			const group = cluster.map(async (x) => {
-				const y = x as SummarizedArticle;
-				y.summary = await summarize(x);
-				return y;
-			});
+			for (let i = 0; i < cluster.length; i++) {
+				const article = cluster[i] as SummarizedArticle;
+				article.summary = await summarize(article);
+				await wait(1000);
+			}
 
-			summarized[key] = await Promise.all(group);
+			const factualized = await factualize(cluster);
+			console.dir({ clusterId: key, factualized }, { depth: null });
 
-			const factuals = await factualize(cluster);
-			console.log("Factuals:", factuals);
+			return NextResponse.json({ status: "ok", data: { summarized, factuals: factualized } });
 		}
 	} catch (error) {
-		console.error("Error summarizing articles:", error);
+		console.error("Failed to summarizing articles:\n\t", error);
 		return NextResponse.json({ status: "error" });
 	}
 
@@ -144,14 +147,15 @@ async function factualize(articles: SourceArticle[]) {
 			content:
 				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { 'outlet_name': string, 'factuality': float }",
 		},
-
-		...articles.map(
-			(x) =>
-				({
-					role: "user",
-					content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${x.body_paragraphs}`,
-				}) as Groq.Chat.Completions.ChatCompletionMessageParam,
-		),
+		...articles.map((x) => {
+			// Note(Curstantine):
+			// Limit the article body size to 6000 characters to avoid hitting the token limit.
+			const body = x.body_paragraphs.split(" ").slice(0, 6000).join(" ");
+			return {
+				role: "user",
+				content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${body}`,
+			} as Groq.Chat.Completions.ChatCompletionMessageParam;
+		}),
 	];
 
 	const completion = await client.chat.completions.create({
@@ -168,7 +172,7 @@ async function factualize(articles: SourceArticle[]) {
 	});
 
 	const factual = completion.choices[0]?.message.content;
-	console.log("Factual:", factual);
+	if (!factual) throw new Error("Factuality report was empty");
 
 	return (
 		factual
@@ -184,7 +188,7 @@ async function summarize(article: SourceArticle) {
 		{
 			role: "system",
 			content:
-				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format. Points should be formatted inside an array. Return only one summary.",
+				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format following { 'summary': string[] }. Points should be formatted inside an array. Return only one summary.",
 		},
 		{
 			role: "system",
@@ -205,13 +209,9 @@ async function summarize(article: SourceArticle) {
 		messages,
 	});
 
-	const summary = completion.choices[0]?.message.content;
-	console.log("Summary:", summary);
+	const summaryText = completion.choices[0]?.message.content;
+	if (!summaryText) throw new Error("Summary was empty");
 
-	return (
-		summary
-			?.split("\n")
-			.map((x) => x.trim())
-			.filter((x) => x.length > 0) || []
-	);
+	const doc = JSON.parse(summaryText) as Pick<SummarizedArticle, "summary">;
+	return doc.summary;
 }
