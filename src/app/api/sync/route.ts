@@ -1,4 +1,4 @@
-import { stat, copyFile, mkdir, readFile } from "node:fs/promises";
+import { stat, copyFile, mkdir } from "node:fs/promises";
 import { join as pathJoin, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -6,11 +6,11 @@ import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
 import type { Groq } from "groq-sdk";
 
-import { isMostlyEnglish, readMetadata } from "~/app/api/sync/utils";
+import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
 import { db } from "~/server/db";
-import { WebScraper } from "~/app/api/sync/web";
+// import { WebScraper } from "~/app/api/sync/web";
 import { groqClient } from "~/server/ai";
-import { ClusteredArticles, SourceArticle } from "~/app/api/sync/types";
+import { ClusteredArticles, SourceArticle, SummarizedArticle } from "~/app/api/sync/types";
 
 export const runtime = "nodejs";
 
@@ -20,7 +20,6 @@ const repoName = "news_long_lk";
 const sourcePath = pathJoin("news_source_data");
 const sourceDataPath = pathJoin(sourcePath, "data");
 const targetPath = pathJoin("news_filtered_data");
-const clusteredPath = pathJoin("news_filtered_data", "clustered.json");
 
 const log = (msg: string) => console.log(`[sync] ${msg}`);
 
@@ -69,29 +68,33 @@ export async function POST() {
 			stdio: "inherit",
 		});
 
-		if (pp.stderr) {
-			return NextResponse.json({ status: "error" });
-		}
+		if (pp.stderr) return NextResponse.json({ status: "error" });
 	} catch (error) {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
 
 	log("Summarizing articles...");
+	const summarized: Record<string, SourceArticle[]> = {};
 
 	try {
-		const articles = await readFile(clusteredPath, "utf-8").then(
-			(x) => JSON.parse(x) as ClusteredArticles,
-		);
-		const keys = Object.keys(articles);
+		const articles = await readClustered(targetPath);
+		const keys = Object.keys(articles) as (keyof ClusteredArticles)[];
 
 		for (const key of keys) {
-			const cluster = articles[key as keyof ClusteredArticles];
-			if (!cluster) continue;
+			const cluster = articles[key]!;
+			log(`Summarizing cluster ${key} [${cluster.length} articles]...`);
 
-			await summarize(cluster);
+			const group = cluster.map(async (x) => {
+				const y = x as SummarizedArticle;
+				y.summary = await summarize(x);
+				return y;
+			});
 
-			return;
+			summarized[key] = await Promise.all(group);
+
+			const factuals = await factualize(cluster);
+			console.log("Factuals:", factuals);
 		}
 	} catch (error) {
 		console.error("Error summarizing articles:", error);
@@ -99,13 +102,13 @@ export async function POST() {
 	}
 
 	// Example usage of WebScraper
-	const scraper = new WebScraper();
-	const url =
-		"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
-	const outlet = "Daily Mirror";
+	// const scraper = new WebScraper();
+	// const url =
+	// 	"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
+	// const outlet = "Daily Mirror";
 
-	const image = await scraper.scrapeCoverImage(url, outlet);
-	console.log("Scraped image URL:", image);
+	// const image = await scraper.scrapeCoverImage(url, outlet);
+	// console.log("Scraped image URL:", image);
 
 	return NextResponse.json({ status: "ok" });
 }
@@ -133,23 +136,23 @@ async function cloneOrReuse() {
 	log("Repository cloned successfully!");
 }
 
-async function summarize(articles: SourceArticle[]) {
+async function factualize(articles: SourceArticle[]) {
 	const client = groqClient();
-
 	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
 			content:
-				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format. Points should be formatted inside an array. Return only one summary.",
+				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { 'outlet_name': string, 'factuality': float }",
 		},
-	];
 
-	articles.slice(0, 2).forEach((article) => {
-		messages.push({
-			role: "user",
-			content: `Outlet: ${article.outlet}\nTitle: ${article?.title}\nBody: ${article?.body_paragraphs}`,
-		});
-	});
+		...articles.map(
+			(x) =>
+				({
+					role: "user",
+					content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${x.body_paragraphs}`,
+				}) as Groq.Chat.Completions.ChatCompletionMessageParam,
+		),
+	];
 
 	const completion = await client.chat.completions.create({
 		model: "deepseek-r1-distill-llama-70b",
@@ -164,5 +167,51 @@ async function summarize(articles: SourceArticle[]) {
 		messages,
 	});
 
-	console.log("Summary:", completion.choices[0]?.message.content);
+	const factual = completion.choices[0]?.message.content;
+	console.log("Factual:", factual);
+
+	return (
+		factual
+			?.split("\n")
+			.map((x) => x.trim())
+			.filter((x) => x.length > 0) || []
+	);
+}
+
+async function summarize(article: SourceArticle) {
+	const client = groqClient();
+	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
+		{
+			role: "system",
+			content:
+				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format. Points should be formatted inside an array. Return only one summary.",
+		},
+		{
+			role: "system",
+			content: `Outlet: ${article.outlet}\nTitle: ${article?.title}\nBody: ${article?.body_paragraphs}`,
+		},
+	];
+
+	const completion = await client.chat.completions.create({
+		model: "deepseek-r1-distill-llama-70b",
+		temperature: 0.6,
+		max_completion_tokens: 4096,
+		top_p: 0.95,
+		stream: false,
+		response_format: {
+			type: "json_object",
+		},
+		stop: null,
+		messages,
+	});
+
+	const summary = completion.choices[0]?.message.content;
+	console.log("Summary:", summary);
+
+	return (
+		summary
+			?.split("\n")
+			.map((x) => x.trim())
+			.filter((x) => x.length > 0) || []
+	);
 }

@@ -21,3 +21,5 @@ export interface ClusteredArticles {
 	outliers: SourceArticle[];
 	[key: `${number}`]: SourceArticle[];
 }
+
+export type SummarizedArticle = SourceArticle & { summary: string[] };
