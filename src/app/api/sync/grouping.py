@@ -1,6 +1,7 @@
 import os
 import json
 from pathlib import Path
+import sys
 from typing import List, Dict
 import logging
 from bertopic import BERTopic
@@ -47,12 +48,15 @@ def load_articles(directory: Path) -> List[Dict]:
                 data = json.load(f)
                 text = " ".join(data.get("body_paragraphs", [])).strip()
                 outlet = get_outlet_name(data["url"])
+
                 if outlet == "unknown" or not text:
                     logger.warning(f"Skipping due to missing outlet or text: {data['url']}")
                     continue
+                
                 reporter = (
                     data.get("reporter") or f"system-{'_'.join(outlet.lower().split())}"
                 )
+                
                 articles.append(
                     {
                         "url": data["url"],
@@ -80,7 +84,8 @@ def cluster_articles(articles: List[Dict]) -> List[Dict]:
         language="english",
         verbose=True,
         embedding_model=embedding_model,
-        min_topic_size=20,
+        min_topic_size=5,
+        nr_topics=None,
     )
     topics = topic_model.fit_transform(body_paragraphs)
     topic_model.save(MODEL_DIR, serialization="safetensors", save_ctfidf=True)
@@ -105,6 +110,7 @@ def save_grouped_articles(articles: List[Dict], output_file: Path) -> Dict:
 
 if __name__ == "__main__":
     articles = load_articles(ARTICLES_DIR)
+
     if articles:
         clustered_articles = cluster_articles(articles)
         logger.info("Clustering completed.")
