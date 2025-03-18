@@ -130,6 +130,7 @@ model Article {
     storyId     String   @db.ObjectId
     publishedAt DateTime @default(now())
     createdAt   DateTime @default(now())
+    factuality  Float    @default(0)
 
     story    Story      @relation(fields: [storyId], references: [id])
     reporter Reporter   @relation(fields: [reporterId], references: [id])

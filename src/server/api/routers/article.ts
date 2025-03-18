@@ -18,6 +18,7 @@ export const articleRouter = createTRPCRouter({
 				storyId: objectId("Story ID must be a valid MongoDB ObjectId"),
 				outletId: objectId("Outlet ID must be a valid MongoDB ObjectId"),
 				externalUrl: z.string().url("External URL must be a valid URL"),
+				factuality: z.number().min(0).max(100),
 				publishedAt: z.string().datetime("Published At must be a valid datetime"),
 			}),
 		)
@@ -57,6 +58,7 @@ export const articleRouter = createTRPCRouter({
 					outletId: input.outletId,
 					storyId: input.storyId,
 					externalUrl: input.externalUrl,
+					factuality: input.factuality,
 					publishedAt: input.publishedAt,
 				},
 			});
@@ -90,6 +92,7 @@ export const articleRouter = createTRPCRouter({
 				outletId: objectId("Outlet ID must be a valid MongoDB ObjectId").optional(),
 				storyId: objectId("Story ID must be a valid MongoDB ObjectId").optional(),
 				externalUrl: z.string().url("External URL must be a valid URL").optional(),
+				factuality: z.number().min(0).max(100).optional(),
 				publishedAt: z
 					.string()
 					.datetime("Published At must be a valid datetime")
@@ -148,6 +151,7 @@ export const articleRouter = createTRPCRouter({
 					outletId: input.outletId,
 					storyId: input.storyId,
 					externalUrl: input.externalUrl,
+					factuality: input.factuality,
 					publishedAt: input.publishedAt,
 				},
 			});
