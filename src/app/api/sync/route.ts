@@ -186,8 +186,8 @@ export async function POST() {
 				}
 			}
 
-			runningTasks.push(
-				api.article.create({
+			const task = api.article
+				.create({
 					title: current.title,
 					storyId: story.id,
 					externalUrl: current.url,
@@ -196,8 +196,17 @@ export async function POST() {
 					reporterId: currentReporter.id,
 					outletId: currentOutlet.id,
 					factuality: current.factuality,
-				}),
-			);
+				})
+				.catch((e: TRPCError) => {
+					if (e.code === "CONFLICT") {
+						log(e.cause!.message);
+						return;
+					}
+
+					throw e;
+				});
+
+			runningTasks.push(task);
 		}
 
 		try {
@@ -257,12 +266,17 @@ async function summarize(article: SourceArticle) {
 	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
-			content: `Return a normalized summary of the news article in a readable point form that is no longer than 100 words in each point.
-			The data should be returned in JSON, following the format { summary: string[] }.
-			Each point should be inside the array. Change any double quotes inside the article to single quotes to avoid JSON parsing errors.
-			
-			An example of the format is:
-			{ summary: ["Point 1", "Point 2", "Point 3 with 'quotes' inside"] }`,
+			content: `Return a summary of the news article in a readable point form that is no longer than 100 words in each point.
+			The data should be returned in JSON, following the format { summary: string[] }. Change any double quotes inside the article to single quotes to avoid JSON parsing errors.
+
+			EXAMPLE OUTPUT:
+			{ 
+				"summary": [
+					"Point 1", 
+					"Point 2", 
+					"Point 3 with 'quotes' inside"
+				] 
+			}`,
 		},
 		{
 			role: "user",
@@ -297,7 +311,17 @@ async function factualize(articles: SummarizedArticle[]) {
 			role: "system",
 			content: `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
 				The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
-				Follow the format: { data: { temp_id: string, 'factuality': float }[] }.`,
+				Factuality is a float between 0 and 10, where 0 is completely false and 10 is completely true.
+				Follow the format: { data: { temp_id: string, 'factuality': float }[] }. Do not send empty responses.
+				
+				EXAMPLE OUTPUT:
+				{
+					data: [
+						{ temp_id: 'temp_id_1', factuality: 0.8 },
+						{ temp_id: 'temp_id_2', factuality: 0.6 },
+						{ temp_id: 'temp_id_3', factuality: 0.4 },
+					]
+				}`,
 		},
 		...articles.map((x) => {
 			// Note(Curstantine):
@@ -314,9 +338,9 @@ async function factualize(articles: SummarizedArticle[]) {
 	];
 
 	const completion = await client.chat.completions.create({
-		model: "deepseek-r1-distill-llama-70b",
+		model: "llama-3.3-70b-versatile",
 		temperature: 0.6,
-		max_completion_tokens: 4096,
+		max_completion_tokens: 6144,
 		top_p: 0.95,
 		stream: false,
 		response_format: {
