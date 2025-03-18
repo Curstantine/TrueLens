@@ -47,17 +47,22 @@ def load_articles(directory: Path) -> List[Dict]:
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 outlet = get_outlet_name(data["url"])
+                body_paragraphs = data.get("body_paragraphs", [])
 
                 if outlet == "unknown":
                     logger.warning(f"Skipping due to unknown outlet: {data['url']}")
                     continue
 
-                reporter = (
-                    data.get("reporter") or f"system-{'_'.join(outlet.lower().split())}"
+                if len(body_paragraphs) == 0:
+                    logger.warning(f"Skipping due to empty body: {data['url']}")
+                    continue
+
+                reporter = data.get(
+                    "reporter", f"system-{'_'.join(outlet.lower().split())}"
                 )
 
                 text = ""
-                for paragraph in data.get("body_paragraphs", []):
+                for paragraph in body_paragraphs:
                     # Clean paragraph and add to text with proper spacing
                     paragraph = paragraph.strip()
 

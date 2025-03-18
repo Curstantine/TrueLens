@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { stat, copyFile, mkdir } from "node:fs/promises";
 import { join as pathJoin, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -6,8 +7,8 @@ import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
 import type { Groq } from "groq-sdk";
 import { wait } from "@jabascript/core";
-import { TRPCClientError } from "@trpc/client";
 import type { NewsOutlet, Reporter } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
 
 // import { env } from "~/env";
 import { groqClient } from "~/server/ai";
@@ -96,9 +97,6 @@ export async function POST() {
 		const cluster = clusteredArticles[key]!;
 		log(`Summarizing cluster ${key} with ${cluster.length} articles...`);
 
-		// TODO(Curstantine): Remove this check is when the debugging is done.
-		// if (env.NODE_ENV === "development" && cluster.length > 25) continue;
-
 		try {
 			for (let i = 0; i < cluster.length; i++) {
 				log(`\t\tRunning article [${i + 1}/${cluster.length}]...`);
@@ -106,9 +104,9 @@ export async function POST() {
 				article.summary = await summarize(article);
 
 				summarized[key] ??= [];
-				summarized[key]!.push({ ...article, factuality: 0 });
+				summarized[key]!.push({ ...article, factuality: 0, temp_id: randomUUID() });
 
-				await wait(500);
+				await wait(250);
 			}
 		} catch (error) {
 			console.error("Failed to summarize articles:\n\t", error);
@@ -118,17 +116,15 @@ export async function POST() {
 		log(`Factualizing cluster ${key}...`);
 		try {
 			const articles = summarized[key]!;
-			const factualized = await factualize(cluster as SummarizedArticle[]);
+			const factualized = await factualize(articles);
 
 			for (let i = 0; i < factualized.length; i++) {
 				const data = factualized[i]!;
-				const idx = articles.findIndex(
-					(x) => x.title === data?.title && x.outlet === data?.outlet_name,
-				);
+				const idx = articles.findIndex((x) => x.temp_id === data.temp_id);
 
 				if (idx === -1) {
 					console.error("Failed to find article for factuality:", data);
-					continue;
+					return NextResponse.json({ status: "error" });
 				}
 
 				articles[idx]!.factuality = data.factuality;
@@ -261,12 +257,16 @@ async function summarize(article: SourceArticle) {
 	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
-			content:
-				"Return a normalized summary of the following news articles in a readable point form. Points should not be longer than 100 words. Return in the JSON format following { 'summary': string[] }. Points should be formatted inside an array. Return only one summary.",
+			content: `Return a normalized summary of the news article in a readable point form that is no longer than 100 words in each point.
+			The data should be returned in JSON, following the format { summary: string[] }.
+			Each point should be inside the array. Change any double quotes inside the article to single quotes to avoid JSON parsing errors.
+			
+			An example of the format is:
+			{ summary: ["Point 1", "Point 2", "Point 3 with 'quotes' inside"] }`,
 		},
 		{
-			role: "system",
-			content: `Outlet: ${article.outlet}\nTitle: ${article?.title}\nBody: ${article?.body_paragraphs}`,
+			role: "user",
+			content: article.body_paragraphs,
 		},
 	];
 
@@ -295,17 +295,20 @@ async function factualize(articles: SummarizedArticle[]) {
 	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
 		{
 			role: "system",
-			content:
-				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { data: { 'outlet_name': string, 'title': string, 'factuality': float }[] }.",
+			content: `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
+				The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
+				Follow the format: { data: { temp_id: string, 'factuality': float }[] }.`,
 		},
 		...articles.map((x) => {
 			// Note(Curstantine):
-			// Limit the article body size to 6000 characters to avoid hitting the token limit.
-			// const body = x.body_paragraphs.split(" ").slice(0, 6000).join(" ");
-			const body = x.summary.join(" ").slice(0, 6000 / articles.length);
+			// Limit the article body size to 100000 characters to avoid hitting the token limit.
+			const body = x.summary.join(" ").slice(0, 100000 / articles.length);
 			return {
 				role: "user",
-				content: `Outlet: ${x.outlet}\nTitle: ${x.title}\nBody: ${body}`,
+				content: [
+					{ type: "text", text: `temp_id: ${x.temp_id}` },
+					{ type: "text", text: `Body: ${body}` },
+				],
 			} as Groq.Chat.Completions.ChatCompletionMessageParam;
 		}),
 	];
@@ -340,8 +343,8 @@ async function getOrCreateOutlet(
 
 		return { id: outlet.id, name: outlet.name };
 	} catch (error) {
-		if (error instanceof TRPCClientError && error.data?.code === "CONFLICT") {
-			return { id: error.data.outletId as string, name: article.outlet };
+		if (error instanceof TRPCError && error.cause && "outletId" in error.cause) {
+			return { id: error.cause.outletId as string, name: article.outlet };
 		}
 
 		throw error;
@@ -363,8 +366,8 @@ async function getOrCreateReporter(
 
 		return { id: reporter.id, name: reporter.name };
 	} catch (error) {
-		if (error instanceof TRPCClientError && error.data?.code === "CONFLICT") {
-			return { id: error.data.reporterId as string, name: article.reporter };
+		if (error instanceof TRPCError && error.cause && "reporterId" in error.cause) {
+			return { id: error.cause.reporterId as string, name: article.reporter };
 		}
 
 		throw error;

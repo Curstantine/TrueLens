@@ -22,9 +22,11 @@ export interface ClusteredArticles {
 	[key: `${number}`]: SourceArticle[];
 }
 
-export type SummarizedArticle = SourceArticle & { summary: string[] };
+export type SummarizedArticle = SourceArticle & { summary: string[]; temp_id: string };
 
-export type FactualityReport = { outlet_name: string; title: string; factuality: number };
+export type FactualityReport = Pick<SummarizedArticle, "temp_id"> & {
+	factuality: number;
+};
 
 export type ClusteredSummaryFactualityReport = SummarizedArticle &
 	Pick<FactualityReport, "factuality">;

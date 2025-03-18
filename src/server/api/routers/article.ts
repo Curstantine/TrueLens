@@ -23,7 +23,11 @@ export const articleRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const [reporter, outlet, story] = await Promise.all([
+			const [article, reporter, outlet, story] = await Promise.all([
+				db.article.findUnique({
+					where: { externalUrl: input.externalUrl },
+					select: { id: true },
+				}),
 				db.reporter.findUnique({
 					where: { id: input.reporterId },
 					select: { id: true },
@@ -37,6 +41,14 @@ export const articleRouter = createTRPCRouter({
 					select: { id: true },
 				}),
 			]);
+
+			if (article) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "Article already exists.",
+					cause: `Article by external URL ${input.externalUrl} already exists at ID ${article.id}`,
+				});
+			}
 
 			if (!reporter) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found." });
