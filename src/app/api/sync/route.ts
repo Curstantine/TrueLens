@@ -9,7 +9,7 @@ import { wait } from "@jabascript/core";
 import { TRPCClientError } from "@trpc/client";
 import type { NewsOutlet, Reporter } from "@prisma/client";
 
-import { env } from "~/env";
+// import { env } from "~/env";
 import { groqClient } from "~/server/ai";
 import { db } from "~/server/db";
 import { api } from "~/trpc/server";
@@ -97,7 +97,7 @@ export async function POST() {
 		log(`Summarizing cluster ${key} with ${cluster.length} articles...`);
 
 		// TODO(Curstantine): Remove this check is when the debugging is done.
-		if (env.NODE_ENV === "development" && cluster.length > 25) continue;
+		// if (env.NODE_ENV === "development" && cluster.length > 25) continue;
 
 		try {
 			for (let i = 0; i < cluster.length; i++) {
@@ -199,6 +199,7 @@ export async function POST() {
 					content: current.body_paragraphs,
 					reporterId: currentReporter.id,
 					outletId: currentOutlet.id,
+					factuality: current.factuality,
 				}),
 			);
 		}
@@ -295,7 +296,7 @@ async function factualize(articles: SummarizedArticle[]) {
 		{
 			role: "system",
 			content:
-				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { 'outlet_name': string, 'title': string, 'factuality': float }",
+				"Return a factuality report from each outlet. Get the factuality by getting the average of what has happened. Factuality should be returned in JSON format paired by the outlet name following the format: { data: { 'outlet_name': string, 'title': string, 'factuality': float }[] }.",
 		},
 		...articles.map((x) => {
 			// Note(Curstantine):
@@ -325,7 +326,7 @@ async function factualize(articles: SummarizedArticle[]) {
 	const reportText = completion.choices[0]?.message.content;
 	if (!reportText) throw new Error("Factuality report was empty");
 
-	return JSON.parse(reportText) as FactualityReport[];
+	return JSON.parse(reportText).data as FactualityReport[];
 }
 
 async function getOrCreateOutlet(
