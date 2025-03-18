@@ -104,6 +104,10 @@ export async function POST() {
 				log(`\t\tRunning article [${i + 1}/${cluster.length}]...`);
 				const article = cluster[i] as SummarizedArticle;
 				article.summary = await summarize(article);
+
+				summarized[key] ??= [];
+				summarized[key]!.push({ ...article, factuality: 0 });
+
 				await wait(500);
 			}
 		} catch (error) {
