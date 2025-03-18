@@ -1,6 +1,7 @@
 import os
 import json
 from pathlib import Path
+import sys
 from typing import List, Dict
 import logging
 from bertopic import BERTopic
@@ -21,8 +22,8 @@ OUTLET_MAPPING = {
     "newswire.lk": "Newswire",
     "news.lk": "News.lk",
     "adaderana.lk": "Ada Derana",
-    "dailynews.lk": "Daily News",           
-    "srilankamirror.com": "Sri Lanka Mirror",       
+    "dailynews.lk": "Daily News",
+    "srilankamirror.com": "Sri Lanka Mirror",
     "colombotelegraph.com": "Colombo Telegraph",
 }
 
@@ -45,14 +46,34 @@ def load_articles(directory: Path) -> List[Dict]:
         try:
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                text = " ".join(data.get("body_paragraphs", [])).strip()
                 outlet = get_outlet_name(data["url"])
-                if outlet == "unknown" or not text:
-                    logger.warning(f"Skipping due to missing outlet or text: {data['url']}")
+
+                if outlet == "unknown":
+                    logger.warning(f"Skipping due to unknown outlet: {data['url']}")
                     continue
+
                 reporter = (
                     data.get("reporter") or f"system-{'_'.join(outlet.lower().split())}"
                 )
+
+                text = ""
+                for paragraph in data.get("body_paragraphs", []):
+                    # Clean paragraph and add to text with proper spacing
+                    paragraph = paragraph.strip()
+
+                    # Remove non-ASCII characters (Unicode)
+                    paragraph = paragraph.encode("ascii", "ignore").decode("ascii")
+
+                    #  Remove padding and *** from the paragraph
+                    paragraph = paragraph.replace("***", "")
+
+                    # Remove newlines and extra spaces
+                    paragraph = paragraph.replace("\n", " ").replace("\r", " ")
+                    paragraph = " ".join(paragraph.split())
+
+                    if paragraph:
+                        text += paragraph + " "
+
                 articles.append(
                     {
                         "url": data["url"],
@@ -80,7 +101,8 @@ def cluster_articles(articles: List[Dict]) -> List[Dict]:
         language="english",
         verbose=True,
         embedding_model=embedding_model,
-        min_topic_size=20,
+        min_topic_size=5,
+        nr_topics=None,
     )
     topics = topic_model.fit_transform(body_paragraphs)
     topic_model.save(MODEL_DIR, serialization="safetensors", save_ctfidf=True)
@@ -105,6 +127,7 @@ def save_grouped_articles(articles: List[Dict], output_file: Path) -> Dict:
 
 if __name__ == "__main__":
     articles = load_articles(ARTICLES_DIR)
+
     if articles:
         clustered_articles = cluster_articles(articles)
         logger.info("Clustering completed.")

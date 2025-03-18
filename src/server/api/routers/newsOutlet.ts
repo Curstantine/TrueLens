@@ -6,20 +6,30 @@ import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 
 export const newsOutletRouter = createTRPCRouter({
-	/* Create newsOutlet*/
 	create: publicProcedure
 		.input(
 			z.object({
 				name: z.string().min(1, "Name is required"),
-				headquarters: z.string().min(1, "Headquarters is required"),
 				logoUrl: z.string().optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
+			const outlet = await db.newsOutlet.findUnique({
+				where: { name: input.name },
+				select: { id: true },
+			});
+
+			if (outlet) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "A news outlet with this name already exists.",
+					cause: { outletId: outlet.id },
+				});
+			}
+
 			return await db.newsOutlet.create({
 				data: {
 					name: input.name,
-					headquarters: input.headquarters,
 					logoUrl: input.logoUrl,
 				},
 			});
@@ -52,7 +62,6 @@ export const newsOutletRouter = createTRPCRouter({
 			z.object({
 				id: objectId("id must be a valid MongoDB ObjectId"),
 				name: z.string().optional(),
-				headquarters: z.string().optional(),
 				logoUrl: z.string().optional(),
 			}),
 		)
@@ -61,7 +70,6 @@ export const newsOutletRouter = createTRPCRouter({
 				where: { id: input.id },
 				data: {
 					name: input.name,
-					headquarters: input.headquarters,
 					logoUrl: input.logoUrl,
 				},
 			});
@@ -73,8 +81,7 @@ export const newsOutletRouter = createTRPCRouter({
 		.mutation(async ({ input }) => {
 			return await db.$transaction([
 				db.newsOutlet.delete({ where: { id: input.id } }),
-				db.reporter.deleteMany({ where: { outletId: input.id } }),
-				db.article.deleteMany({ where: { reporter: { outletId: input.id } } }),
+				db.article.deleteMany({ where: { outletId: input.id } }),
 			]);
 		}),
 });

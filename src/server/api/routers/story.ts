@@ -11,7 +11,7 @@ export const storyRouter = createTRPCRouter({
 			z.object({
 				title: z.string().min(1, "Title is required"),
 				summary: z.array(z.string()).min(1, "Summary is required"),
-				cover: z.optional(z.string())
+				cover: z.optional(z.string()),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -60,13 +60,8 @@ export const storyRouter = createTRPCRouter({
 				include: {
 					articles: {
 						include: {
-							reporter: {
-								include: {
-									outlet: {
-										select: { id: true, name: true },
-									},
-								},
-							},
+							reporter: true,
+							outlet: true,
 						},
 					},
 				},
@@ -79,7 +74,8 @@ export const storyRouter = createTRPCRouter({
 				});
 			}
 
-			return story;
+			const totalScore = story.articles.reduce((acc, x) => acc + x.factuality, 0);
+			return { ...story, factuality: totalScore / story.articles.length };
 		}),
 
 	update: publicProcedure

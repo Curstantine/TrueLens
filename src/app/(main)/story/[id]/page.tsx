@@ -128,7 +128,7 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 						url={article.externalUrl}
 						publishedAt={article.publishedAt}
 						publisherLogo={undefined}
-						publisherName={article.reporter.outlet.name}
+						publisherName={article.outlet.name}
 					/>
 				))}
 			</div>
