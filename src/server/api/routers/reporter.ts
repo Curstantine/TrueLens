@@ -11,7 +11,6 @@ export const reporterRouter = createTRPCRouter({
 			z.object({
 				name: z.string().min(1, "Name is required"),
 				email: z.string().email("Invalid email address"),
-				outletId: z.string().min(1, "News Outlet ID is required"),
 				avatarUrl: z.string().optional(),
 				isSystem: z.boolean().default(false),
 			}),
@@ -26,18 +25,7 @@ export const reporterRouter = createTRPCRouter({
 				throw new TRPCError({
 					code: "CONFLICT",
 					message: "A reporter with this email already exists.",
-				});
-			}
-
-			const outlet = await db.newsOutlet.findUnique({
-				where: { id: input.outletId },
-				select: { id: true },
-			});
-
-			if (!outlet) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "News outlet with the provided ID does not exist.",
+					cause: { reporterId: reporter.id },
 				});
 			}
 
@@ -46,7 +34,6 @@ export const reporterRouter = createTRPCRouter({
 				data: {
 					name: input.name,
 					email: input.email,
-					outletId: input.outletId,
 					avatarUrl: input.avatarUrl,
 					isSystem: input.isSystem,
 				},
@@ -63,16 +50,12 @@ export const reporterRouter = createTRPCRouter({
 			return await db.reporter.findMany({
 				take: input.limit,
 				skip: input.offset,
-				include: { outlet: true },
 			});
 		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
-			const reporter = await db.reporter.findUnique({
-				where: { id: input.id },
-				include: { outlet: true },
-			});
+			const reporter = await db.reporter.findUnique({ where: { id: input.id } });
 
 			if (!reporter) {
 				throw new TRPCError({
@@ -89,7 +72,6 @@ export const reporterRouter = createTRPCRouter({
 				id: objectId("id must be a valid MongoDB ObjectId"),
 				name: z.string().optional(),
 				email: z.string().email("Invalid email address").optional(),
-				outletId: objectId("id must be a valid MongoDB ObjectId").optional(),
 				avatarUrl: z.string().optional(),
 				isSystem: z.boolean().optional(),
 			}),
@@ -104,26 +86,11 @@ export const reporterRouter = createTRPCRouter({
 				throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found" });
 			}
 
-			if (input.outletId) {
-				const outlet = await db.newsOutlet.findUnique({
-					where: { id: input.outletId },
-					select: { id: true },
-				});
-
-				if (!outlet) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Outlet with the provided id does not exist.",
-					});
-				}
-			}
-
 			return await db.reporter.update({
 				where: { id: input.id },
 				data: {
 					name: input.name,
 					email: input.email,
-					outletId: input.outletId,
 					avatarUrl: input.avatarUrl,
 					isSystem: input.isSystem,
 				},
