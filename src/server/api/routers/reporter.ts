@@ -29,7 +29,6 @@ export const reporterRouter = createTRPCRouter({
 				});
 			}
 
-			// Create the reporter
 			return await db.reporter.create({
 				data: {
 					name: input.name,

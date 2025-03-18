@@ -16,24 +16,34 @@ export const articleRouter = createTRPCRouter({
 				content: z.string().min(1, "Content is required"),
 				reporterId: objectId("Reporter ID must be a valid MongoDB ObjectId"),
 				storyId: objectId("Story ID must be a valid MongoDB ObjectId"),
+				outletId: objectId("Outlet ID must be a valid MongoDB ObjectId"),
 				externalUrl: z.string().url("External URL must be a valid URL"),
 				publishedAt: z.string().datetime("Published At must be a valid datetime"),
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const reporter = await db.reporter.findUnique({
-				where: { id: input.reporterId },
-				select: { id: true },
-			});
+			const [reporter, outlet, story] = await Promise.all([
+				db.reporter.findUnique({
+					where: { id: input.reporterId },
+					select: { id: true },
+				}),
+				db.newsOutlet.findUnique({
+					where: { id: input.outletId },
+					select: { id: true },
+				}),
+				db.story.findUnique({
+					where: { id: input.storyId },
+					select: { id: true },
+				}),
+			]);
 
 			if (!reporter) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Reporter not found." });
 			}
 
-			const story = await db.story.findUnique({
-				where: { id: input.storyId },
-				select: { id: true },
-			});
+			if (!outlet) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Outlet not found." });
+			}
 
 			if (!story) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found." });
@@ -44,6 +54,7 @@ export const articleRouter = createTRPCRouter({
 					title: input.title,
 					content: input.content,
 					reporterId: input.reporterId,
+					outletId: input.outletId,
 					storyId: input.storyId,
 					externalUrl: input.externalUrl,
 					publishedAt: input.publishedAt,
@@ -76,6 +87,7 @@ export const articleRouter = createTRPCRouter({
 				title: z.string().min(1, "Title is required").optional(),
 				content: z.string().min(1, "Content is required").optional(),
 				reporterId: objectId("Reporter ID must be a valid MongoDB ObjectId").optional(),
+				outletId: objectId("Outlet ID must be a valid MongoDB ObjectId").optional(),
 				storyId: objectId("Story ID must be a valid MongoDB ObjectId").optional(),
 				externalUrl: z.string().url("External URL must be a valid URL").optional(),
 				publishedAt: z
@@ -105,6 +117,17 @@ export const articleRouter = createTRPCRouter({
 				}
 			}
 
+			if (input.outletId) {
+				const outlet = await db.newsOutlet.findUnique({
+					where: { id: input.outletId },
+					select: { id: true },
+				});
+
+				if (!outlet) {
+					throw new TRPCError({ code: "NOT_FOUND", message: "Outlet not found." });
+				}
+			}
+
 			if (input.storyId) {
 				const story = await db.story.findUnique({
 					where: { id: input.storyId },
@@ -122,6 +145,7 @@ export const articleRouter = createTRPCRouter({
 					title: input.title,
 					content: input.content,
 					reporterId: input.reporterId,
+					outletId: input.outletId,
 					storyId: input.storyId,
 					externalUrl: input.externalUrl,
 					publishedAt: input.publishedAt,
