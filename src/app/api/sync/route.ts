@@ -266,10 +266,10 @@ async function summarize(article: SourceArticle) {
 	];
 
 	const completion = await client.chat.completions.create({
-		model: "deepseek-r1-distill-llama-70b",
-		temperature: 0.6,
-		max_completion_tokens: 4096,
-		top_p: 0.95,
+		model: "llama-3.1-8b-instant",
+		temperature: 0.85,
+		max_completion_tokens: 1024,
+		top_p: 1,
 		stream: false,
 		response_format: {
 			type: "json_object",
