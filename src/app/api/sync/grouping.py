@@ -22,8 +22,8 @@ OUTLET_MAPPING = {
     "newswire.lk": "Newswire",
     "news.lk": "News.lk",
     "adaderana.lk": "Ada Derana",
-    "dailynews.lk": "Daily News",           
-    "srilankamirror.com": "Sri Lanka Mirror",       
+    "dailynews.lk": "Daily News",
+    "srilankamirror.com": "Sri Lanka Mirror",
     "colombotelegraph.com": "Colombo Telegraph",
 }
 
@@ -46,17 +46,34 @@ def load_articles(directory: Path) -> List[Dict]:
         try:
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                text = " ".join(data.get("body_paragraphs", [])).strip()
                 outlet = get_outlet_name(data["url"])
 
-                if outlet == "unknown" or not text:
-                    logger.warning(f"Skipping due to missing outlet or text: {data['url']}")
+                if outlet == "unknown":
+                    logger.warning(f"Skipping due to unknown outlet: {data['url']}")
                     continue
-                
+
                 reporter = (
                     data.get("reporter") or f"system-{'_'.join(outlet.lower().split())}"
                 )
-                
+
+                text = ""
+                for paragraph in data.get("body_paragraphs", []):
+                    # Clean paragraph and add to text with proper spacing
+                    paragraph = paragraph.strip()
+
+                    # Remove non-ASCII characters (Unicode)
+                    paragraph = paragraph.encode("ascii", "ignore").decode("ascii")
+
+                    #  Remove padding and *** from the paragraph
+                    paragraph = paragraph.replace("***", "")
+
+                    # Remove newlines and extra spaces
+                    paragraph = paragraph.replace("\n", " ").replace("\r", " ")
+                    paragraph = " ".join(paragraph.split())
+
+                    if paragraph:
+                        text += paragraph + " "
+
                 articles.append(
                     {
                         "url": data["url"],
