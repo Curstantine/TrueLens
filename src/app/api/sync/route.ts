@@ -284,7 +284,7 @@ async function factualize(articles: SummarizedArticle[]): Promise<StoryFactualit
 		.withRetry({ stopAfterAttempt: 2 });
 	const prompt = `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
 	The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
-	Factuality is a float between 0 and 10, where 0 is completely false and 10 is completely true.
+	Factuality is a float between 0 and 1, where 0 is completely false and 1 is completely true.
 	
 	EXAMPLE OUTPUT:
 	{
