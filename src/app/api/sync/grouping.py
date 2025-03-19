@@ -72,6 +72,9 @@ def load_articles(directory: Path) -> List[Dict]:
                     #  Remove padding and *** from the paragraph
                     paragraph = paragraph.replace("***", "")
 
+                    # Replace double quotes with single quotes to avoid JSON parsing issues
+                    paragraph = paragraph.replace('"', "'") 
+
                     # Remove newlines and extra spaces
                     paragraph = paragraph.replace("\n", " ").replace("\r", " ")
                     paragraph = " ".join(paragraph.split())
@@ -106,7 +109,7 @@ def cluster_articles(articles: List[Dict]) -> List[Dict]:
         language="english",
         verbose=True,
         embedding_model=embedding_model,
-        min_topic_size=5,
+        min_topic_size=2,
         nr_topics=None,
     )
     topics = topic_model.fit_transform(body_paragraphs)

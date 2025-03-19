@@ -5,13 +5,12 @@ import { spawnSync } from "node:child_process";
 
 import { NextResponse } from "next/server";
 import simpleGit from "simple-git";
-import type { Groq } from "groq-sdk";
 import { wait } from "@jabascript/core";
 import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 // import { env } from "~/env";
-import { groqClient } from "~/server/ai";
+import { factCheckingModel, summarizationModel } from "~/server/ai";
 import { db } from "~/server/db";
 import { api } from "~/trpc/server";
 
@@ -20,10 +19,15 @@ import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/uti
 import type {
 	ClusteredArticles,
 	ClusteredSummaryFactualityReport,
-	FactualityReport,
 	SourceArticle,
 	SummarizedArticle,
 } from "~/app/api/sync/types";
+import {
+	type ArticleSummary,
+	type StoryFactualityReport,
+	ARTICLE_SUMMARY,
+	STORY_FACTUALITY_REPORT,
+} from "~/app/api/sync/validation";
 
 export const runtime = "nodejs";
 
@@ -101,7 +105,7 @@ export async function POST() {
 			for (let i = 0; i < cluster.length; i++) {
 				log(`\t\tRunning article [${i + 1}/${cluster.length}]...`);
 				const article = cluster[i] as SummarizedArticle;
-				article.summary = await summarize(article);
+				article.summary = (await summarize(article)).summary;
 
 				summarized[key] ??= [];
 				summarized[key]!.push({ ...article, factuality: 0, temp_id: randomUUID() });
@@ -116,7 +120,7 @@ export async function POST() {
 		log(`Factualizing cluster ${key}...`);
 		try {
 			const articles = summarized[key]!;
-			const factualized = await factualize(articles);
+			const factualized = (await factualize(articles)).data;
 
 			for (let i = 0; i < factualized.length; i++) {
 				const data = factualized[i]!;
@@ -261,99 +265,45 @@ async function cloneOrReuse() {
 	log("Repository cloned successfully!");
 }
 
-async function summarize(article: SourceArticle) {
-	const client = groqClient();
-	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
-		{
-			role: "system",
-			content: `Return a summary of the news article in a readable point form that is no longer than 100 words in each point.
-			The data should be returned in JSON, following the format { summary: string[] }. Change any double quotes inside the article to single quotes to avoid JSON parsing errors.
+async function summarize(article: SourceArticle): Promise<ArticleSummary> {
+	const model = summarizationModel()
+		.withStructuredOutput(ARTICLE_SUMMARY)
+		.withRetry({ stopAfterAttempt: 3 });
+	const prompt = `Return a summary of the news article in a readable point format. Try not to span to more than 6 points.
+	Return a valid JSON following the example format: {{ "summary": ["point 1", "point 2", "point 3"] }}`;
 
-			EXAMPLE OUTPUT:
-			{ 
-				"summary": [
-					"Point 1", 
-					"Point 2", 
-					"Point 3 with 'quotes' inside"
-				] 
-			}`,
-		},
-		{
-			role: "user",
-			content: article.body_paragraphs,
-		},
-	];
-
-	const completion = await client.chat.completions.create({
-		model: "llama-3.1-8b-instant",
-		temperature: 0.85,
-		max_completion_tokens: 1024,
-		top_p: 1,
-		stream: false,
-		response_format: {
-			type: "json_object",
-		},
-		stop: null,
-		messages,
-	});
-
-	const summaryText = completion.choices[0]?.message.content;
-	if (!summaryText) throw new Error("Summary was empty");
-
-	const doc = JSON.parse(summaryText) as Pick<SummarizedArticle, "summary">;
-	return doc.summary;
+	return await model.invoke([
+		{ role: "system", content: prompt },
+		{ role: "user", content: article.body_paragraphs },
+	]);
 }
 
-async function factualize(articles: SummarizedArticle[]) {
-	const client = groqClient();
-	const messages: Groq.Chat.Completions.ChatCompletionMessageParam[] = [
+async function factualize(articles: SummarizedArticle[]): Promise<StoryFactualityReport> {
+	const model = factCheckingModel()
+		.withStructuredOutput(STORY_FACTUALITY_REPORT)
+		.withRetry({ stopAfterAttempt: 2 });
+	const prompt = `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
+	The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
+	Factuality is a float between 0 and 10, where 0 is completely false and 10 is completely true.
+	
+	EXAMPLE OUTPUT:
+	{
+		data: [
+			{ temp_id: 'temp_id_1', factuality: 0.8 },
+			{ temp_id: 'temp_id_2', factuality: 0.6 },
+			{ temp_id: 'temp_id_3', factuality: 0.4 },
+		]
+	}`;
+
+	return await model.invoke([
+		{ role: "system", content: prompt },
 		{
-			role: "system",
-			content: `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
-				The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
-				Factuality is a float between 0 and 10, where 0 is completely false and 10 is completely true.
-				Follow the format: { data: { temp_id: string, 'factuality': float }[] }. Do not send empty responses.
-				
-				EXAMPLE OUTPUT:
-				{
-					data: [
-						{ temp_id: 'temp_id_1', factuality: 0.8 },
-						{ temp_id: 'temp_id_2', factuality: 0.6 },
-						{ temp_id: 'temp_id_3', factuality: 0.4 },
-					]
-				}`,
+			role: "user",
+			content: articles
+				.map((x) => `temp_id: ${x.temp_id}\nSummary: ${x.summary.join(" ")}`)
+				.join("\n\n"),
 		},
-		...articles.map((x) => {
-			// Note(Curstantine):
-			// Limit the article body size to 100000 characters to avoid hitting the token limit.
-			const body = x.summary.join(" ").slice(0, 100000 / articles.length);
-			return {
-				role: "user",
-				content: [
-					{ type: "text", text: `temp_id: ${x.temp_id}` },
-					{ type: "text", text: `Body: ${body}` },
-				],
-			} as Groq.Chat.Completions.ChatCompletionMessageParam;
-		}),
-	];
-
-	const completion = await client.chat.completions.create({
-		model: "llama-3.3-70b-versatile",
-		temperature: 0.6,
-		max_completion_tokens: 6144,
-		top_p: 0.95,
-		stream: false,
-		response_format: {
-			type: "json_object",
-		},
-		stop: null,
-		messages,
-	});
-
-	const reportText = completion.choices[0]?.message.content;
-	if (!reportText) throw new Error("Factuality report was empty");
-
-	return JSON.parse(reportText).data as FactualityReport[];
+	]);
 }
 
 async function getOrCreateOutlet(
