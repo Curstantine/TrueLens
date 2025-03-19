@@ -9,7 +9,7 @@ from sentence_transformers import SentenceTransformer
 
 # Configuration
 REPO_ROOT = Path(os.getcwd())
-ARTICLES_DIR = REPO_ROOT / "news_filtered_data/news_source_data/data/articles"
+ARTICLES_DIR = REPO_ROOT / "news_filtered_data/data/"
 OUTPUT_FILE = REPO_ROOT / "news_filtered_data/clustered.json"
 MODEL_DIR = REPO_ROOT / "news_filtered_data/clustered_model"
 
@@ -62,6 +62,11 @@ def load_articles(directory: Path) -> List[Dict]:
                 )
 
                 text = ""
+                
+                # Articles by DBS Jeyaraj have a footer that needs to be removed
+                if outlet == "DBS Jeyaraj":
+                    body_paragraphs = body_paragraphs[:-4]
+
                 for paragraph in body_paragraphs:
                     # Clean paragraph and add to text with proper spacing
                     paragraph = paragraph.strip()
@@ -73,7 +78,16 @@ def load_articles(directory: Path) -> List[Dict]:
                     paragraph = paragraph.replace("***", "")
 
                     # Replace double quotes with single quotes to avoid JSON parsing issues
-                    paragraph = paragraph.replace('"', "'") 
+                    paragraph = paragraph.replace('"', "'")
+
+                    # Remove urls
+                    paragraph = " ".join(
+                        [
+                            word
+                            for word in paragraph.split()
+                            if not word.startswith("http")
+                        ]
+                    )
 
                     # Remove newlines and extra spaces
                     paragraph = paragraph.replace("\n", " ").replace("\r", " ")

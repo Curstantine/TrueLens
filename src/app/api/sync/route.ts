@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { stat, copyFile, mkdir } from "node:fs/promises";
-import { join as pathJoin, resolve as pathResolve } from "node:path";
+import { stat, copyFile, mkdir, rm } from "node:fs/promises";
+import { join as pathJoin, resolve as pathResolve, basename } from "node:path";
 import { spawnSync } from "node:child_process";
 
 import { NextResponse } from "next/server";
@@ -37,6 +37,7 @@ const repoName = "news_long_lk";
 const sourcePath = pathJoin("news_source_data");
 const sourceDataPath = pathJoin(sourcePath, "data");
 const targetPath = pathJoin("news_filtered_data");
+const targetDataPath = pathJoin(targetPath, "data");
 
 const log = (...msg: string[]) => console.log(`[sync]`, ...msg);
 
@@ -60,18 +61,26 @@ export async function POST() {
 	log(`Found ${newArticles.length} new articles`);
 	if (newArticles.length === 0) return NextResponse.json({ status: "ok" });
 
+	try {
+		await rm(targetDataPath, { recursive: true });
+	} catch (error) {
+		if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
+			console.error("Failed to remove target data path:", error);
+			return NextResponse.json({ status: "error" });
+		}
+	} finally {
+		await mkdir(targetDataPath, { recursive: true });
+	}
+
 	for (let i = 0; i < newArticles.length; i++) {
-		const meta = newArticles.at(i);
-		if (!meta) continue;
+		const meta = newArticles[i]!;
 
 		const articlePath = pathJoin(sourcePath, meta.dir_path_unix);
-		const folderName = articlePath.split("/").at(-1) || "not-found" + i;
+		const folderName = basename(articlePath);
 
-		const targetFolder = pathJoin(targetPath, folderName);
-		await mkdir(targetFolder, { recursive: true });
 		await copyFile(
 			pathJoin(articlePath, "article.json"),
-			pathJoin(targetFolder, "article.json"),
+			pathJoin(targetDataPath, `${folderName}.json`),
 		);
 	}
 
