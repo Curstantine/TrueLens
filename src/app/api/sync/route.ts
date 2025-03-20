@@ -98,23 +98,22 @@ export async function POST() {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
-	// Relative path from the current working directory
-	const jsonFilePath = path.join('news_filtered_data', 'clustered.json');
-// Ensure that the file exists
-if (!fs.existsSync(jsonFilePath)) {
-  console.error(`File not found: ${jsonFilePath}`);
-} else {
-  // Instantiate the WebScraper class and start scraping
-  const scraper = new WebScraper();
 
-  scraper.scrapeImagesFromJson(jsonFilePath)
-    .then(() => {
-      console.log("Scraping completed.");
-    })
-    .catch(error => {
-      console.error("Error during scraping:", error);
-    });
+
+// Define the path to the clustered.json file (relative or absolute)
+const jsonFilePath = './news_filtered_data/clustered.json';  // Adjust path
+
+// Instantiate the WebScraper
+const scraper = new WebScraper(jsonFilePath);
+
+// Scrape images from all Daily Mirror links
+async function scrapeImagesFromAllDailyMirror() {
+  const imagesData = await scraper.scrapeAllImages();
+  console.log('Scraped images from all Daily Mirror links:', imagesData);
 }
+
+// Run the function
+scrapeImagesFromAllDailyMirror();
 	
 	const summarized: Record<string, ClusteredSummaryFactualityReport[]> = {};
 

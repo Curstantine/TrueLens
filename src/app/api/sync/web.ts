@@ -1,60 +1,75 @@
-// WebScraper.ts
-import * as fs from "fs";
-import * as cheerio from "cheerio";
+// webScraper.ts
+import fs from 'fs';
+import * as cheerio from 'cheerio';
 
-// The WebScraper class for scraping images
+// Function to pause execution for a specified amount of time (in milliseconds)
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export class WebScraper {
-  // Scrape the first image from any webpage
-  public async scrapeCoverImage(url: string) {
+  private jsonFilePath: string;
+
+  constructor(jsonFilePath: string) {
+    this.jsonFilePath = jsonFilePath;
+  }
+
+  // Read and return the JSON data
+  private readJsonData() {
+    if (!fs.existsSync(this.jsonFilePath)) {
+      console.error(`File not found: ${this.jsonFilePath}`);
+      process.exit(1);  // Exit if file doesn't exist
+    }
+
+    return JSON.parse(fs.readFileSync(this.jsonFilePath, 'utf-8'));
+  }
+
+  // Extract Daily Mirror links from the JSON data
+  public extractDailyMirrorLinks() {
+    const jsonData = this.readJsonData();
+    const dailyMirrorLinks: string[] = [];
+    
+    // Loop through each cluster to extract the article URLs from Daily Mirror
+    for (const clusterId in jsonData) {
+      const articles = jsonData[clusterId];
+      for (const article of articles) {
+        if (article.outlet === 'Daily Mirror') {
+          dailyMirrorLinks.push(article.url);
+        }
+      }
+    }
+
+    return dailyMirrorLinks;
+  }
+
+  // Function to scrape images from a URL
+  public async scrapeImages(url: string) {
     try {
       const resp = await fetch(url);
       const data = await resp.text();
       const $ = cheerio.load(data);
-      
-      // Find the first <img> tag and get its src attribute
+
       const newsImage = $("p > img").first().attr("src");
-      
-      // Handle relative image URLs
-      if (newsImage && !newsImage.startsWith("http")) {
-        const baseUrl = new URL(url).origin;
-        return new URL(newsImage, baseUrl).href;
-      }
-      
-      return newsImage; // Return absolute image URL or null if not found
+      return newsImage;
     } catch (error) {
       console.error("Error fetching the URL:", error);
       return null;
     }
   }
 
-  // Scrape images from the URLs listed in a JSON file
-  public async scrapeImagesFromJson(jsonFilePath: string) {
-    // Check if the file exists
-    if (!fs.existsSync(jsonFilePath)) {
-      console.error(`File not found: ${jsonFilePath}`);
-      return;
-    }
+  // Scrape images from all Daily Mirror links
+  public async scrapeAllImages() {
+    const dailyMirrorLinks = this.extractDailyMirrorLinks();
+    const imagesData: string[] = [];
 
-    const jsonData = JSON.parse(fs.readFileSync(jsonFilePath, "utf-8"));
-
-    for (let i = 0; i < jsonData.length; i++) {
-      const url = jsonData[i].url; // Assuming each object has a 'url' property
-
-      try {
-        const imageUrl = await this.scrapeCoverImage(url);
-        console.log(`Scraped image from ${url}: ${imageUrl}`);
-      } catch (error) {
-        console.error(`Error scraping image from ${url}:`, error);
+    for (const link of dailyMirrorLinks) {
+      const image = await this.scrapeImages(link);
+      if (image) {
+        imagesData.push({ link, image });
+        console.log(`Scraped image from ${link}: ${image}`);
+      } else {
+        console.log(`No image found for ${link}`);
       }
-
-      // Delay each request to avoid rate-limiting issues
-      const delay = 2000; // 2 seconds delay
-      await this.delayRequest(delay);
     }
-  }
 
-  // Helper function to introduce delay
-  private delayRequest(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return imagesData;  // Return scraped image URLs
   }
 }
