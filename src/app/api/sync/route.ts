@@ -108,7 +108,7 @@ const scraper = new WebScraper(jsonFilePath);
 
 // Scrape images from all Daily Mirror links
 async function scrapeImagesFromAllDailyMirror() {
-  const imagesData = await scraper.scrapeAllImages();
+  const imagesData = await scraper.scrapeAllFtImages();
   console.log('Scraped images from all Daily Mirror links:', imagesData);
 }
 
