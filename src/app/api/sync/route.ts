@@ -8,7 +8,8 @@ import simpleGit from "simple-git";
 import { wait } from "@jabascript/core";
 import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-
+import * as path from 'path';
+import * as fs from "fs";
 // import { env } from "~/env";
 import { factCheckingModel, summarizationModel } from "~/server/ai";
 import { db } from "~/server/db";
@@ -85,17 +86,6 @@ export async function POST() {
 	}
 
 	log("Clustering articles...");
-	const scraper = new WebScraper();
-	const jsonFilePath = "d:\\Truelens\\TrueLens\\news_filtered_data\\clustered.json";
-
-	scraper.scrapeImagesFromJson(jsonFilePath)
-  	.then(() => {
-    	console.log("Scraping completed.");
-  	})
-  	.catch(error => {
-    	console.error("Error during scraping:", error);
-  	});
-	
 	try {
 		const file = pathResolve("./src/app/api/sync/grouping.py");
 		const pipenvProcess = spawnSync("pipenv", ["run", "python", file, lastSync.toString()], {
@@ -108,7 +98,24 @@ export async function POST() {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
+	// Relative path from the current working directory
+	const jsonFilePath = path.join('news_filtered_data', 'clustered.json');
+// Ensure that the file exists
+if (!fs.existsSync(jsonFilePath)) {
+  console.error(`File not found: ${jsonFilePath}`);
+} else {
+  // Instantiate the WebScraper class and start scraping
+  const scraper = new WebScraper();
 
+  scraper.scrapeImagesFromJson(jsonFilePath)
+    .then(() => {
+      console.log("Scraping completed.");
+    })
+    .catch(error => {
+      console.error("Error during scraping:", error);
+    });
+}
+	
 	const summarized: Record<string, ClusteredSummaryFactualityReport[]> = {};
 
 	const clusteredArticles = await readClustered(targetPath);
