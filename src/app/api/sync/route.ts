@@ -8,8 +8,7 @@ import simpleGit from "simple-git";
 import { wait } from "@jabascript/core";
 import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import * as path from 'path';
-import * as fs from "fs";
+
 // import { env } from "~/env";
 import { factCheckingModel, summarizationModel } from "~/server/ai";
 import { db } from "~/server/db";
@@ -98,22 +97,6 @@ export async function POST() {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
-
-
-// Define the path to the clustered.json file (relative or absolute)
-const jsonFilePath = './news_filtered_data/clustered.json';  // Adjust path
-
-// Instantiate the WebScraper
-const scraper = new WebScraper(jsonFilePath);
-
-// Scrape images from all Daily Mirror links
-async function scrapeImagesFromAllDailyMirror() {
-  const imagesData = await scraper.scrapeAllFtImages();
-  console.log('Scraped images from all Daily Mirror links:', imagesData);
-}
-
-// Run the function
-scrapeImagesFromAllDailyMirror();
 	
 	const summarized: Record<string, ClusteredSummaryFactualityReport[]> = {};
 
@@ -172,6 +155,20 @@ scrapeImagesFromAllDailyMirror();
 
 		// TODO(Curstantine):
 		// Kirushna, add the cover fetching here. Use the selected url and include it as property of the api.story.create below.
+		// Define the path to the clustered.json file (relative or absolute)
+		const jsonFilePath = './news_filtered_data/clustered.json';  // Adjust path
+
+		// Instantiate the WebScraper
+		const scraper = new WebScraper(jsonFilePath);
+
+		// Scrape images from all Daily Mirror links
+		async function scrapeImagesFromAllDailyMirror() {
+  		const imagesData = await scraper.scrapeAllImages();
+  		console.log('Scraped images from all Daily Mirror links:', imagesData);
+		}
+
+		// Run the function
+		scrapeImagesFromAllDailyMirror();
 
 		const story = await api.story.create({
 			title: selected.title,
