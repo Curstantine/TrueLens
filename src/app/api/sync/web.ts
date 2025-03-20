@@ -54,7 +54,7 @@ export class WebScraper {
 
       // Scrape from FT.lk
       if (url.includes('ft.lk')) {
-        newsImage = $("div.article-content img").first().attr("src");
+        newsImage = $("p > img").first().attr("src");
       }
       // Scrape from Daily Mirror
       else if (url.includes('dailymirror.lk')) {
@@ -92,4 +92,4 @@ export class WebScraper {
 
     return imagesData;  // Return scraped image URLs
   }
-}
+} 
