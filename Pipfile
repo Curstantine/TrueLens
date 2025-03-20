@@ -4,10 +4,9 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-bertopic = "*"
-sentence-transformers = "*"
 numpy = "*"
 pathlib = "*"
+sentence-transformers = "*"
 
 [dev-packages]
 

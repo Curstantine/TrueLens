@@ -15,7 +15,7 @@ import { db } from "~/server/db";
 import { api } from "~/trpc/server";
 
 import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
-// import { WebScraper } from "~/app/api/sync/web";
+import { WebScraper } from "~/app/api/sync/web";
 import type {
 	ClusteredArticles,
 	ClusteredSummaryFactualityReport,
@@ -85,7 +85,17 @@ export async function POST() {
 	}
 
 	log("Clustering articles...");
+	const scraper = new WebScraper();
+	const jsonFilePath = "d:\\Truelens\\TrueLens\\news_filtered_data\\clustered.json";
 
+	scraper.scrapeImagesFromJson(jsonFilePath)
+  	.then(() => {
+    	console.log("Scraping completed.");
+  	})
+  	.catch(error => {
+    	console.error("Error during scraping:", error);
+  	});
+	
 	try {
 		const file = pathResolve("./src/app/api/sync/grouping.py");
 		const pipenvProcess = spawnSync("pipenv", ["run", "python", file, lastSync.toString()], {
@@ -156,6 +166,7 @@ export async function POST() {
 
 		// TODO(Curstantine):
 		// Kirushna, add the cover fetching here. Use the selected url and include it as property of the api.story.create below.
+
 		const story = await api.story.create({
 			title: selected.title,
 			summary: selected.summary,
@@ -239,14 +250,7 @@ export async function POST() {
 		data: { value: new Date().toISOString() },
 	});
 
-	// Example usage of WebScraper
-	// const scraper = new WebScraper();
-	// const url =
-	// 	"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
-	// const outlet = "Daily Mirror";
 
-	// const image = await scraper.scrapeCoverImage(url, outlet);
-	// console.log("Scraped image URL:", image);
 
 	return NextResponse.json({ status: "ok" });
 }
