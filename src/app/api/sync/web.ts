@@ -1,4 +1,3 @@
-// webScraper.ts
 import fs from 'fs';
 import * as cheerio from 'cheerio';
 
@@ -22,22 +21,25 @@ export class WebScraper {
     return JSON.parse(fs.readFileSync(this.jsonFilePath, 'utf-8'));
   }
 
-  // Extract Daily Mirror links from the JSON data
-  public extractDailyMirrorLinks() {
+  // Extract FT.lk and Daily Mirror links from the JSON data
+  public extractLinks() {
     const jsonData = this.readJsonData();
+    const ftLinks: string[] = [];
     const dailyMirrorLinks: string[] = [];
-    
-    // Loop through each cluster to extract the article URLs from Daily Mirror
+
+    // Loop through each cluster to extract article URLs
     for (const clusterId in jsonData) {
       const articles = jsonData[clusterId];
       for (const article of articles) {
-        if (article.outlet === 'Daily Mirror') {
+        if (article.outlet === 'ft.lk') {
+          ftLinks.push(article.url);
+        } else if (article.outlet === 'Daily Mirror') {
           dailyMirrorLinks.push(article.url);
         }
       }
     }
 
-    return dailyMirrorLinks;
+    return { ftLinks, dailyMirrorLinks };
   }
 
   // Function to scrape images from a URL
@@ -47,7 +49,18 @@ export class WebScraper {
       const data = await resp.text();
       const $ = cheerio.load(data);
 
-      const newsImage = $("p > img").first().attr("src");
+      // Default logic for scraping images (change selectors as needed for each site)
+      let newsImage: string | null = null;
+
+      // Scrape from FT.lk
+      if (url.includes('ft.lk')) {
+        newsImage = $("div.article-content img").first().attr("src");
+      }
+      // Scrape from Daily Mirror
+      else if (url.includes('dailymirror.lk')) {
+        newsImage = $("p > img").first().attr("src");
+      }
+
       return newsImage;
     } catch (error) {
       console.error("Error fetching the URL:", error);
@@ -55,14 +68,17 @@ export class WebScraper {
     }
   }
 
-  // Scrape images from all Daily Mirror links with 5 seconds delay
+  // Scrape images from FT.lk first, then Daily Mirror links with 5 seconds delay
   public async scrapeAllImages() {
-    const dailyMirrorLinks = this.extractDailyMirrorLinks();
-    const imagesData: string[] = [];
+    const { ftLinks, dailyMirrorLinks } = this.extractLinks();
 
-    for (const link of dailyMirrorLinks) {
+    // Prioritize FT.lk links first, followed by Daily Mirror links
+    const allLinks = [...ftLinks, ...dailyMirrorLinks]; // FT.lk first, then Daily Mirror links
+    const imagesData: { link: string, image: string }[] = [];
+
+    for (const link of allLinks) {
       // Wait for 5 seconds before scraping the next link
-      console.log(`Waiting for 5 seconds before scraping: ${link}`);
+
       await sleep(5000);  // 5 seconds delay
 
       const image = await this.scrapeImages(link);
