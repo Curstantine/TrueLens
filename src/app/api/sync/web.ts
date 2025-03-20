@@ -55,12 +55,16 @@ export class WebScraper {
     }
   }
 
-  // Scrape images from all Daily Mirror links
+  // Scrape images from all Daily Mirror links with 5 seconds delay
   public async scrapeAllImages() {
     const dailyMirrorLinks = this.extractDailyMirrorLinks();
     const imagesData: string[] = [];
 
     for (const link of dailyMirrorLinks) {
+      // Wait for 5 seconds before scraping the next link
+      console.log(`Waiting for 5 seconds before scraping: ${link}`);
+      await sleep(5000);  // 5 seconds delay
+
       const image = await this.scrapeImages(link);
       if (image) {
         imagesData.push({ link, image });
