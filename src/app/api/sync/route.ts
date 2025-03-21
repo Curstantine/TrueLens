@@ -9,13 +9,16 @@ import { wait } from "@jabascript/core";
 import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
-// import { env } from "~/env";
 import { factCheckingModel, summarizationModel } from "~/server/ai";
 import { db } from "~/server/db";
 import { api } from "~/trpc/server";
 
 import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
-import { WebScraper } from "~/app/api/sync/web";
+import {
+	getCoverImageUrl,
+	isCoverImageSupported,
+	UnsupportedWebsiteError,
+} from "~/app/api/sync/web";
 import type {
 	ClusteredArticles,
 	ClusteredSummaryFactualityReport,
@@ -154,27 +157,29 @@ export async function POST() {
 			return NextResponse.json({ status: "error" });
 		}
 
-		const scraper = new WebScraper();
+		log("Scraping cover image for the story...");
 		let coverImage: string | undefined;
+		const supportedCoverSite = isCoverImageSupported(selected.url)
+			? selected
+			: articles.find((x) => isCoverImageSupported(x.url));
 
-		try {
-    		coverImage = await scraper.scrapeFromAllDailyMirror();
+		if (supportedCoverSite) {
+			try {
+				const image = await getCoverImageUrl(supportedCoverSite.url, selected.temp_id);
+				coverImage = image.url;
+			} catch (error) {
+				console.error(error);
 
-    		if (coverImage) {
-        		log(`Cover image found: ${coverImage}`);
-    		} else {
-        		console.warn("No valid cover image found.");
-    		}
-		} catch (error) {
-    		console.error("Failed to fetch cover image:", error);
+				if (!(error instanceof UnsupportedWebsiteError)) {
+					return NextResponse.json({ status: "error" });
+				}
+			}
 		}
 
-		// TODO(Curstantine):
-		// Kirushna, add the cover fetching here. Use the selected url and include it as property of the api.story.create below.
 		const story = await api.story.create({
 			title: selected.title,
 			summary: selected.summary,
-			cover: undefined,
+			cover: coverImage,
 		});
 
 		const runningTasks: Promise<unknown>[] = [];
@@ -253,15 +258,6 @@ export async function POST() {
 		where: { key: "LAST_SYNC_DATE" },
 		data: { value: new Date().toISOString() },
 	});
-
-	// Example usage of WebScraper
-	// const scraper = new WebScraper();
-	// const url =
-	// 	"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
-	// const outlet = "Daily Mirror";
-
-	// const image = await scraper.scrapeCoverImage(url, outlet);
-	// console.log("Scraped image URL:", image);
 
 	return NextResponse.json({ status: "ok" });
 }

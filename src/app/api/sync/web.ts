@@ -1,73 +1,53 @@
-import * as fs from "fs";
-import * as path from "path";
 import * as cheerio from "cheerio";
-import { URL } from "url"; // Import for URL validation
+import { put, type PutBlobResult } from "@vercel/blob";
 
-export class WebScraper {
-    private jsonFilePath: string;
+export function isCoverImageSupported(url: string): boolean {
+	const hostname = new URL(url).hostname;
+	return hostname === "www.dailymirror.lk";
+}
 
-    constructor() {
-        this.jsonFilePath = path.join(__dirname, "../../news_filtered_data/clustered.json");
-    }
+export async function getCoverImageUrl(url: string, imageId: string): Promise<PutBlobResult> {
+	const externalCoverImage = await getExternalCoverImageUrl(url);
+	const blob = await fetch(externalCoverImage, { headers: { Accept: "image/*" } }).then(
+		(response) => response.blob(),
+	);
 
-    async scrapeImage(url: string): Promise<string | null> {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                console.error(`Failed to fetch ${url}: ${response.statusText}`);
-                return null;
-            }
+	return await put(`covers/${imageId}`, blob, { contentType: blob.type, access: "public" });
+}
 
-            const data = await response.text();
-            const $ = cheerio.load(data);
+function getExternalCoverImageUrl(url: string): Promise<string> {
+	const host = new URL(url).hostname;
+	switch (host) {
+		case "www.dailymirror.lk":
+			return scrapeDailyMirror(url);
+		default:
+			throw new UnsupportedWebsiteError(host);
+	}
+}
 
-            let imageUrl = $("p > img").first().attr("src");
-            if (!imageUrl) return null;
+async function scrapeDailyMirror(url: string): Promise<string> {
+	const response = await fetch(url);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch the page: ${url}`, { cause: response.statusText });
+	}
 
-            // Ensure the URL is absolute
-            if (!imageUrl.startsWith("http")) {
-                const baseUrl = new URL(url);
-                imageUrl = new URL(imageUrl, baseUrl.origin).href;
-            }
+	const data = await response.text();
+	const $ = cheerio.load(data);
 
-            return imageUrl;
-        } catch (error) {
-            console.error("Error scraping image from:", url, error);
-            return null;
-        }
-    }
+	let imageUrl = $("p > img").first().attr("src");
+	if (!imageUrl) throw new Error(`Could not scrape cover image from the markup. URL: ${url}`);
 
-    getFilePath(): string {
-        return this.jsonFilePath;
-    }
+	// Check if the url is relative, and convert it to absolute
+	if (!imageUrl.startsWith("http")) {
+		const baseUrl = new URL(url);
+		imageUrl = new URL(imageUrl, baseUrl.origin).href;
+	}
 
-    loadClusteredData(): any {
-        try {
-            const rawData = fs.readFileSync(this.jsonFilePath, "utf-8");
-            return JSON.parse(rawData);
-        } catch (error) {
-            console.error("Error loading clustered.json:", error);
-            return null;
-        }
-    }
+	return imageUrl;
+}
 
-    getDailyMirrorLinks(): string[] {
-        const clusteredData = this.loadClusteredData();
-        if (!clusteredData || !Array.isArray(clusteredData.articles)) return [];
-
-        return clusteredData.articles
-            .filter((article: any) => article.url.includes("dailymirror.lk"))
-            .map((article: any) => article.url);
-    }
-
-    async scrapeFromAllDailyMirror(): Promise<string | null> {
-        const links = this.getDailyMirrorLinks();
-
-        for (const url of links) {
-            const image = await this.scrapeImage(url);
-            if (image) return image; // Return first valid image
-        }
-
-        return null;
-    }
+export class UnsupportedWebsiteError extends Error {
+	constructor(website: string) {
+		super(`Unsupported website: ${website}`);
+	}
 }
