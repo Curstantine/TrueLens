@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { StoryStatus } from "@prisma/client";
+
 import { objectId } from "~/server/validation/mongo";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
@@ -15,7 +16,7 @@ export const storyRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			return db.story.create({
+			return await db.story.create({
 				data: {
 					title: input.title,
 					summary: input.summary,
@@ -36,7 +37,7 @@ export const storyRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ input }) => {
-			return db.story.findMany({
+			return await db.story.findMany({
 				take: input.limit,
 				skip: input.offset,
 				where: { status: input.status },
@@ -59,7 +60,7 @@ export const storyRouter = createTRPCRouter({
 	approveStory: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.mutation(async ({ input }) => {
-			return db.story.update({
+			return await db.story.update({
 				where: { id: input.id },
 				data: { status: StoryStatus.PUBLISHED },
 			});
@@ -81,10 +82,7 @@ export const storyRouter = createTRPCRouter({
 			});
 
 			if (!story) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Story not found.",
-				});
+				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
 			}
 
 			const totalScore = story.articles.reduce((acc, x) => acc + x.factuality, 0);
@@ -101,7 +99,7 @@ export const storyRouter = createTRPCRouter({
 			}),
 		)
 		.mutation(async ({ input }) => {
-			const story = await db.story.update({
+			return await db.story.update({
 				where: { id: input.id },
 				data: {
 					title: input.title,
@@ -110,8 +108,6 @@ export const storyRouter = createTRPCRouter({
 					modifiedAt: new Date(),
 				},
 			});
-
-			return story;
 		}),
 
 	delete: publicProcedure
