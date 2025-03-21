@@ -85,6 +85,7 @@ export async function POST() {
 	}
 
 	log("Clustering articles...");
+
 	try {
 		const file = pathResolve("./src/app/api/sync/grouping.py");
 		const pipenvProcess = spawnSync("pipenv", ["run", "python", file, lastSync.toString()], {
@@ -97,7 +98,7 @@ export async function POST() {
 		console.error("Error running grouping.py:", error);
 		return NextResponse.json({ status: "error" });
 	}
-	
+
 	const summarized: Record<string, ClusteredSummaryFactualityReport[]> = {};
 
 	const clusteredArticles = await readClustered(targetPath);
@@ -155,21 +156,18 @@ export async function POST() {
 
 		// TODO(Curstantine):
 		// Kirushna, add the cover fetching here. Use the selected url and include it as property of the api.story.create below.
-		// Define the path to the clustered.json file (relative or absolute)
-		const jsonFilePath = './news_filtered_data/clustered.json';  // Adjust path
+		// Inside the `POST` function, update the part where we create the story:
+		const scraper = new WebScraper();
 
-		// Instantiate the WebScraper
-		const scraper = new WebScraper(jsonFilePath);
+		log(`Fetching cover image for ${selected.url}...`);
+		let coverImage: string | undefined;
 
-		// Scrape images from all Daily Mirror links
-		async function scrapeImagesFromAllDailyMirror() {
-  		const imagesData = await scraper.scrapeAllImages();
-  		console.log('Scraped images from all Daily Mirror links:', imagesData);
+		try {
+    		coverImage = await scraper.scrapeCoverImage(selected.url, selected.outlet);
+    		log(`Cover image found: ${coverImage}`);
+		} catch (error) {
+    		console.error("Failed to fetch cover image:", error);
 		}
-
-		// Run the function
-		scrapeImagesFromAllDailyMirror();
-
 		const story = await api.story.create({
 			title: selected.title,
 			summary: selected.summary,
@@ -253,7 +251,14 @@ export async function POST() {
 		data: { value: new Date().toISOString() },
 	});
 
+	// Example usage of WebScraper
+	// const scraper = new WebScraper();
+	// const url =
+	// 	"https://www.dailymirror.lk/opinion/Beyond-Red-Tape-How-Digitalization-Can-Save-Sri-Lankas-Economy/231-292314";
+	// const outlet = "Daily Mirror";
 
+	// const image = await scraper.scrapeCoverImage(url, outlet);
+	// console.log("Scraped image URL:", image);
 
 	return NextResponse.json({ status: "ok" });
 }
