@@ -20,9 +20,11 @@ export const storyRouter = createTRPCRouter({
 					title: input.title,
 					summary: input.summary,
 					cover: input.cover,
+					status:"NEEDS_APPROVAL",
 				},
 			});
 		}),
+		
 	getAll: publicProcedure
 		.input(
 			z.object({
@@ -30,12 +32,14 @@ export const storyRouter = createTRPCRouter({
 				offset: z.number().min(0).default(0),
 				orderBy: z.enum(["createdAt", "title"]).default("createdAt"),
 				orderDirection: z.enum(["asc", "desc"]).default("desc"),
+				status: z.enum(["NEEDS_APPROVAL", "PUBLISHED"]).default("PUBLISHED"),
 			}),
 		)
 		.query(async ({ input }) => {
 			return db.story.findMany({
 				take: input.limit,
 				skip: input.offset,
+				where: { status: input.status },
 				select: {
 					id: true,
 					title: true,
@@ -51,6 +55,24 @@ export const storyRouter = createTRPCRouter({
 				},
 			});
 		}),
+	
+	getPendingStories: publicProcedure
+    .query(async () => {
+        return db.story.findMany({
+            where: { status: "NEEDS_APPROVAL" }, // Fetch only stories that need approval
+            select: {
+                id: true,
+                title: true,
+                createdAt: true,
+                modifiedAt: true,
+                cover: true,
+                _count: {
+                    select: { articles: true },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+        });
+    }),
 
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
@@ -77,6 +99,15 @@ export const storyRouter = createTRPCRouter({
 			const totalScore = story.articles.reduce((acc, x) => acc + x.factuality, 0);
 			return { ...story, factuality: totalScore / story.articles.length };
 		}),
+
+	approveStory: publicProcedure
+    .input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+    .mutation(async ({ input }) => {
+        return db.story.update({
+            where: { id: input.id },
+            data: { status: "PUBLISHED" }, // Change status to PUBLISHED
+        });
+    }),
 
 	update: publicProcedure
 		.input(

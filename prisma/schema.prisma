@@ -114,7 +114,7 @@ model Story {
     cover      String?
     createdAt  DateTime @default(now())
     modifiedAt DateTime @default(now())
-    Status StoryStatus @default(NEEDS_APPROVAL)
+    status     StoryStatus @default(NEEDS_APPROVAL)
 
     articles Article[]
     comments Comment[]
