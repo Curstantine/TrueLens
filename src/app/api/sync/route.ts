@@ -15,7 +15,8 @@ import { api } from "~/trpc/server";
 
 import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
 import {
-	getCoverImageUrl,
+	getCoverImage,
+	getSiteFavicon,
 	isCoverImageSupported,
 	UnsupportedWebsiteError,
 } from "~/app/api/sync/web";
@@ -165,7 +166,7 @@ export async function POST() {
 
 		if (supportedCoverSite) {
 			try {
-				const image = await getCoverImageUrl(supportedCoverSite.url, selected.temp_id);
+				const image = await getCoverImage(supportedCoverSite.url, selected.temp_id);
 				coverImage = image.url;
 			} catch (error) {
 				console.error(error);
@@ -327,22 +328,25 @@ async function factualize(articles: SummarizedArticle[]): Promise<StoryFactualit
 }
 
 async function getOrCreateOutlet(
-	article: Pick<ClusteredSummaryFactualityReport, "outlet"> & { logoUrl?: string },
+	article: Pick<ClusteredSummaryFactualityReport, "outlet" | "url">,
 ) {
+	const url = new URL(article.outlet);
+
 	try {
-		const outlet = await api.newsOutlet.create({
-			name: article.outlet,
-			logoUrl: article.logoUrl,
-		});
-
-		return { id: outlet.id, name: outlet.name };
+		const old = await api.newsOutlet.getByUrl({ url: url.origin });
+		return { id: old.id, name: old.name };
 	} catch (error) {
-		if (error instanceof TRPCError && error.cause && "outletId" in error.cause) {
-			return { id: error.cause.outletId as string, name: article.outlet };
-		}
-
-		throw error;
+		if (!(error instanceof TRPCError && error.code === "NOT_FOUND")) throw error;
 	}
+
+	const icon = await getSiteFavicon(article.url);
+	const outlet = await api.newsOutlet.create({
+		name: article.outlet,
+		url: url.origin,
+		logoUrl: icon.url,
+	});
+
+	return { id: outlet.id, name: outlet.name };
 }
 
 async function getOrCreateReporter(

@@ -59,6 +59,16 @@ export const newsOutletRouter = createTRPCRouter({
 
 			return outlet;
 		}),
+	getByUrl: publicProcedure
+		.input(z.object({ url: z.string().url() }))
+		.query(async ({ input }) => {
+			const outlet = await db.newsOutlet.findUnique({ where: { url: input.url } });
+			if (!outlet) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
+			}
+
+			return outlet;
+		}),
 	update: publicProcedure
 		.input(
 			z.object({
