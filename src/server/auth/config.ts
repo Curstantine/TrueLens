@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialProvider from "next-auth/providers/credentials";
-import bcrypt from "bcrypt";
+import bcrypt from "@node-rs/bcrypt";
 import { encode } from "next-auth/jwt";
 
 import { db } from "~/server/db";

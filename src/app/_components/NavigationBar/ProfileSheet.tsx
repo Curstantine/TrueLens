@@ -77,7 +77,7 @@ export default function ProfileSheet({ name, email, children }: Props) {
 }
 
 type SheetProps = Omit<Props, "children"> & {
-	ref: RefObject<HTMLDivElement>;
+	ref: RefObject<HTMLDivElement | null>;
 	show: boolean;
 	initial: RefObject<{ top: number; right: number }>;
 	onBlur: FocusEventHandler<unknown>;

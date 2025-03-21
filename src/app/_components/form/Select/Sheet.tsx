@@ -7,7 +7,7 @@ export type Position = { right: number; width: number; maxHeight: number } & (
 );
 
 type Props = {
-	ref: RefObject<HTMLDivElement>;
+	ref: RefObject<HTMLDivElement | null>;
 	id: string;
 	show: boolean;
 	onBlur: FocusEventHandler<unknown>;
