@@ -113,13 +113,13 @@ enum StoryStatus {
 }
 
 model Story {
-    id         String   @id @default(auto()) @map("_id") @db.ObjectId
+    id         String      @id @default(auto()) @map("_id") @db.ObjectId
     title      String
     summary    String[]
     cover      String?
-    createdAt  DateTime @default(now())
-    modifiedAt DateTime @default(now())
     status     StoryStatus @default(NEEDS_APPROVAL)
+    createdAt  DateTime    @default(now())
+    modifiedAt DateTime    @default(now())
 
     articles Article[]
     comments Comment[]
@@ -147,8 +147,9 @@ model Article {
 model NewsOutlet {
     id        String   @id @default(auto()) @map("_id") @db.ObjectId
     name      String   @unique
-    createdAt DateTime @default(now())
+    url       String   @unique
     logoUrl   String?
+    createdAt DateTime @default(now())
 
     articles Article[]
 }

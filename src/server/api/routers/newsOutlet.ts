@@ -10,6 +10,7 @@ export const newsOutletRouter = createTRPCRouter({
 		.input(
 			z.object({
 				name: z.string().min(1, "Name is required"),
+				url: z.string().url(),
 				logoUrl: z.string().optional(),
 			}),
 		)
@@ -30,6 +31,7 @@ export const newsOutletRouter = createTRPCRouter({
 			return await db.newsOutlet.create({
 				data: {
 					name: input.name,
+					url: input.url,
 					logoUrl: input.logoUrl,
 				},
 			});
@@ -57,11 +59,22 @@ export const newsOutletRouter = createTRPCRouter({
 
 			return outlet;
 		}),
+	getByUrl: publicProcedure
+		.input(z.object({ url: z.string().url() }))
+		.query(async ({ input }) => {
+			const outlet = await db.newsOutlet.findUnique({ where: { url: input.url } });
+			if (!outlet) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
+			}
+
+			return outlet;
+		}),
 	update: publicProcedure
 		.input(
 			z.object({
 				id: objectId("id must be a valid MongoDB ObjectId"),
 				name: z.string().optional(),
+				url: z.string().url().optional(),
 				logoUrl: z.string().optional(),
 			}),
 		)
@@ -70,6 +83,7 @@ export const newsOutletRouter = createTRPCRouter({
 				where: { id: input.id },
 				data: {
 					name: input.name,
+					url: input.url,
 					logoUrl: input.logoUrl,
 				},
 			});
