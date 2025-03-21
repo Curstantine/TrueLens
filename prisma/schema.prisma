@@ -114,9 +114,15 @@ model Story {
     cover      String?
     createdAt  DateTime @default(now())
     modifiedAt DateTime @default(now())
+    Status StoryStatus @default(NEEDS_APPROVAL)
 
     articles Article[]
     comments Comment[]
+}
+
+enum StoryStatus {
+    NEEDS_APPROVAL
+    PUBLISHED
 }
 
 // Represents an Article written by a reporter and belonging to a story
