@@ -101,11 +101,9 @@ model Reporter {
     email     String   @unique
     isSystem  Boolean  @default(false)
     avatarUrl String?
-    outletId  String   @db.ObjectId
     createdAt DateTime @default(now())
 
     articles Article[]
-    outlet   NewsOutlet @relation(fields: [outletId], references: [id])
 }
 
 // Represents a Story that groups related articles
@@ -128,30 +126,36 @@ model Article {
     content     String
     externalUrl String   @unique
     reporterId  String   @db.ObjectId
+    outletId    String   @db.ObjectId
     storyId     String   @db.ObjectId
     publishedAt DateTime @default(now())
     createdAt   DateTime @default(now())
+    factuality  Float    @default(0)
 
-    story    Story    @relation(fields: [storyId], references: [id])
-    reporter Reporter @relation(fields: [reporterId], references: [id])
+    story    Story      @relation(fields: [storyId], references: [id])
+    reporter Reporter   @relation(fields: [reporterId], references: [id])
+    outlet   NewsOutlet @relation(fields: [outletId], references: [id])
 }
 
 // Represents a NewsOutlet that employs reporters
 model NewsOutlet {
-    id           String   @id @default(auto()) @map("_id") @db.ObjectId
-    name         String
-    headquarters String
-    createdAt    DateTime @default(now())
-    logoUrl      String?
+    id        String   @id @default(auto()) @map("_id") @db.ObjectId
+    name      String   @unique
+    createdAt DateTime @default(now())
+    logoUrl   String?
 
-    reporters Reporter[]
+    articles Article[]
+}
+
+enum ConfigurationKey {
+    LAST_SYNC_DATE
 }
 
 model Configuration {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    key       String   @unique
+    id        String           @id @default(auto()) @map("_id") @db.ObjectId
+    key       ConfigurationKey @unique
     value     String
-    createdAt DateTime @default(now())
+    createdAt DateTime         @default(now())
 }
 
 enum PlanBillingCycle {

@@ -1,6 +1,7 @@
 import os
 import json
 from pathlib import Path
+import sys
 from typing import List, Dict
 import logging
 from bertopic import BERTopic
@@ -8,7 +9,7 @@ from sentence_transformers import SentenceTransformer
 
 # Configuration
 REPO_ROOT = Path(os.getcwd())
-ARTICLES_DIR = REPO_ROOT / "news_filtered_data/news_source_data/data/articles"
+ARTICLES_DIR = REPO_ROOT / "news_filtered_data/data/"
 OUTPUT_FILE = REPO_ROOT / "news_filtered_data/clustered.json"
 MODEL_DIR = REPO_ROOT / "news_filtered_data/clustered_model"
 
@@ -21,8 +22,8 @@ OUTLET_MAPPING = {
     "newswire.lk": "Newswire",
     "news.lk": "News.lk",
     "adaderana.lk": "Ada Derana",
-    "dailynews.lk": "Daily News",           
-    "srilankamirror.com": "Sri Lanka Mirror",       
+    "dailynews.lk": "Daily News",
+    "srilankamirror.com": "Sri Lanka Mirror",
     "colombotelegraph.com": "Colombo Telegraph",
 }
 
@@ -45,14 +46,56 @@ def load_articles(directory: Path) -> List[Dict]:
         try:
             with open(file, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                text = " ".join(data.get("body_paragraphs", [])).strip()
                 outlet = get_outlet_name(data["url"])
-                if outlet == "unknown" or not text:
-                    logger.warning(f"Skipping due to missing outlet or text: {data['url']}")
+                body_paragraphs = data.get("body_paragraphs", [])
+
+                if outlet == "unknown":
+                    logger.warning(f"Skipping due to unknown outlet: {data['url']}")
                     continue
-                reporter = (
-                    data.get("reporter") or f"system-{'_'.join(outlet.lower().split())}"
+
+                if len(body_paragraphs) == 0:
+                    logger.warning(f"Skipping due to empty body: {data['url']}")
+                    continue
+
+                reporter = data.get(
+                    "reporter", f"system-{'_'.join(outlet.lower().split())}"
                 )
+
+                text = ""
+                
+                # Articles by DBS Jeyaraj have a footer that needs to be removed
+                if outlet == "DBS Jeyaraj":
+                    body_paragraphs = body_paragraphs[:-4]
+
+                for paragraph in body_paragraphs:
+                    # Clean paragraph and add to text with proper spacing
+                    paragraph = paragraph.strip()
+
+                    # Remove non-ASCII characters (Unicode)
+                    paragraph = paragraph.encode("ascii", "ignore").decode("ascii")
+
+                    #  Remove padding and *** from the paragraph
+                    paragraph = paragraph.replace("***", "")
+
+                    # Replace double quotes with single quotes to avoid JSON parsing issues
+                    paragraph = paragraph.replace('"', "'")
+
+                    # Remove urls
+                    paragraph = " ".join(
+                        [
+                            word
+                            for word in paragraph.split()
+                            if not word.startswith("http")
+                        ]
+                    )
+
+                    # Remove newlines and extra spaces
+                    paragraph = paragraph.replace("\n", " ").replace("\r", " ")
+                    paragraph = " ".join(paragraph.split())
+
+                    if paragraph:
+                        text += paragraph + " "
+
                 articles.append(
                     {
                         "url": data["url"],
@@ -80,7 +123,8 @@ def cluster_articles(articles: List[Dict]) -> List[Dict]:
         language="english",
         verbose=True,
         embedding_model=embedding_model,
-        min_topic_size=20,
+        min_topic_size=2,
+        nr_topics=None,
     )
     topics = topic_model.fit_transform(body_paragraphs)
     topic_model.save(MODEL_DIR, serialization="safetensors", save_ctfidf=True)
@@ -105,6 +149,7 @@ def save_grouped_articles(articles: List[Dict], output_file: Path) -> Dict:
 
 if __name__ == "__main__":
     articles = load_articles(ARTICLES_DIR)
+
     if articles:
         clustered_articles = cluster_articles(articles)
         logger.info("Clustering completed.")

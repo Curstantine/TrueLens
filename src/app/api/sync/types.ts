@@ -1,3 +1,5 @@
+import type { StoryFactualityReport } from "~/app/api/sync/validation";
+
 export interface SourceArticleMetadata {
 	title: string;
 	url: string;
@@ -21,3 +23,8 @@ export interface ClusteredArticles {
 	outliers: SourceArticle[];
 	[key: `${number}`]: SourceArticle[];
 }
+
+export type SummarizedArticle = SourceArticle & { summary: string[]; temp_id: string };
+
+export type ClusteredSummaryFactualityReport = SummarizedArticle &
+	Pick<StoryFactualityReport["data"][0], "factuality">;
