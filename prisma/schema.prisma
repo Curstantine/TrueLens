@@ -107,6 +107,11 @@ model Reporter {
 }
 
 // Represents a Story that groups related articles
+enum StoryStatus {
+    NEEDS_APPROVAL
+    PUBLISHED
+}
+
 model Story {
     id         String   @id @default(auto()) @map("_id") @db.ObjectId
     title      String
@@ -114,6 +119,7 @@ model Story {
     cover      String?
     createdAt  DateTime @default(now())
     modifiedAt DateTime @default(now())
+    status     StoryStatus @default(NEEDS_APPROVAL)
 
     articles Article[]
     comments Comment[]
