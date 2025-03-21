@@ -31,6 +31,7 @@
 		"@trpc/react-query": "11.0.0-rc.749",
 		"@trpc/server": "11.0.0-rc.749",
 		"@vercel/blob": "^0.27.3",
+		"axios": "^1.8.4",
 		"bcrypt": "^5.1.1",
 		"cheerio": "^1.0.0",
 		"class-variance-authority": "^0.7.1",
@@ -65,8 +66,10 @@
 		"prettier": "^3.5.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"prisma": "^6.5.0",
+		"scrap-favicon": "^1.0.4",
 		"tailwindcss": "^4.0.14",
 		"trpc-ui": "^1.0.12",
+		"ts-node": "^10.9.2",
 		"typescript": "^5.8.2"
 	},
 	"ct3aMetadata": {
