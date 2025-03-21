@@ -20,7 +20,7 @@ export const storyRouter = createTRPCRouter({
 					title: input.title,
 					summary: input.summary,
 					cover: input.cover,
-					status:"NEEDS_APPROVAL",
+					status: "NEEDS_APPROVAL",
 				},
 			});
 		}),
@@ -55,33 +55,32 @@ export const storyRouter = createTRPCRouter({
 				},
 			});
 		}),
-	
-	getPendingStories: publicProcedure
-    .query(async () => {
-        return db.story.findMany({
-            where: { status: "NEEDS_APPROVAL" }, // Fetch only stories that need approval
-            select: {
-                id: true,
-                title: true,
-                createdAt: true,
-                modifiedAt: true,
-                cover: true,
-                _count: {
-                    select: { articles: true },
-                },
-            },
-            orderBy: { createdAt: "desc" },
-        });
-    }),
+
+	getPendingStories: publicProcedure.query(async () => {
+		return db.story.findMany({
+			where: { status: "NEEDS_APPROVAL" }, // Fetch only stories that need approval
+			select: {
+				id: true,
+				title: true,
+				createdAt: true,
+				modifiedAt: true,
+				cover: true,
+				_count: {
+					select: { articles: true },
+				},
+			},
+			orderBy: { createdAt: "desc" },
+		});
+	}),
 
 	approveStory: publicProcedure
-    .input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-    .mutation(async ({ input }) => {
-        return db.story.update({
-            where: { id: input.id },
-            data: { status: "PUBLISHED" }, // Change status to PUBLISHED
-        });
-    }),
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.mutation(async ({ input }) => {
+			return db.story.update({
+				where: { id: input.id },
+				data: { status: "PUBLISHED" }, // Change status to PUBLISHED
+			});
+		}),
 
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
