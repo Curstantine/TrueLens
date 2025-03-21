@@ -107,6 +107,11 @@ model Reporter {
 }
 
 // Represents a Story that groups related articles
+enum StoryStatus {
+    NEEDS_APPROVAL
+    PUBLISHED
+}
+
 model Story {
     id         String   @id @default(auto()) @map("_id") @db.ObjectId
     title      String
@@ -118,11 +123,6 @@ model Story {
 
     articles Article[]
     comments Comment[]
-}
-
-enum StoryStatus {
-    NEEDS_APPROVAL
-    PUBLISHED
 }
 
 // Represents an Article written by a reporter and belonging to a story
