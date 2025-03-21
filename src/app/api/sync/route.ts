@@ -154,20 +154,23 @@ export async function POST() {
 			return NextResponse.json({ status: "error" });
 		}
 
-		// TODO(Curstantine):
-		// Kirushna, add the cover fetching here. Use the selected url and include it as property of the api.story.create below.
-		// Inside the `POST` function, update the part where we create the story:
 		const scraper = new WebScraper();
-
-		log(`Fetching cover image for ${selected.url}...`);
 		let coverImage: string | undefined;
 
 		try {
-    		coverImage = await scraper.scrapeCoverImage(selected.url, selected.outlet);
-    		log(`Cover image found: ${coverImage}`);
+    		coverImage = await scraper.scrapeFromAllDailyMirror();
+
+    		if (coverImage) {
+        		log(`Cover image found: ${coverImage}`);
+    		} else {
+        		console.warn("No valid cover image found.");
+    		}
 		} catch (error) {
     		console.error("Failed to fetch cover image:", error);
 		}
+
+		// TODO(Curstantine):
+		// Kirushna, add the cover fetching here. Use the selected url and include it as property of the api.story.create below.
 		const story = await api.story.create({
 			title: selected.title,
 			summary: selected.summary,

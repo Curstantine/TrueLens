@@ -1,26 +1,73 @@
+import * as fs from "fs";
+import * as path from "path";
 import * as cheerio from "cheerio";
+import { URL } from "url"; // Import for URL validation
 
 export class WebScraper {
-	async scrapeImages(url: string) {
-		try {
-			const resp = await fetch(url);
-			const data = await resp.text();
-			const $ = cheerio.load(data);
+    private jsonFilePath: string;
 
-			// Scrape from FT.lk and Daily Mirror
-			const newsImage = $("p > img").first().attr("src");
-			return newsImage;
-		} catch (error) {
-			console.error("Error fetching the URL:", error);
-			return null;
-		}
-	}
+    constructor() {
+        this.jsonFilePath = path.join(__dirname, "../../news_filtered_data/clustered.json");
+    }
 
-	async getBestImage(articles: { url: string }[]) {
-		for (const article of articles) {
-			const image = await this.scrapeImages(article.url);
-			if (image) return image;
-		}
-		return null;
-	}
+    async scrapeImage(url: string): Promise<string | null> {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.error(`Failed to fetch ${url}: ${response.statusText}`);
+                return null;
+            }
+
+            const data = await response.text();
+            const $ = cheerio.load(data);
+
+            let imageUrl = $("p > img").first().attr("src");
+            if (!imageUrl) return null;
+
+            // Ensure the URL is absolute
+            if (!imageUrl.startsWith("http")) {
+                const baseUrl = new URL(url);
+                imageUrl = new URL(imageUrl, baseUrl.origin).href;
+            }
+
+            return imageUrl;
+        } catch (error) {
+            console.error("Error scraping image from:", url, error);
+            return null;
+        }
+    }
+
+    getFilePath(): string {
+        return this.jsonFilePath;
+    }
+
+    loadClusteredData(): any {
+        try {
+            const rawData = fs.readFileSync(this.jsonFilePath, "utf-8");
+            return JSON.parse(rawData);
+        } catch (error) {
+            console.error("Error loading clustered.json:", error);
+            return null;
+        }
+    }
+
+    getDailyMirrorLinks(): string[] {
+        const clusteredData = this.loadClusteredData();
+        if (!clusteredData || !Array.isArray(clusteredData.articles)) return [];
+
+        return clusteredData.articles
+            .filter((article: any) => article.url.includes("dailymirror.lk"))
+            .map((article: any) => article.url);
+    }
+
+    async scrapeFromAllDailyMirror(): Promise<string | null> {
+        const links = this.getDailyMirrorLinks();
+
+        for (const url of links) {
+            const image = await this.scrapeImage(url);
+            if (image) return image; // Return first valid image
+        }
+
+        return null;
+    }
 }
