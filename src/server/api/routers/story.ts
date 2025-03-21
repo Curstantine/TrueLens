@@ -24,7 +24,7 @@ export const storyRouter = createTRPCRouter({
 				},
 			});
 		}),
-		
+
 	getAll: publicProcedure
 		.input(
 			z.object({
@@ -74,6 +74,15 @@ export const storyRouter = createTRPCRouter({
         });
     }),
 
+	approveStory: publicProcedure
+    .input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+    .mutation(async ({ input }) => {
+        return db.story.update({
+            where: { id: input.id },
+            data: { status: "PUBLISHED" }, // Change status to PUBLISHED
+        });
+    }),
+
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
@@ -99,15 +108,6 @@ export const storyRouter = createTRPCRouter({
 			const totalScore = story.articles.reduce((acc, x) => acc + x.factuality, 0);
 			return { ...story, factuality: totalScore / story.articles.length };
 		}),
-
-	approveStory: publicProcedure
-    .input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-    .mutation(async ({ input }) => {
-        return db.story.update({
-            where: { id: input.id },
-            data: { status: "PUBLISHED" }, // Change status to PUBLISHED
-        });
-    }),
 
 	update: publicProcedure
 		.input(
