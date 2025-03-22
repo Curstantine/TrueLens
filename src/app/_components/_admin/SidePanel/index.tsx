@@ -14,9 +14,8 @@ const BUILD_DATE = new Date();
 export default function AdminSidePanel() {
 	return (
 		<div className="flex flex-col border-r border-r-border py-4 pr-2">
-			<Link href="/admin" className="mb-6 inline-flex gap-1">
+			<Link href="/admin" className="mb-6">
 				<Logo className="ml-2 h-fit w-28" />
-				<span className="text-xs">(Admin)</span>
 			</Link>
 
 			<AdminSidePanelItem
