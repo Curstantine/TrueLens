@@ -6,16 +6,21 @@ import {
 	flexRender,
 	getCoreRowModel,
 	Header,
+	type PaginationState,
 	Row,
 	useReactTable,
 } from "@tanstack/react-table";
 import Link from "next/link";
-import { useMemo } from "react";
-import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
+import { useMemo, useState } from "react";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
-const columnHelper = createColumnHelper<RouterOutputs["story"]["getAll"][0]>();
+import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
+import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
+
+type Model = RouterOutputs["story"]["getAll"]["docs"][0];
+
+const columnHelper = createColumnHelper<Model>();
 
 const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
 	year: "numeric",
@@ -60,8 +65,9 @@ const columns = [
 ];
 
 export default function StoryTable() {
+	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 100 });
 	const storyQuery = api.story.getAll.useQuery(
-		{ limit: 100, offset: 0, status: null },
+		{ limit: pagination.pageSize, offset: pagination.pageIndex, status: null },
 		{ placeholderData: keepPreviousData },
 	);
 
@@ -69,7 +75,11 @@ export default function StoryTable() {
 
 	const table = useReactTable({
 		columns,
-		data: storyQuery.data ?? defaultData,
+		rowCount: storyQuery.data?.total,
+		state: { pagination },
+		data: storyQuery.data?.docs ?? defaultData,
+		onPaginationChange: page,
+		manualPagination: true,
 		getCoreRowModel: getCoreRowModel(),
 	});
 
@@ -93,11 +103,39 @@ export default function StoryTable() {
 					))}
 				</tbody>
 			</table>
+			<div className="flex items-center gap-4 px-2">
+				<button
+					type="button"
+					onClick={() => table.previousPage()}
+					disabled={!table.getCanPreviousPage()}
+					className="inline-flex h-10 items-center gap-1 text-sm disabled:opacity-50"
+				>
+					<ArrowRightAltRoundedIcon className="size-4 rotate-180 text-primary" />
+					Prev
+				</button>
+				<button
+					type="button"
+					onClick={() => table.nextPage()}
+					disabled={!table.getCanNextPage()}
+					className="inline-flex h-10 items-center gap-1 text-sm disabled:opacity-50"
+				>
+					Next
+					<ArrowRightAltRoundedIcon className="size-4 text-primary" />
+				</button>
+
+				<div className="flex-1" />
+
+				<span className="text-sm text-muted-foreground">
+					Showing {pagination.pageIndex}-{pagination.pageSize} of {storyQuery.data.total}{" "}
+					stories
+				</span>
+			</div>
 		</div>
 	);
 }
 
-type HeaderProps = { header: Header<RouterOutputs["story"]["getAll"][0], unknown> };
+type HeaderProps = { header: Header<Model, unknown> };
+
 function TableHeader({ header }: HeaderProps) {
 	return (
 		<th
@@ -112,7 +150,8 @@ function TableHeader({ header }: HeaderProps) {
 	);
 }
 
-type RowProps = { row: Row<RouterOutputs["story"]["getAll"][0]> };
+type RowProps = { row: Row<Model> };
+
 function TableRow({ row }: RowProps) {
 	return (
 		<tr className="h-12 border-b border-border">

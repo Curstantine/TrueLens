@@ -37,24 +37,31 @@ export const storyRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ input }) => {
-			return await db.story.findMany({
-				take: input.limit,
-				skip: input.offset,
-				where: { status: input.status !== null ? input.status : undefined },
-				select: {
-					id: true,
-					title: true,
-					createdAt: true,
-					modifiedAt: true,
-					cover: true,
-					_count: {
-						select: { articles: true },
+			const [total, docs] = await db.$transaction([
+				db.story.count({
+					where: { status: input.status !== null ? input.status : undefined },
+				}),
+				db.story.findMany({
+					take: input.limit,
+					skip: input.offset,
+					where: { status: input.status !== null ? input.status : undefined },
+					select: {
+						id: true,
+						title: true,
+						createdAt: true,
+						modifiedAt: true,
+						cover: true,
+						_count: {
+							select: { articles: true },
+						},
 					},
-				},
-				orderBy: {
-					[input.orderBy]: input.orderDirection,
-				},
-			});
+					orderBy: {
+						[input.orderBy]: input.orderDirection,
+					},
+				}),
+			]);
+
+			return { docs, total };
 		}),
 
 	approveStory: publicProcedure
