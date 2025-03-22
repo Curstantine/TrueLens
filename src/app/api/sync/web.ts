@@ -13,14 +13,19 @@ export async function getCoverImage(url: string, imageId: string): Promise<PutBl
 	return await put(`covers/${imageId}`, blob, { contentType: blob.type, access: "public" });
 }
 
-export async function getSiteFavicon(url: string): Promise<PutBlobResult> {
+export async function getSiteFavicon(url: string): Promise<PutBlobResult | null> {
 	const { origin, hostname } = new URL(url);
 	const resp = await fetch(origin);
 	const data = await resp.text();
 	const $ = cheerio.load(data);
 
-	const icon = $("link[rel='icon']").attr("href") ?? $("link[rel='shortcut icon']").attr("href");
-	if (!icon) throw new Error("Could not scrape favicon from the markup.");
+	const iconElement =
+		$("link[rel='apple-touch-icon']") ??
+		$("link[rel='icon']") ??
+		$("link[rel='shortcut icon']");
+
+	const icon = iconElement.attr("href");
+	if (!icon) return null;
 
 	const blob = await fetch(icon, { headers: { Accept: "image/*" } }).then((x) => x.blob());
 	return await put(`outlets/${hostname}`, blob, { contentType: blob.type, access: "public" });

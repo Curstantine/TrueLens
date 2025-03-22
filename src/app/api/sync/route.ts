@@ -330,7 +330,7 @@ async function factualize(articles: SummarizedArticle[]): Promise<StoryFactualit
 async function getOrCreateOutlet(
 	article: Pick<ClusteredSummaryFactualityReport, "outlet" | "url">,
 ) {
-	const url = new URL(article.outlet);
+	const url = new URL(article.url);
 
 	try {
 		const old = await api.newsOutlet.getByUrl({ url: url.origin });
@@ -343,7 +343,7 @@ async function getOrCreateOutlet(
 	const outlet = await api.newsOutlet.create({
 		name: article.outlet,
 		url: url.origin,
-		logoUrl: icon.url,
+		logoUrl: icon?.url ?? undefined,
 	});
 
 	return { id: outlet.id, name: outlet.name };
