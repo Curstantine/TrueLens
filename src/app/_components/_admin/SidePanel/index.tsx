@@ -13,7 +13,7 @@ const BUILD_DATE = new Date();
 
 export default function AdminSidePanel() {
 	return (
-		<div className="flex flex-col border-r border-r-border py-4 pr-2">
+		<div className="sticky top-0 flex max-h-screen flex-col border-r border-r-border py-4 pr-2">
 			<Link href="/admin" className="mb-6">
 				<Logo className="ml-2 h-fit w-28" />
 			</Link>

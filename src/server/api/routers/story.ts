@@ -33,14 +33,14 @@ export const storyRouter = createTRPCRouter({
 				offset: z.number().min(0).default(0),
 				orderBy: z.enum(["createdAt", "title"]).default("createdAt"),
 				orderDirection: z.enum(["asc", "desc"]).default("desc"),
-				status: z.nativeEnum(StoryStatus).default(StoryStatus.PUBLISHED),
+				status: z.nativeEnum(StoryStatus).default(StoryStatus.PUBLISHED).or(z.null()),
 			}),
 		)
 		.query(async ({ input }) => {
 			return await db.story.findMany({
 				take: input.limit,
 				skip: input.offset,
-				where: { status: input.status },
+				where: { status: input.status !== null ? input.status : undefined },
 				select: {
 					id: true,
 					title: true,
