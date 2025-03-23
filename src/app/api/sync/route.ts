@@ -1,98 +1,66 @@
 import { randomUUID } from "node:crypto";
-import { stat, copyFile, mkdir, rm } from "node:fs/promises";
-import { join as pathJoin, resolve as pathResolve, basename } from "node:path";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join as joinPath, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 
 import { NextResponse } from "next/server";
-import simpleGit from "simple-git";
 import { wait } from "@jabascript/core";
 import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import { factCheckingModel, summarizationModel } from "~/server/ai";
-import { db } from "~/server/db";
 import { api } from "~/trpc/server";
 
-import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
-import {
-	getCoverImage,
-	getSiteFavicon,
-	isCoverImageSupported,
-	UnsupportedWebsiteError,
-} from "~/app/api/sync/web";
+import { isMostlyEnglish, readClusteredArticles } from "~/server/sync/utils";
+import { getCoverImage, getSiteFavicon } from "~/server/sync/web";
 import type {
-	ClusteredArticles,
+	ClusteredSourceArticles,
 	ClusteredSummaryFactualityReport,
 	SourceArticle,
 	SummarizedArticle,
-} from "~/app/api/sync/types";
+} from "~/server/sync/types";
 import {
 	type ArticleSummary,
 	type StoryFactualityReport,
 	ARTICLE_SUMMARY,
 	STORY_FACTUALITY_REPORT,
-} from "~/app/api/sync/validation";
+} from "~/server/sync/models";
+import { runScraper } from "~/server/sync/scraper";
 
 export const runtime = "nodejs";
 
-const repoOwner = "nuuuwan";
-const repoName = "news_long_lk";
-
-const sourcePath = pathJoin("news_source_data");
-const sourceDataPath = pathJoin(sourcePath, "data");
-const targetPath = pathJoin("news_filtered_data");
-const targetDataPath = pathJoin(targetPath, "data");
+const DATA_FOLDER = joinPath("news_data");
+const DATA_FILE = joinPath(DATA_FOLDER, "articles.json");
+const CLUSTERED_FILE = joinPath(DATA_FOLDER, "clustered.json");
 
 const log = (...msg: string[]) => console.log(`[sync]`, ...msg);
 
 export async function POST() {
-	try {
-		await cloneOrReuse();
-	} catch (e) {
-		console.error("Failed to clone or reuse repository: ", e);
-		return NextResponse.json({ status: "error" });
-	}
+	log("Scraping articles...");
+	const scrapped = await runScraper();
+	const lastDBUpdate = await api.configuration.getLastSync();
 
-	const metadata = await readMetadata(sourceDataPath);
-	const lastDBUpdate = await db.configuration.findUnique({
-		where: { key: "LAST_SYNC_DATE" },
-		select: { value: true },
-	});
-
-	const lastSync = new Date(lastDBUpdate?.value ?? 0).getTime() / 1000;
-	const newArticles = metadata.filter((x) => isMostlyEnglish(x.title) && x.ut > lastSync);
+	const newArticles = scrapped.filter(
+		(x) => isMostlyEnglish(x.title) && x.publishedAt > lastDBUpdate,
+	);
 
 	log(`Found ${newArticles.length} new articles`);
 	if (newArticles.length === 0) return NextResponse.json({ status: "ok" });
 
 	try {
-		await rm(targetDataPath, { recursive: true });
+		if (!existsSync(DATA_FOLDER)) await mkdir(DATA_FOLDER, { recursive: true });
+		await writeFile(DATA_FILE, JSON.stringify(newArticles, null, 4));
 	} catch (error) {
-		if (error instanceof Error && "code" in error && error.code !== "ENOENT") {
-			console.error("Failed to remove target data path:", error);
-			return NextResponse.json({ status: "error" });
-		}
-	} finally {
-		await mkdir(targetDataPath, { recursive: true });
-	}
-
-	for (let i = 0; i < newArticles.length; i++) {
-		const meta = newArticles[i]!;
-
-		const articlePath = pathJoin(sourcePath, meta.dir_path_unix);
-		const folderName = basename(articlePath);
-
-		await copyFile(
-			pathJoin(articlePath, "article.json"),
-			pathJoin(targetDataPath, `${folderName}.json`),
-		);
+		console.error("Failed to write articles to disk:", error);
+		return NextResponse.json({ status: "error" });
 	}
 
 	log("Clustering articles...");
 
 	try {
 		const file = pathResolve("./src/app/api/sync/grouping.py");
-		const pipenvProcess = spawnSync("pipenv", ["run", "python", file, lastSync.toString()], {
+		const pipenvProcess = spawnSync("pipenv", ["run", "python", file], {
 			cwd: process.cwd(),
 			stdio: "inherit",
 		});
@@ -105,12 +73,10 @@ export async function POST() {
 
 	const summarized: Record<string, ClusteredSummaryFactualityReport[]> = {};
 
-	const clusteredArticles = await readClustered(targetPath);
-	const keys = Object.keys(clusteredArticles) as (keyof ClusteredArticles)[];
+	const clusteredArticles = await readClusteredArticles(CLUSTERED_FILE);
+	const keys = Object.keys(clusteredArticles) as (keyof ClusteredSourceArticles)[];
 
 	for (const key of keys) {
-		if (key === "outliers") continue;
-
 		const cluster = clusteredArticles[key]!;
 		log(`Summarizing cluster ${key} with ${cluster.length} articles...`);
 
@@ -160,20 +126,17 @@ export async function POST() {
 
 		log("Scraping cover image for the story...");
 		let coverImage: string | undefined;
-		const supportedCoverSite = isCoverImageSupported(selected.url)
-			? selected
-			: articles.find((x) => isCoverImageSupported(x.url));
+		const externalCoverImage = articles.find((x) => !!x.coverImageUrl);
 
-		if (supportedCoverSite) {
+		if (externalCoverImage) {
 			try {
-				const image = await getCoverImage(supportedCoverSite.url, selected.temp_id);
+				const image = await getCoverImage(
+					externalCoverImage.coverImageUrl!,
+					selected.temp_id,
+				);
 				coverImage = image.url;
 			} catch (error) {
 				console.error(error);
-
-				if (!(error instanceof UnsupportedWebsiteError)) {
-					return NextResponse.json({ status: "error" });
-				}
 			}
 		}
 
@@ -190,14 +153,14 @@ export async function POST() {
 		for (let i = 0; i < articles.length; i++) {
 			const current = articles[i]!;
 			let currentReporter: (typeof tempReporters)[0] | undefined = tempReporters.find(
-				(x) => x.name === current.reporter,
+				(x) => x.name === current.author.name,
 			);
 			let currentOutlet: (typeof tempOutlets)[0] | undefined = tempOutlets.find(
 				(x) => x.name === current.outlet,
 			);
 
 			if (currentReporter === undefined) {
-				log(`Creating reporter ${current.reporter}...`);
+				log(`Creating reporter ${current.author}...`);
 
 				try {
 					currentReporter = await getOrCreateReporter(current);
@@ -225,8 +188,8 @@ export async function POST() {
 					title: current.title,
 					storyId: story.id,
 					externalUrl: current.url,
-					publishedAt: new Date(current.ut).toISOString(),
-					content: current.body_paragraphs,
+					publishedAt: new Date(current.publishedAt).toISOString(),
+					content: current.body.join("\n"),
 					reporterId: currentReporter.id,
 					outletId: currentOutlet.id,
 					factuality: current.factuality,
@@ -236,6 +199,9 @@ export async function POST() {
 						log(e.cause!.message);
 						return;
 					}
+
+					console.error(e);
+					console.dir(current, { depth: null });
 
 					throw e;
 				});
@@ -255,47 +221,21 @@ export async function POST() {
 		}
 	}
 
-	await db.configuration.update({
-		where: { key: "LAST_SYNC_DATE" },
-		data: { value: new Date().toISOString() },
-	});
+	await api.configuration.updateLastSync({ value: new Date().toISOString() });
 
 	return NextResponse.json({ status: "ok" });
-}
-
-async function cloneOrReuse() {
-	const git = simpleGit();
-	const dirExists = await stat(sourcePath)
-		.then((e) => e.isDirectory())
-		.catch(() => false);
-
-	if (dirExists) {
-		log("Pulling latest changes...");
-
-		await git.cwd(sourcePath).pull("origin", "main");
-		log("Repository updated successfully!");
-
-		return;
-	}
-
-	log("Cloning repository...");
-	await git.clone(`https://github.com/${repoOwner}/${repoName}.git`, sourcePath, {
-		"--depth": 1,
-	});
-
-	log("Repository cloned successfully!");
 }
 
 async function summarize(article: SourceArticle): Promise<ArticleSummary> {
 	const model = summarizationModel()
 		.withStructuredOutput(ARTICLE_SUMMARY)
-		.withRetry({ stopAfterAttempt: 3 });
+		.withRetry({ stopAfterAttempt: 4 });
 	const prompt = `Return a summary of the news article in a readable point format. Try not to span to more than 6 points.
 	Return a valid JSON following the example format: {{ "summary": ["point 1", "point 2", "point 3"] }}`;
 
 	return await model.invoke([
 		{ role: "system", content: prompt },
-		{ role: "user", content: article.body_paragraphs },
+		{ role: "user", content: article.body.join("\n") },
 	]);
 }
 
@@ -350,24 +290,25 @@ async function getOrCreateOutlet(
 }
 
 async function getOrCreateReporter(
-	article: Pick<ClusteredSummaryFactualityReport, "is_system" | "outlet" | "reporter">,
+	article: Pick<ClusteredSummaryFactualityReport, "outlet" | "author">,
 ) {
 	try {
-		const cleanup = (name: string) => name.split(" ").join("_").toLocaleLowerCase();
+		const cleanup = (name: string) => name.split(" ").join("").toLocaleLowerCase();
 		const reporter = await api.reporter.create({
-			name: article.reporter,
-			isSystem: article.is_system,
-			email: article.is_system
-				? `${article.reporter}@truelens.lk`
-				: `${cleanup(article.reporter)}@${cleanup(article.outlet)}.lk`,
+			name: article.author.name,
+			isSystem: article.author.isSystem,
+			email: article.author.isSystem
+				? `${article.author.name}@truelens.lk`
+				: `${cleanup(article.author.name)}@${cleanup(article.outlet)}.lk`,
 		});
 
 		return { id: reporter.id, name: reporter.name };
 	} catch (error) {
 		if (error instanceof TRPCError && error.cause && "reporterId" in error.cause) {
-			return { id: error.cause.reporterId as string, name: article.reporter };
+			return { id: error.cause.reporterId as string, name: article.author.name };
 		}
 
+		console.error("Failed to create reporter:", error, article);
 		throw error;
 	}
 }

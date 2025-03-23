@@ -12,6 +12,7 @@ const btn = cva(
 				destructiveBorder:
 					"bg-transparent border border-destructive text-destructive hover:bg-destructive hover:text-background",
 				icon: "bg-transparent text-muted-foreground active:bg-muted/50 hover:bg-muted/20",
+				ghost: "bg-transparent text-secondary-foreground hover:bg-secondary/20 active:bg-secondary/50",
 			},
 			shape: {
 				rounded: "rounded-md",

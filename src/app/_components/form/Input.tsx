@@ -4,7 +4,7 @@ import Label from "~/app/_components/form/Label";
 
 export type Props = InputHTMLAttributes<HTMLInputElement> & {
 	id: string;
-	label: string;
+	label?: string;
 };
 
 export default function Input(props: Props) {
@@ -18,9 +18,11 @@ export default function Input(props: Props) {
 export function InputInner({ id, label, disabled, ...rest }: Props) {
 	return (
 		<>
-			<Label htmlFor={id} aria-disabled={disabled}>
-				{label}
-			</Label>
+			{label && (
+				<Label htmlFor={id} aria-disabled={disabled}>
+					{label}
+				</Label>
+			)}
 			<input
 				{...rest}
 				id={id}

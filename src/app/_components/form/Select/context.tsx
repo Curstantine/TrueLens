@@ -1,4 +1,14 @@
-import { useContext, createContext, useState, useCallback, useRef, RefObject } from "react";
+import {
+	useContext,
+	createContext,
+	useState,
+	useCallback,
+	useRef,
+	RefObject,
+	useEffect,
+	type ReactNode,
+	Children,
+} from "react";
 
 type SelectState = {
 	selected: string;
@@ -15,12 +25,20 @@ export function useSelect() {
 }
 
 type SelectProviderProps = {
-	children: React.ReactNode;
+	children: ReactNode;
+	dialogChildren: ReactNode;
+	defaultValue?: string;
 	open: (arg0: boolean) => void;
 	onValueChange?: (value: string) => void;
 };
 
-export function SelectProvider({ children, open, onValueChange }: SelectProviderProps) {
+export function SelectProvider({
+	children,
+	dialogChildren,
+	defaultValue,
+	open,
+	onValueChange,
+}: SelectProviderProps) {
 	const [selected, setSelected] = useState<string>("");
 	const selectedLabel = useRef<string>("");
 
@@ -33,6 +51,24 @@ export function SelectProvider({ children, open, onValueChange }: SelectProvider
 		},
 		[onValueChange, open],
 	);
+
+	useEffect(() => {
+		if (!defaultValue) return;
+		const children = Children.toArray(dialogChildren);
+
+		for (let i = 0; i < children.length; i++) {
+			const xr = children[i];
+			// @ts-expect-error - React node could have the props we are looking
+			if (xr?.props?.value && xr?.props.label) {
+				// @ts-expect-error - ^^ check already makes sure these exist
+				const { value, label } = xr.props as { value: string; label: string };
+				select(value, label);
+				break;
+			}
+		}
+
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [defaultValue]);
 
 	return (
 		<SelectContext.Provider value={{ selected, selectedLabel, select }}>

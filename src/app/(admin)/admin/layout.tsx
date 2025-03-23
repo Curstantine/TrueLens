@@ -8,7 +8,7 @@ type Props = {
 
 export default function Layout({ children }: Readonly<Props>) {
 	return (
-		<div className="container grid grid-cols-[16rem_1fr]">
+		<div className="grid min-h-screen grid-cols-[16rem_1fr] px-6 2xl:container">
 			<AdminSidePanel />
 			{children}
 		</div>

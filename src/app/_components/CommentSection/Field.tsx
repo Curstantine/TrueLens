@@ -12,7 +12,7 @@ import Button from "~/app/_components/form/Button";
 import { SendRoundedIcon } from "~/app/_components/icons/material/SendRounded";
 import ErrorField from "~/app/_components/form/hooked/ErrorField";
 
-import { LoaderIcon } from "~/app/_components/icons/Loader";
+import LoaderIcon from "~/app/_components/icons/Loader";
 
 type Props = { storyId: string };
 
