@@ -10,8 +10,8 @@ import { api } from "~/trpc/react";
 import Avatar from "~/app/_components/Avatar";
 import { DateTimeSpan } from "~/app/_components/DateSpan";
 import Button from "~/app/_components/form/Button";
-import { DeleteRoundedIcon } from "~/app/_components/icons/material/DeleteRounded";
-import { LoaderIcon } from "~/app/_components/icons/Loader";
+import DeleteRoundedIcon from "~/app/_components/icons/material/DeleteRounded";
+import LoaderIcon from "~/app/_components/icons/Loader";
 
 type Props = {
 	id: string;

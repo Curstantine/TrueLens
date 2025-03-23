@@ -20,10 +20,17 @@ export type Props = {
 	label: string;
 	placeholder: string;
 	onValueChange?: (value: string) => void;
+	defaultValue?: string;
 	children: ReactNode;
 };
 
-export default function Select({ label, placeholder, onValueChange, children }: Props) {
+export default function Select({
+	label,
+	placeholder,
+	onValueChange,
+	defaultValue,
+	children,
+}: Props) {
 	const sheetId = useId();
 	const inputId = useId();
 
@@ -39,11 +46,11 @@ export default function Select({ label, placeholder, onValueChange, children }: 
 		const bounding = e.currentTarget.getBoundingClientRect();
 
 		const childrenLength = children ? (Array.isArray(children) ? children.length : 1) : 0;
-		const renderHeight = childrenLength * 32 + 8;
+		const renderHeight = childrenLength * 32 + 16;
 
 		const availableSpace = window.innerHeight - bounding.bottom;
 		const maxRenderHeight = Math.min(renderHeight, availableSpace - 72);
-		const top = bounding.bottom + 12;
+		const top = bounding.bottom + 12 + window.scrollY;
 
 		// TODO(Curstantine): Implement bottom positioning for instances
 		// where the area till the bottom of the screen is not enough
@@ -70,7 +77,12 @@ export default function Select({ label, placeholder, onValueChange, children }: 
 	};
 
 	return (
-		<SelectProvider open={open} onValueChange={onValueChange}>
+		<SelectProvider
+			dialogChildren={children}
+			defaultValue={defaultValue}
+			open={open}
+			onValueChange={onValueChange}
+		>
 			<div className="flex flex-col gap-1">
 				<Label htmlFor={inputId}>{label}</Label>
 				<SelectTrigger

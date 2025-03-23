@@ -180,7 +180,6 @@ export const articleRouter = createTRPCRouter({
 				throw new TRPCError({ code: "NOT_FOUND", message: "Article not found." });
 			}
 
-			await db.article.delete({ where: { id: input.id } });
-			return { message: "Article deleted successfully." };
+			return await db.article.delete({ where: { id: input.id } });
 		}),
 });

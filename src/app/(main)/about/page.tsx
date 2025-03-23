@@ -17,6 +17,7 @@ import LandingThreeImage from "~/app/assets/landing-3.png";
 import LandingFourImage from "~/app/assets/landing-4.png";
 import ProfileKirushna from "~/app/assets/members/kirushna.jpeg";
 import ProfileRachala from "~/app/assets/members/rachala.jpg";
+import ProfileStephanie from "~/app/assets/members/Stephanie.jpg";
 
 const TEAM: MemberData[] = [
 	{
@@ -40,7 +41,11 @@ const TEAM: MemberData[] = [
 	{
 		name: "Stephanie Benedict",
 		role: "Backend Developer / Marketing",
-		links: {},
+		links: {
+			linkedin: "https://www.linkedin.com/in/benedict-stephanie/",
+			github: "https://github.com/Stephanie12-ben",
+		},
+		image: ProfileStephanie,
 	},
 	{
 		name: "Lihini Nayanathara Hewavissa",

@@ -2,10 +2,12 @@ import { randomUUID } from "node:crypto";
 
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { type DefaultSession, type NextAuthConfig } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialProvider from "next-auth/providers/credentials";
 import bcrypt from "@node-rs/bcrypt";
 import { encode } from "next-auth/jwt";
+import type { UserRole } from "@prisma/client";
 
 import { db } from "~/server/db";
 import { loginSchema } from "~/server/validation/auth";
@@ -23,15 +25,15 @@ declare module "next-auth" {
 			id: string;
 			name: string;
 			email: string;
+			role: UserRole;
 			// ...other properties
-			// role: UserRole;
 		} & DefaultSession["user"];
 	}
 
 	interface User {
 		isOnboarded?: boolean;
+		role: UserRole;
 		// ...other properties
-		// role: UserRole;
 	}
 }
 
@@ -43,7 +45,7 @@ const adapter = PrismaAdapter(db);
  * @see https://next-auth.js.org/configuration/options
  */
 export const authConfig = {
-	adapter,
+	adapter: adapter as Adapter,
 	pages: {
 		signIn: "/auth/signin",
 		signOut: "/auth/signout",
@@ -80,6 +82,7 @@ export const authConfig = {
 					name: user.name,
 					email: user.email,
 					image: user.image,
+					role: user.role,
 					isOnboarded: user.isOnboarded,
 				};
 			},
@@ -110,6 +113,7 @@ export const authConfig = {
 			...session,
 			user: {
 				...session.user,
+				role: user.role,
 				isOnboarded: user.isOnboarded,
 				id: user.id,
 			},

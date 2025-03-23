@@ -68,7 +68,7 @@ async function RecentStories() {
 			<h1 className="text-xl font-semibold">Recent Stories</h1>
 
 			<div className="grid grid-cols-[repeat(auto-fill,--spacing(100))] gap-3">
-				{stories.map((story) => (
+				{stories.docs.map((story) => (
 					<StoryCard
 						key={story.id}
 						id={story.id}

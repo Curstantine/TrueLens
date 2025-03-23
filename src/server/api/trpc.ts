@@ -7,6 +7,7 @@
  * need to use are documented accordingly near the end.
  */
 
+import { UserRole } from "@prisma/client";
 import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
@@ -127,4 +128,15 @@ export const protectedProcedure = t.procedure.use(timingMiddleware).use(({ ctx, 
 			session: { ...ctx.session, user: ctx.session.user },
 		},
 	});
+});
+
+/**
+ * Protected (admin) procedure
+ */
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+	if (ctx.session.user.role !== UserRole.ADMIN) {
+		throw new TRPCError({ code: "UNAUTHORIZED" });
+	}
+
+	return next();
 });

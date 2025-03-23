@@ -3,6 +3,7 @@ import { getInitials } from "~/utils/grammar";
 import Avatar from "~/app/_components/Avatar";
 import { DateSpan } from "~/app/_components/DateSpan";
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
+import FactualityLabel from "~/app/_components/FactualityLabel";
 
 type Props = {
 	title: string;
@@ -11,6 +12,7 @@ type Props = {
 	publishedAt: Date;
 	publisherName: string;
 	publisherLogo: string | null | undefined;
+	factuality: number;
 };
 
 export default function ArticleCard({
@@ -20,6 +22,7 @@ export default function ArticleCard({
 	publishedAt,
 	publisherName,
 	publisherLogo,
+	factuality,
 }: Props) {
 	return (
 		<div className="flex flex-col rounded-md border border-border p-3">
@@ -31,6 +34,8 @@ export default function ArticleCard({
 					className="!size-7 text-xs"
 				/>
 				<span className="text-sm text-muted-foreground">{publisherName}</span>
+				<div className="flex-1" />
+				<FactualityLabel factuality={factuality} />
 			</div>
 
 			<a href={url} target="_blank" className="my-1 font-semibold hover:underline">

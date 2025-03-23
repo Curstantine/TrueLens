@@ -14,6 +14,8 @@ export default function SelectItem({ value, label, icon: Icon }: Props) {
 			role="option"
 			aria-selected={selected === value}
 			onClick={() => select(value, label)}
+			data-value={value}
+			data-label={label}
 			className="flex h-8 items-center px-3 text-sm text-foreground transition-colors select-none hover:bg-secondary/40 hover:text-secondary-foreground aria-selected:bg-secondary"
 		>
 			{Icon && <Icon className="mr-2" />}
