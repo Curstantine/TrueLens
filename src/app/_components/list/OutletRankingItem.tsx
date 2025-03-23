@@ -1,5 +1,6 @@
-import Image, { StaticImageData } from "next/image";
+import Image, { type StaticImageData } from "next/image";
 import Link from "next/link";
+
 import { getInitials } from "~/utils/grammar";
 
 type OutletRankingItemProps = {
@@ -7,7 +8,7 @@ type OutletRankingItemProps = {
 	name: string;
 	credibility: number;
 	publications: number;
-	logo?: StaticImageData;
+	logo: StaticImageData | string | null;
 };
 
 export default function OutletRankingItem({
@@ -24,11 +25,13 @@ export default function OutletRankingItem({
 				style={{ gridTemplateAreas: `"logo name" "logo credibility"` }}
 				className="grid cursor-pointer grid-cols-[--spacing(12)_1fr] items-center gap-x-2 p-2 transition-colors hover:bg-muted/30 active:bg-muted/50"
 			>
-				{logo !== undefined ? (
+				{!!logo ? (
 					<Image
 						src={logo}
 						alt=""
 						quality={100}
+						width={128}
+						height={128}
 						sizes="256px"
 						className="bg-fit h-fit w-10 [grid-area:logo]"
 					/>

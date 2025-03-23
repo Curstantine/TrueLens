@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { auth } from "~/server/auth";
 import { api, HydrateClient } from "~/trpc/server";
 import { makeTRPCResult } from "~/utils/result";
+import type { RouterOutputs } from "~/trpc/react";
 
 import { DateSpan, RelativeDateSpan } from "~/app/_components/DateSpan";
 
@@ -11,8 +12,6 @@ import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
 import { ListItemValuePair } from "~/app/_components/list/ListItem";
 import ArticleCard from "~/app/_components/card/ArticleCard";
 import CommentSection from "~/app/_components/CommentSection";
-
-import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -68,11 +67,11 @@ export default async function Page({ params }: Props) {
 					<div className="flex items-end md:min-h-36">
 						<ReportingSummary
 							articleSize={story.articles.length}
-							factuality={50}
+							factuality={story.factuality}
 							modifiedAt={story.modifiedAt}
 						/>
 					</div>
-					<OutletRanking />
+					<OutletRanking data={story.outletRanking} />
 				</div>
 			</main>
 		</HydrateClient>
@@ -87,7 +86,7 @@ function ReportingSummary({ articleSize, factuality, modifiedAt }: ReportingSumm
 
 			<ul className="mt-1 flex flex-col gap-y-1 text-xs text-muted-foreground">
 				<ListItemValuePair title="Total Sources:" value={articleSize} />
-				<ListItemValuePair title="Factually:" value={`${factuality}%`} />
+				<ListItemValuePair title="Factually:" value={`${factuality * 100}%`} />
 				<ListItemValuePair
 					title="Last Updated:"
 					value={<RelativeDateSpan value={modifiedAt} className="capitalize" />}
@@ -137,19 +136,22 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 	);
 }
 
-function OutletRanking() {
+type OutletRankingProps = { data: RouterOutputs["story"]["getById"]["outletRanking"] };
+function OutletRanking({ data }: OutletRankingProps) {
 	return (
 		<div className="flex flex-col gap-y-1 pt-6">
 			<h2 className="font-medium">Outlet Credibility Ranking</h2>
 			<ul>
-				<OutletRankingItem place={1} name="News.lk" credibility={50} publications={120} />
-				<OutletRankingItem
-					place={2}
-					name="Ada Derana"
-					credibility={50}
-					publications={120}
-					logo={AdaDeranaLogo}
-				/>
+				{data.map((outlet, i) => (
+					<OutletRankingItem
+						key={outlet.id}
+						place={i + 1}
+						name={outlet.name}
+						credibility={outlet.credibility}
+						publications={outlet.publicationCount}
+						logo={outlet.logoUrl}
+					/>
+				))}
 			</ul>
 		</div>
 	);
