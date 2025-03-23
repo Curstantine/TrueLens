@@ -1,10 +1,11 @@
 import { waitlistRouter } from "~/server/api/routers/waitlist";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
-import { articleRouter } from "./routers/article";
-import { newsOutletRouter } from "./routers/newsOutlet";
-import { storyRouter } from "./routers/story";
-import { reporterRouter } from "./routers/reporter";
-import { commentRouter } from "./routers/comment";
+import { articleRouter } from "~/server/api/routers/article";
+import { newsOutletRouter } from "~/server/api/routers/newsOutlet";
+import { storyRouter } from "~/server/api/routers/story";
+import { reporterRouter } from "~/server/api/routers/reporter";
+import { commentRouter } from "~/server/api/routers/comment";
+import { configurationRouter } from "~/server/api/routers/configuration";
 /**
  * This is the primary router for your server.
  *
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
 	story: storyRouter,
 	reporter: reporterRouter,
 	comment: commentRouter,
+	configuration: configurationRouter,
 });
 
 // export type definition of API

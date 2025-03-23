@@ -2,9 +2,9 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { StoryStatus } from "@prisma/client";
 
-import { objectId } from "~/server/validation/mongo";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
+import { objectId } from "~/server/validation/mongo";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const storyRouter = createTRPCRouter({
 	create: publicProcedure
@@ -63,7 +63,6 @@ export const storyRouter = createTRPCRouter({
 
 			return { docs, total };
 		}),
-
 	approveStory: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.mutation(async ({ input }) => {
@@ -72,7 +71,6 @@ export const storyRouter = createTRPCRouter({
 				data: { status: StoryStatus.PUBLISHED },
 			});
 		}),
-
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
@@ -95,7 +93,11 @@ export const storyRouter = createTRPCRouter({
 			const totalScore = story.articles.reduce((acc, x) => acc + x.factuality, 0);
 			return { ...story, factuality: totalScore / story.articles.length };
 		}),
-
+	getAllOutOfSync: adminProcedure.query(async () => {
+		return await db.story.findMany({
+			where: { modifiedAt: { gte: db.story.fields.synchronizedAt } },
+		});
+	}),
 	update: publicProcedure
 		.input(
 			z.object({

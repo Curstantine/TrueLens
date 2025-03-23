@@ -10,7 +10,6 @@ import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 import { factCheckingModel, summarizationModel } from "~/server/ai";
-import { db } from "~/server/db";
 import { api } from "~/trpc/server";
 
 import { isMostlyEnglish, readClustered, readMetadata } from "~/app/api/sync/utils";
@@ -54,12 +53,9 @@ export async function POST() {
 	}
 
 	const metadata = await readMetadata(sourceDataPath);
-	const lastDBUpdate = await db.configuration.findUnique({
-		where: { key: "LAST_SYNC_DATE" },
-		select: { value: true },
-	});
+	const lastDBUpdate = await api.configuration.getLastSync();
 
-	const lastSync = new Date(lastDBUpdate?.value ?? 0).getTime() / 1000;
+	const lastSync = lastDBUpdate.getTime() / 1000;
 	const newArticles = metadata.filter((x) => isMostlyEnglish(x.title) && x.ut > lastSync);
 
 	log(`Found ${newArticles.length} new articles`);
@@ -255,10 +251,7 @@ export async function POST() {
 		}
 	}
 
-	await db.configuration.update({
-		where: { key: "LAST_SYNC_DATE" },
-		data: { value: new Date().toISOString() },
-	});
+	await api.configuration.updateLastSync({ value: new Date().toISOString() });
 
 	return NextResponse.json({ status: "ok" });
 }
