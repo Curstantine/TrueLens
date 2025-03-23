@@ -48,3 +48,4 @@ yarn-error.log*
 #news repo
 news_source_data
 news_filtered_data
+data/

@@ -31,6 +31,7 @@ import {
 	ARTICLE_SUMMARY,
 	STORY_FACTUALITY_REPORT,
 } from "~/app/api/sync/validation";
+import { runScraper } from "~/server/sync/scraper";
 
 export const runtime = "nodejs";
 
