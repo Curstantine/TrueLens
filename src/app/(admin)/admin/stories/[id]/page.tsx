@@ -43,7 +43,7 @@ export default function Page({ params }: Props) {
 	const [data] = api.story.getById.useSuspenseQuery({ id });
 
 	return (
-		<main className="space-y-2 pt-4 pl-6">
+		<main className="space-y-2 py-4 pl-6">
 			<h1 className="text-2xl font-semibold">
 				Edit Story #<span className="text-lg text-muted-foreground">{data.id}</span>
 			</h1>
@@ -57,14 +57,30 @@ function Form({ data }: FormProps) {
 	const router = useRouter();
 
 	const utils = api.useUtils();
-	const mutate = api.story.update.useMutation({
+
+	const deleteStory = api.story.delete.useMutation({
+		onSuccess: () => {
+			utils.story.getAll.invalidate();
+			utils.story.getById.invalidate({ id: data.id });
+
+			toast.success("Story deleted successfully");
+			router.push("/admin/stories");
+		},
+	});
+
+	const updateStory = api.story.update.useMutation({
 		onSuccess: (input) => {
 			utils.story.getAll.invalidate();
 			utils.story.getById.invalidate({ id: input.id });
 		},
 	});
 
-	const { control, register, handleSubmit } = useForm({
+	const {
+		control,
+		handleSubmit,
+		register,
+		formState: { isDirty, isSubmitting },
+	} = useForm({
 		resolver: zodResolver(validation),
 		defaultValues: {
 			title: data.title,
@@ -75,7 +91,7 @@ function Form({ data }: FormProps) {
 	});
 
 	const onSubmit = handleSubmit(async (result) => {
-		await mutate.mutateAsync({
+		await updateStory.mutateAsync({
 			id: data.id,
 			title: result.title,
 			summary: result.summary?.map((s) => s.value) ?? data.summary,
@@ -135,11 +151,21 @@ function Form({ data }: FormProps) {
 				</div>
 			</div>
 
-			<div className="mt-12 inline-flex items-center justify-end gap-2">
-				<Button intent="ghost" className="w-32" onClick={() => router.back()}>
+			<div className="mt-12 inline-flex items-center gap-2">
+				<Button
+					type="button"
+					intent="destructiveBorder"
+					className="w-36 gap-2"
+					onClick={() => deleteStory.mutate(data)}
+				>
+					<DeleteRoundedIcon className="size-5" />
+					Delete Article
+				</Button>
+				<div className="flex-1" />
+				<Button type="button" intent="ghost" className="w-32" onClick={() => router.back()}>
 					Back
 				</Button>
-				<Button type="submit" className="w-32">
+				<Button type="submit" className="w-32" disabled={!isDirty || isSubmitting}>
 					Submit
 				</Button>
 			</div>
