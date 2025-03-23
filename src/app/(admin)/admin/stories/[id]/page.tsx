@@ -162,11 +162,11 @@ function Form({ data }: FormProps) {
 					Delete Article
 				</Button>
 				<div className="flex-1" />
-				<Button type="button" intent="ghost" className="w-32" onClick={() => router.back()}>
+				<Button type="button" intent="ghost" className="w-24" onClick={() => router.back()}>
 					Back
 				</Button>
-				<Button type="submit" className="w-32" disabled={!isDirty || isSubmitting}>
-					Submit
+				<Button type="submit" className="w-28" disabled={isDirty || isSubmitting}>
+					{isSubmitting ? "Updating..." : "Update"}
 				</Button>
 			</div>
 		</form>
