@@ -99,6 +99,31 @@ export const storyRouter = createTRPCRouter({
 			where: { modifiedAt: { gte: db.story.fields.synchronizedAt } },
 		});
 	}),
+	search: publicProcedure
+		.input(
+			z.object({
+				query: z.string().optional(),
+				limit: z.number().default(50),
+				offset: z.number().default(0),
+			}),
+		)
+		.query(async ({ input }) => {
+			const isUrl = input.query?.startsWith("http") ?? false;
+			return await db.story.findMany({
+				take: input.limit,
+				skip: input.offset,
+				where: {
+					title: isUrl ? undefined : { contains: input.query, mode: "insensitive" },
+					articles: {
+						some: isUrl ? { externalUrl: { contains: input.query } } : undefined,
+					},
+					status: StoryStatus.PUBLISHED,
+				},
+				include: {
+					_count: { select: { articles: true } },
+				},
+			});
+		}),
 	update: publicProcedure
 		.input(
 			z.object({
