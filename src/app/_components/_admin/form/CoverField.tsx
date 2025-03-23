@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import clsx from "clsx/lite";
 import Image from "next/image";
 import { upload } from "@vercel/blob/client";
 import { ChangeEventHandler, MouseEventHandler, useState, useTransition } from "react";
