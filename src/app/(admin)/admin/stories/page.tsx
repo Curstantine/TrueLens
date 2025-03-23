@@ -4,6 +4,8 @@ import { api, HydrateClient } from "~/trpc/server";
 
 import StoryTable from "~/app/_components/_admin/StoryTable";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
 	title: "Admin/Stories - TrueLens",
 };
