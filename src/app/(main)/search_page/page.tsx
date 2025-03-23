@@ -1,26 +1,29 @@
-import SearchInput from './SearchInput'; // Import the Client Component
+"use client"; // Required for Next.js App Router
 
-export default function Page({ searchParams }: { searchParams: { [key: string]: string | string[] | undefined } }) {
-    const searchTerm = searchParams.q || ''; // Get search term from query params
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
+export default function SearchPage() {
+    const router = useRouter();
+    const [query, setQuery] = useState("");
+
+    useEffect(() => {
+        if (query.trim() !== "") {
+            router.push(`/search?query=${query}`);
+        }
+    }, [query, router]);
     return (
-        <div>
-            <header>
-                <h1>TrueLens</h1>
-                <SearchInput /> {/* Include the SearchInput Client Component */}
-            </header>
-
-            <main>
-                <div>
-                    <h2>Search Results for {searchTerm}</h2>
-                    {/* Replace with your actual search results display */}
-                    <div style={{ display: 'flex', justifyContent: 'space-around' }}>
-                        {/* ... your image and result content ... */}
-                    </div>
-                    <button>Show me more results</button>
-                </div>
+        <div className="min-h-screen flex flex-col justify-between bg-gray-100">
+            <main className="flex-grow flex justify-center items-center">
+                <input
+                    type="text"
+                    placeholder="Lorem Ipsum Dorem"
+                    className="border w-full max-w-lg px-3 py-2 rounded-lg shadow-sm"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
             </main>
-            {/*footer removed*/}
         </div>
+
     );
 }
