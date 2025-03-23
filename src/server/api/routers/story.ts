@@ -51,6 +51,7 @@ export const storyRouter = createTRPCRouter({
 						createdAt: true,
 						modifiedAt: true,
 						cover: true,
+						status: true,
 						_count: {
 							select: { articles: true },
 						},

@@ -83,7 +83,7 @@ async function scrapeDeranaArticleBody(
 
 	const coverImageUrl = $("div.news-banner > img").attr("src");
 
-	if (body.length === 0 && retryCount < 3) {
+	if (body.length === 0 && retryCount < 4) {
 		await wait(1000);
 		return scrapeDeranaArticleBody(url, retryCount + 1);
 	}
@@ -169,7 +169,7 @@ async function scrapeDailyMirrorArticle(
 
 	const coverImageUrl = $(rows).find("div.a-content > p > img").first().attr("src");
 
-	if (bodyText.length === 0 && retryCount < 3) {
+	if (bodyText.length === 0 && retryCount < 4) {
 		await wait(1000);
 		return scrapeDailyMirrorArticle(url, retryCount + 1);
 	}

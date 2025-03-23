@@ -17,6 +17,8 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
+import clsx from "clsx";
+import { StoryStatus } from "@prisma/client";
 
 type Model = RouterOutputs["story"]["getAll"]["docs"][0];
 
@@ -31,6 +33,20 @@ const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
 });
 
 const columns = [
+	columnHelper.display({
+		header: "#",
+		size: 25,
+		cell: (cell) => (
+			<div
+				className={clsx(
+					"size-2 rounded-full",
+					cell.row.original.status === StoryStatus.PUBLISHED
+						? "bg-green-500"
+						: "bg-yellow-500",
+				)}
+			/>
+		),
+	}),
 	columnHelper.accessor("title", {
 		header: "Title",
 		size: 500,
