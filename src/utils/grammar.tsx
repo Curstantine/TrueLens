@@ -1,3 +1,5 @@
+import { StoryStatus } from "@prisma/client";
+
 export function getInitials(name: string | null | undefined) {
 	if (!name) return "N/A";
 
@@ -7,4 +9,13 @@ export function getInitials(name: string | null | undefined) {
 	if (firstName && !lastName) return firstName.substring(0, 2);
 
 	return `${firstName?.at(0) ?? ""}${lastName?.at(0) ?? ""}`;
+}
+
+export function asReadableStoryStatus(status: StoryStatus) {
+	switch (status) {
+		case StoryStatus.NEEDS_APPROVAL:
+			return "Needs Approval";
+		case StoryStatus.PUBLISHED:
+			return "Published";
+	}
 }
