@@ -20,7 +20,7 @@ export default function Page({ searchParams }: { searchParams: { [key: string]: 
                     <button>Show me more results</button>
                 </div>
             </main>
-
+            {/*footer removed*/}
         </div>
     );
 }
