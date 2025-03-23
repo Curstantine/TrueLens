@@ -226,7 +226,7 @@ export async function POST() {
 async function summarize(article: SourceArticle): Promise<ArticleSummary> {
 	const model = summarizationModel()
 		.withStructuredOutput(ARTICLE_SUMMARY)
-		.withRetry({ stopAfterAttempt: 3 });
+		.withRetry({ stopAfterAttempt: 4 });
 	const prompt = `Return a summary of the news article in a readable point format. Try not to span to more than 6 points.
 	Return a valid JSON following the example format: {{ "summary": ["point 1", "point 2", "point 3"] }}`;
 
@@ -290,7 +290,7 @@ async function getOrCreateReporter(
 	article: Pick<ClusteredSummaryFactualityReport, "outlet" | "author">,
 ) {
 	try {
-		const cleanup = (name: string) => name.split(" ").join("_").toLocaleLowerCase();
+		const cleanup = (name: string) => name.split(" ").join("").toLocaleLowerCase();
 		const reporter = await api.reporter.create({
 			name: article.author.name,
 			isSystem: article.author.isSystem,
@@ -305,6 +305,7 @@ async function getOrCreateReporter(
 			return { id: error.cause.reporterId as string, name: article.author.name };
 		}
 
+		console.error("Failed to create reporter:", error, article);
 		throw error;
 	}
 }

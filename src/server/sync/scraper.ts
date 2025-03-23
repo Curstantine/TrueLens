@@ -123,10 +123,12 @@ async function scrapeDailyMirrorLatest(page = 0): Promise<SourceArticle[]> {
 		jobs.push(
 			(async () => {
 				const set = articles[newIdx - 1]!;
-				const { body, publishedAt, author } = await scrapeDailyMirrorArticle(url);
+				const { body, publishedAt, author, coverImageUrl } =
+					await scrapeDailyMirrorArticle(url);
 				set.body = body;
 				set.publishedAt = publishedAt;
 				set.author = author;
+				set.coverImageUrl = coverImageUrl;
 			})(),
 		);
 	}
