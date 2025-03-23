@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData } from "@tanstack/react-query";
+import { keepPreviousData, skipToken } from "@tanstack/react-query";
 import {
 	createColumnHelper,
 	flexRender,
@@ -56,13 +56,29 @@ const columns = [
 		size: 100,
 		cell: (cell) => (
 			<div className="mt-1 inline-flex gap-3">
-				<Link href={`/admin/stories/${cell.row.original.id}`}>
-					<EditSquareOutlineRounded className="size-5" />
-				</Link>
+				<EditLink id={cell.row.original.id} />
 			</div>
 		),
 	}),
 ];
+
+type EditLinkProps = { id: string };
+function EditLink({ id }: EditLinkProps) {
+	const [hovered, setHovered] = useState(false);
+	api.story.getById.usePrefetchQuery(hovered ? { id } : skipToken, {
+		staleTime: 600000,
+	});
+
+	return (
+		<Link
+			href={`/admin/stories/${id}`}
+			onMouseEnter={() => setHovered(true)}
+			onMouseLeave={() => setHovered(false)}
+		>
+			<EditSquareOutlineRounded className="size-5" />
+		</Link>
+	);
+}
 
 export default function StoryTable() {
 	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 100 });
