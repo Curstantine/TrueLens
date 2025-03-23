@@ -1,35 +1,37 @@
 "use client";
 
-import { useMediaQuery } from "@jabascript/react/client";
+import { useRouter } from "next/navigation";
+import { useState, FormEvent } from "react";
 import clsx from "clsx/lite";
-import Button from "~/app/_components/form/Button";
-
 import SearchRoundedIcon from "~/app/_components/icons/material/SearchRounded";
 
 type Props = { className?: string };
 
 export default function Search({ className }: Props) {
-	const isMobile = useMediaQuery("(max-width: 768px)", false);
+	const router = useRouter();
+	const [search, setSearch] = useState("");
 
-	if (isMobile)
-		return (
-			<Button type="button" intent="icon" shape="circular" className="mr-4">
-				<SearchRoundedIcon className="size-6 text-muted-foreground" />
-			</Button>
-		);
+	const handleSearch = (event: FormEvent<HTMLFormElement>) => {
+		event.preventDefault();
+		if (search.trim()) {
+			router.push(`/search?query=${encodeURIComponent(search)}`);
+		}
+	};
 
 	return (
-		<label
-			className={clsx(
-				"relative hidden rounded-md bg-muted outline-1 outline-transparent transition-colors focus-within:outline-input md:block",
-				className,
-			)}
-		>
-			<input
-				placeholder="Search"
-				className="h-8 min-w-64 bg-transparent pr-10 pl-4 placeholder:text-muted-foreground focus:outline-hidden"
-			/>
-			<SearchRoundedIcon className="absolute top-1 right-2 size-6 text-muted-foreground" />
-		</label>
+		<form onSubmit={handleSearch} className="relative flex items-center">
+			<label className={clsx("relative flex items-center rounded-md bg-muted", className)}>
+				<input
+					type="text"
+					placeholder="Search..."
+					value={search}
+					onChange={(e) => setSearch(e.target.value)}
+					className="h-8 min-w-64 bg-transparent pr-10 pl-4 placeholder:text-muted-foreground focus:outline-none"
+				/>
+				<button type="submit" className="absolute right-2">
+					<SearchRoundedIcon className="size-6 text-muted-foreground" />
+				</button>
+			</label>
+		</form>
 	);
 }
