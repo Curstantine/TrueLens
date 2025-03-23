@@ -103,6 +103,7 @@ export const storyRouter = createTRPCRouter({
 				title: z.optional(z.string().min(1, "Title is required")),
 				summary: z.optional(z.array(z.string()).min(1, "At least one summary is required")),
 				cover: z.optional(z.string()),
+				status: z.nativeEnum(StoryStatus).optional(),
 			}),
 		)
 		.mutation(async ({ input }) => {
@@ -113,6 +114,7 @@ export const storyRouter = createTRPCRouter({
 					summary: input.summary,
 					cover: input.cover,
 					modifiedAt: new Date(),
+					status: input.status,
 				},
 			});
 		}),
