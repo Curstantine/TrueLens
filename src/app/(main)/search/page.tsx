@@ -11,7 +11,6 @@ export default function SearchPage() {
     // Simulate a search operation
     useEffect(() => {
         if (query) {
-            // TODO: Fetch results from API
             const mockData = ["Apple", "Banana", "Cherry"];
             const filteredResults = mockData.filter((item) =>
                 item.toLowerCase().includes(query.toLowerCase())
