@@ -1,12 +1,17 @@
+import { toast } from "sonner";
+
 import { getInitials } from "~/utils/grammar";
+import { api } from "~/trpc/react";
 
 import Avatar from "~/app/_components/Avatar";
 import { DateSpan } from "~/app/_components/DateSpan";
 import FactualityLabel from "~/app/_components/FactualityLabel";
+import Button from "~/app/_components/form/Button";
 
-import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
+import DeleteRoundedIcon from "~/app/_components/icons/material/DeleteRounded";
 
 type Props = {
+	id: string;
 	title: string;
 	summary: string;
 	url: string;
@@ -17,6 +22,7 @@ type Props = {
 };
 
 export default function AdminArticleCard({
+	id,
 	title,
 	summary,
 	url,
@@ -46,13 +52,33 @@ export default function AdminArticleCard({
 				{summary}
 			</p>
 
-			<div className="mt-2 flex items-center justify-between">
+			<div className="mt-2 flex items-end justify-between">
 				<DateSpan value={publishedAt} className="text-xs text-muted-foreground" />
-
-				<a href={url} target="_blank" rel="noreferrer noopener">
-					<ArrowRightAltRoundedIcon className="size-5 text-muted-foreground" />
-				</a>
+				<DeleteButton id={id} />
 			</div>
 		</div>
+	);
+}
+
+type DeleteButtonProps = { id: string };
+function DeleteButton({ id }: DeleteButtonProps) {
+	const utils = api.useUtils();
+	const deleteArticle = api.article.delete.useMutation({
+		onSuccess: (input) => {
+			utils.story.getById.invalidate({ id: input.storyId });
+			utils.article.getAll.invalidate();
+			toast.success("Article deleted successfully.");
+		},
+	});
+
+	return (
+		<Button
+			type="button"
+			intent="icon"
+			className="w-9"
+			onClick={() => deleteArticle.mutate({ id })}
+		>
+			<DeleteRoundedIcon className="size-5 text-destructive" />
+		</Button>
 	);
 }

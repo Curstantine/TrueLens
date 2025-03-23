@@ -139,6 +139,7 @@ function Form({ data }: FormProps) {
 					{data.articles.map((article) => (
 						<AdminArticleCard
 							key={article.id}
+							id={article.id}
 							title={article.title}
 							summary={article.content}
 							url={article.externalUrl}
