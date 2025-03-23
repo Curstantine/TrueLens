@@ -2,8 +2,9 @@ import { getInitials } from "~/utils/grammar";
 
 import Avatar from "~/app/_components/Avatar";
 import { DateSpan } from "~/app/_components/DateSpan";
-import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import FactualityLabel from "~/app/_components/FactualityLabel";
+
+import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 
 type Props = {
 	title: string;
@@ -15,7 +16,7 @@ type Props = {
 	factuality: number;
 };
 
-export default function ArticleCard({
+export default function AdminArticleCard({
 	title,
 	summary,
 	url,

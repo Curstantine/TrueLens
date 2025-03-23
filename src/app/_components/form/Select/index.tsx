@@ -50,7 +50,7 @@ export default function Select({
 
 		const availableSpace = window.innerHeight - bounding.bottom;
 		const maxRenderHeight = Math.min(renderHeight, availableSpace - 72);
-		const top = bounding.bottom + 12;
+		const top = bounding.bottom + 12 + window.scrollY;
 
 		// TODO(Curstantine): Implement bottom positioning for instances
 		// where the area till the bottom of the screen is not enough

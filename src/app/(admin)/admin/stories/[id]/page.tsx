@@ -15,10 +15,11 @@ import Button from "~/app/_components/form/Button";
 import HookedInput from "~/app/_components/form/hooked/Input";
 import HookedSelect from "~/app/_components/form/hooked/Select";
 import SelectItem from "~/app/_components/form/Select/Item";
+import AdminHookedCoverField from "~/app/_components/_admin/form/CoverField";
+import AdminArticleCard from "~/app/_components/_admin/ArticleCard";
 
 import DeleteRoundedIcon from "~/app/_components/icons/material/DeleteRounded";
 import AddRoundedIcon from "~/app/_components/icons/material/AddRounded";
-import AdminHookedCoverField from "~/app/_components/_admin/form/CoverField";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -109,6 +110,29 @@ function Form({ data }: FormProps) {
 						<SelectItem key={key} value={key} label={asReadableStoryStatus(value)} />
 					))}
 				</HookedSelect>
+			</div>
+
+			<div>
+				<h2 className="inline-flex text-xl font-medium">
+					Publications
+					<span className="mt-1 ml-0.5 text-xs text-muted-foreground">
+						({data.articles.length})
+					</span>
+				</h2>
+				<div className="mt-2 grid max-w-4xl grid-cols-1 gap-2">
+					{data.articles.map((article) => (
+						<AdminArticleCard
+							key={article.id}
+							title={article.title}
+							summary={article.content}
+							url={article.externalUrl}
+							publishedAt={article.publishedAt}
+							publisherLogo={undefined}
+							publisherName={article.outlet.name}
+							factuality={article.factuality}
+						/>
+					))}
+				</div>
 			</div>
 
 			<div className="mt-12 inline-flex items-center justify-end gap-2">

@@ -129,6 +129,7 @@ function PublicationsSection({ data }: PublicationsSectionProps) {
 						publishedAt={article.publishedAt}
 						publisherLogo={undefined}
 						publisherName={article.outlet.name}
+						factuality={article.factuality}
 					/>
 				))}
 			</div>
