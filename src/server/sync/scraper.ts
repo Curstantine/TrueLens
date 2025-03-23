@@ -1,46 +1,24 @@
-import { existsSync } from "node:fs";
-import { mkdir, writeFile } from "node:fs/promises";
-import { join as joinPath } from "node:path";
-
+import { wait } from "@jabascript/core";
 import * as cheerio from "cheerio";
 
+import type { SourceArticle } from "~/server/sync/types";
 import { toNameCase } from "~/utils/grammar";
 
 const DERANA_LONG_URL_ID_REGEX = /(?<=news\/)\d{1,6}/;
 const DAILY_MIRROR_URL_ID_REGEX = /\/108-(\d{1,})$/;
 
-const DATA_FOLDER = joinPath("data");
-
-interface SourceArticle {
-	externalId: string;
-	title: string;
-	url: string;
-	publishedAt: Date;
-	body: string[];
-	outlet: string;
-	author: { name: string; isSystem: boolean };
-}
-
 export async function runScraper() {
 	const jobs: Promise<SourceArticle[]>[] = [];
 
-	for (let i = 1; i <= 5; i++) {
+	for (let i = 1; i <= 8; i++) {
 		jobs.push(scrapeDeranaHotNews(i));
 	}
 
-	for (let i = 0; i < 5; i++) {
+	for (let i = 0; i < 8; i++) {
 		jobs.push(scrapeDailyMirrorLatest(i));
 	}
 
-	const articles = (await Promise.all(jobs)).flat();
-	if (!existsSync(DATA_FOLDER)) await mkdir(DATA_FOLDER, { recursive: true });
-
-	await writeFile(
-		joinPath(DATA_FOLDER, `articles.${Date.now()}.json`),
-		JSON.stringify(articles, null, 4),
-	);
-
-	return articles;
+	return (await Promise.all(jobs)).flat();
 }
 
 async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
@@ -74,7 +52,10 @@ async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 
 		jobs.push(
 			(async () => {
-				articles[newIdx - 1]!.body = await scrapeDeranaArticleBody(url);
+				const set = articles[newIdx - 1]!;
+				const { body, coverImageUrl } = await scrapeDeranaArticleBody(url);
+				set.body = body;
+				set.coverImageUrl = coverImageUrl;
 			})(),
 		);
 	}
@@ -84,18 +65,30 @@ async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 	return articles;
 }
 
-async function scrapeDeranaArticleBody(url: string) {
+async function scrapeDeranaArticleBody(
+	url: string,
+	retryCount = 0,
+): Promise<Pick<SourceArticle, "body" | "coverImageUrl">> {
 	const resp = await fetch(url);
 	const html = await resp.text();
 
 	const $ = cheerio.load(html);
 	const article = $("div.news-content");
 
-	return article
+	const body = article
 		.find("p")
 		.map((_, el) => $(el).text().trim())
-		.filter((_, text) => text.length > 0)
+		.filter((_, text) => text.length > 0 && text !== "--Agencies")
 		.toArray();
+
+	const coverImageUrl = $("div.news-banner > img").attr("src");
+
+	if (body.length === 0 && retryCount < 3) {
+		await wait(1000);
+		return scrapeDeranaArticleBody(url, retryCount + 1);
+	}
+
+	return { body, coverImageUrl };
 }
 
 async function scrapeDailyMirrorLatest(page = 0): Promise<SourceArticle[]> {
@@ -145,7 +138,8 @@ async function scrapeDailyMirrorLatest(page = 0): Promise<SourceArticle[]> {
 
 async function scrapeDailyMirrorArticle(
 	url: string,
-): Promise<Pick<SourceArticle, "body" | "publishedAt" | "author">> {
+	retryCount = 0,
+): Promise<Pick<SourceArticle, "body" | "publishedAt" | "author" | "coverImageUrl">> {
 	const resp = await fetch(url);
 	const html = await resp.text();
 
@@ -171,12 +165,20 @@ async function scrapeDailyMirrorArticle(
 		.filter((_, text) => text.length > 0)
 		.toArray();
 
+	const coverImageUrl = $(rows).find("div.a-content > p > img").first().attr("src");
+
+	if (bodyText.length === 0 && retryCount < 3) {
+		await wait(1000);
+		return scrapeDailyMirrorArticle(url, retryCount + 1);
+	}
+
 	return {
 		body: bodyText,
 		author: {
-			name: toNameCase(author),
-			isSystem: false,
+			name: author.length > 0 ? toNameCase(author) : "system-daily_mirror",
+			isSystem: author.length === 0,
 		},
 		publishedAt: new Date(publishedAt + " GMT+0530"),
+		coverImageUrl,
 	};
 }
