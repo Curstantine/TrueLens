@@ -166,7 +166,7 @@ function Form({ data }: FormProps) {
 				<Button type="button" intent="ghost" className="w-24" onClick={() => router.back()}>
 					Back
 				</Button>
-				<Button type="submit" className="w-28" disabled={isDirty || isSubmitting}>
+				<Button type="submit" className="w-28" disabled={!isDirty || isSubmitting}>
 					{isSubmitting ? "Updating..." : "Update"}
 				</Button>
 			</div>

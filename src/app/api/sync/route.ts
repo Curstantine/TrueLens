@@ -130,7 +130,10 @@ export async function POST() {
 
 		if (externalCoverImage) {
 			try {
-				const image = await getCoverImage(externalCoverImage.url, selected.temp_id);
+				const image = await getCoverImage(
+					externalCoverImage.coverImageUrl!,
+					selected.temp_id,
+				);
 				coverImage = image.url;
 			} catch (error) {
 				console.error(error);

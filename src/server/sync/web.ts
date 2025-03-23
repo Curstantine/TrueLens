@@ -8,16 +8,16 @@ export async function getCoverImage(imageUrl: string, imageId: string): Promise<
 
 export async function getSiteFavicon(url: string): Promise<PutBlobResult | null> {
 	const { origin, hostname } = new URL(url);
+
 	const resp = await fetch(origin);
 	const data = await resp.text();
 	const $ = cheerio.load(data);
 
-	const iconElement =
-		$("link[rel='apple-touch-icon']") ??
-		$("link[rel='icon']") ??
-		$("link[rel='shortcut icon']");
+	const icon =
+		$("link[rel='apple-touch-icon']").attr("href") ??
+		$("link[rel='icon']").attr("href") ??
+		$("link[rel='shortcut icon']").attr("href");
 
-	const icon = iconElement.attr("href");
 	if (!icon) return null;
 
 	const blob = await fetch(icon, { headers: { Accept: "image/*" } }).then((x) => x.blob());

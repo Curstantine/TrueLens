@@ -33,9 +33,9 @@ async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 
 	for (let i = 0; i < divs.length; i++) {
 		const article = $(divs[i]);
-		const header = article.find("h2 > a[target='_blank']");
+		const header = article.find("h2.hidden-xs > a[target='_blank']");
 
-		const title = header.text();
+		const title = header.text().trim();
 		const url = header.attr("href")!;
 		const publishedAt = article.find("div.comments.pull-right span").text().replace("| ", "");
 		const externalId = url.match(DERANA_LONG_URL_ID_REGEX)![0];
