@@ -225,7 +225,7 @@ export async function POST() {
 					title: current.title,
 					storyId: story.id,
 					externalUrl: current.url,
-					publishedAt: new Date(current.ut).toISOString(),
+					publishedAt: new Date(current.ut * 1000).toISOString(),
 					content: current.body_paragraphs,
 					reporterId: currentReporter.id,
 					outletId: currentOutlet.id,
