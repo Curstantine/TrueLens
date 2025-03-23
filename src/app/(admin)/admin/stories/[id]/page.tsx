@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx/lite";
 import { upload } from "@vercel/blob/client";
 import Image from "next/image";
+import { toast } from "sonner";
 
 import { api, RouterOutputs } from "~/trpc/react";
 
@@ -82,6 +83,9 @@ function Form({ data }: FormProps) {
 			summary: result.summary?.map((s) => s.value) ?? data.summary,
 			cover: result.cover,
 		});
+
+		toast.success("Story updated successfully");
+		router.push("/admin/stories");
 	});
 
 	return (
