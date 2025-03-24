@@ -86,7 +86,7 @@ function ReportingSummary({ articleSize, factuality, modifiedAt }: ReportingSumm
 
 			<ul className="mt-1 flex flex-col gap-y-1 text-xs text-muted-foreground">
 				<ListItemValuePair title="Total Sources:" value={articleSize} />
-				<ListItemValuePair title="Factually:" value={`${factuality * 100}%`} />
+				<ListItemValuePair title="Factually:" value={`${factuality}%`} />
 				<ListItemValuePair
 					title="Last Updated:"
 					value={<RelativeDateSpan value={modifiedAt} className="capitalize" />}

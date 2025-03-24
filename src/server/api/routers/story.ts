@@ -125,7 +125,7 @@ export const storyRouter = createTRPCRouter({
 			return {
 				...story,
 				outletRanking,
-				factuality: totalScore / story.articles.length,
+				factuality: Math.round((totalScore * 100) / story.articles.length),
 			};
 		}),
 	getAllOutOfSync: adminProcedure.query(async () => {
