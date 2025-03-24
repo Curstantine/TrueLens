@@ -6,6 +6,7 @@
 	"scripts": {
 		"build": "next build",
 		"check": "next lint && tsc --noEmit",
+		"test": "vitest",
 		"db:push": "prisma db push",
 		"db:studio": "prisma studio",
 		"dev": "next dev",
@@ -53,6 +54,8 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/postcss": "^4.0.14",
+		"@testing-library/dom": "^10.4.0",
+		"@testing-library/react": "^16.2.0",
 		"@types/bcrypt": "^5.0.2",
 		"@types/eslint": "^9.6.1",
 		"@types/node": "^20.17.24",
@@ -60,15 +63,19 @@
 		"@types/react-dom": "^19.0.4",
 		"@typescript-eslint/eslint-plugin": "^8.26.1",
 		"@typescript-eslint/parser": "^8.26.1",
+		"@vitejs/plugin-react": "^4.3.4",
 		"eslint": "^9.22.0",
 		"eslint-config-next": "^15.2.2",
+		"jsdom": "^26.0.0",
 		"postcss": "^8.5.3",
 		"prettier": "^3.5.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
 		"prisma": "^6.5.0",
 		"tailwindcss": "^4.0.14",
 		"trpc-ui": "^1.0.12",
-		"typescript": "^5.8.2"
+		"typescript": "^5.8.2",
+		"vite-tsconfig-paths": "^5.1.4",
+		"vitest": "^3.0.9"
 	},
 	"ct3aMetadata": {
 		"initVersion": "7.38.1"
