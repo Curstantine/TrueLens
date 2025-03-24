@@ -2,8 +2,9 @@ import Link from "next/link";
 import { Suspense } from "react";
 import NavBarDecoration from "~/app/_components/NavigationBar/Decoration";
 
-import Profile, { ProfileSkeleton } from "~/app/_components/NavigationBar/Profile";
 import Search from "~/app/_components/NavigationBar/Search";
+import SearchSkeleton from "~/app/_components/NavigationBar/SearchSkeleton";
+import Profile, { ProfileSkeleton } from "~/app/_components/NavigationBar/Profile";
 
 import Logo from "~/app/_components/icons/Logo";
 
@@ -17,7 +18,9 @@ export default function NavigationBar() {
 
 				<div className="grow" />
 
-				<Search />
+				<Suspense fallback={<SearchSkeleton />}>
+					<Search />
+				</Suspense>
 
 				<ul className="mx-6 ml-4 hidden items-center gap-4 md:inline-flex">
 					<li>

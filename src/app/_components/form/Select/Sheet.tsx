@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import clsx from "clsx/lite";
 import type { FocusEventHandler, ReactNode, RefObject } from "react";
 
 export type Position = { right: number; width: number; maxHeight: number } & (

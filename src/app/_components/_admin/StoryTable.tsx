@@ -1,5 +1,8 @@
 "use client";
 
+import clsx from "clsx/lite";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { keepPreviousData, skipToken } from "@tanstack/react-query";
 import {
 	createColumnHelper,
@@ -10,14 +13,11 @@ import {
 	Row,
 	useReactTable,
 } from "@tanstack/react-table";
-import Link from "next/link";
-import { useMemo, useState } from "react";
 
 import { api, type RouterOutputs } from "~/trpc/react";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
-import clsx from "clsx";
 import { StoryStatus } from "@prisma/client";
 
 type Model = RouterOutputs["story"]["getAll"]["docs"][0];

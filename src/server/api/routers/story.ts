@@ -91,14 +91,73 @@ export const storyRouter = createTRPCRouter({
 				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
 			}
 
-			const totalScore = story.articles.reduce((acc, x) => acc + x.factuality, 0);
-			return { ...story, factuality: totalScore / story.articles.length };
+			let totalScore = 0;
+			const outlets = [];
+
+			for (let i = 0; i < story.articles.length; i++) {
+				const article = story.articles[i]!;
+				totalScore += article.factuality;
+
+				const outletIndex = outlets.findIndex((x) => x.id === article.outlet.id);
+				if (outletIndex !== -1) {
+					outlets[outletIndex]!.publicationCount++;
+					outlets[outletIndex]!.credibility += article.factuality;
+
+					continue;
+				}
+
+				outlets.push({
+					id: article.outlet.id,
+					name: article.outlet.name,
+					logoUrl: article.outlet.logoUrl,
+					credibility: article.factuality,
+					publicationCount: 1,
+				});
+			}
+
+			const outletRanking = outlets
+				.sort((a, b) => b.credibility - a.credibility)
+				.map((x) => ({
+					...x,
+					credibility: Math.round((x.credibility * 100) / x.publicationCount),
+				}));
+
+			return {
+				...story,
+				outletRanking,
+				factuality: totalScore / story.articles.length,
+			};
 		}),
 	getAllOutOfSync: adminProcedure.query(async () => {
 		return await db.story.findMany({
 			where: { modifiedAt: { gte: db.story.fields.synchronizedAt } },
 		});
 	}),
+	search: publicProcedure
+		.input(
+			z.object({
+				query: z.string().optional(),
+				limit: z.number().default(50),
+				offset: z.number().default(0),
+			}),
+		)
+		.query(async ({ input }) => {
+			const isUrl = input.query?.startsWith("http") ?? false;
+			return await db.story.findMany({
+				take: input.limit,
+				skip: input.offset,
+				where: {
+					title: isUrl ? undefined : { contains: input.query, mode: "insensitive" },
+					articles: {
+						some: isUrl ? { externalUrl: { contains: input.query } } : undefined,
+					},
+					status: StoryStatus.PUBLISHED,
+				},
+				include: {
+					_count: { select: { articles: true } },
+				},
+			});
+		}),
 	update: publicProcedure
 		.input(
 			z.object({
