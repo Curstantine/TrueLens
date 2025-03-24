@@ -21,7 +21,7 @@ export async function runScraper() {
 	return (await Promise.all(jobs)).flat();
 }
 
-async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
+export async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 	const resp = await fetch(`https://www.adaderana.lk/hot-news/?pageno=${page}`);
 	const html = await resp.text();
 
@@ -65,7 +65,7 @@ async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 	return articles;
 }
 
-async function scrapeDeranaArticleBody(
+export async function scrapeDeranaArticleBody(
 	url: string,
 	retryCount = 0,
 ): Promise<Pick<SourceArticle, "body" | "coverImageUrl">> {
@@ -91,7 +91,7 @@ async function scrapeDeranaArticleBody(
 	return { body, coverImageUrl };
 }
 
-async function scrapeDailyMirrorLatest(page = 0): Promise<SourceArticle[]> {
+export async function scrapeDailyMirrorLatest(page = 0): Promise<SourceArticle[]> {
 	const resp = await fetch(`https://www.dailymirror.lk/latest-news/108/${page * 30}`);
 	const html = await resp.text();
 
@@ -138,7 +138,7 @@ async function scrapeDailyMirrorLatest(page = 0): Promise<SourceArticle[]> {
 	return articles;
 }
 
-async function scrapeDailyMirrorArticle(
+export async function scrapeDailyMirrorArticle(
 	url: string,
 	retryCount = 0,
 ): Promise<Pick<SourceArticle, "body" | "publishedAt" | "author" | "coverImageUrl">> {
