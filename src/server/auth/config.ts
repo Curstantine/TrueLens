@@ -7,7 +7,8 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialProvider from "next-auth/providers/credentials";
 import bcrypt from "@node-rs/bcrypt";
 import { encode } from "next-auth/jwt";
-import type { UserRole } from "@prisma/client";
+import { UserRole } from "@prisma/client";
+import { NextResponse } from "next/server";
 
 import { db } from "~/server/db";
 import { loginSchema } from "~/server/validation/auth";
@@ -99,6 +100,13 @@ export const authConfig = {
 		 */
 	],
 	callbacks: {
+		authorized: async ({ auth, request: { nextUrl } }) => {
+			if (nextUrl.pathname.startsWith("/admin") && auth?.user.role !== UserRole.ADMIN) {
+				return NextResponse.redirect(new URL("/", nextUrl));
+			}
+
+			return true;
+		},
 		signIn: ({ account, profile }) => {
 			console.dir({ name: "sign-in", account, profile }, { depth: null });
 
