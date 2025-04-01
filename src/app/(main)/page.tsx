@@ -22,7 +22,7 @@ export default async function Page() {
 		<HydrateClient>
 			<main className="pb-6">
 				<Hero />
-				<section className="grid px-6 lg:grid-cols-[1fr_--spacing(80)] 2xl:container">
+				<section className="grid gap-6 px-6 xl:grid-cols-[1fr_--spacing(80)] 2xl:container">
 					<RecentStories />
 					<OutletRanking />
 				</section>
@@ -40,7 +40,7 @@ function Hero() {
 				unoptimized
 				className="h-fit max-h-90 w-full object-cover"
 			/>
-			<div className="absolute inset-0 container flex items-end justify-between px-4 pb-6 2xl:px-0">
+			<div className="absolute inset-0 flex items-end justify-between px-4 pb-6 2xl:container 2xl:px-0">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
 					<h1 className="text-xl leading-tight font-semibold">
@@ -67,15 +67,15 @@ async function RecentStories() {
 		<div className="space-y-3 pt-6 pb-2">
 			<h1 className="text-xl font-semibold">Recent Stories</h1>
 
-			<div className="grid grid-cols-[repeat(auto-fill,--spacing(100))] gap-3">
+			<div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-[repeat(auto-fill,--spacing(94))]">
 				{stories.docs.map((story) => (
 					<StoryCard
 						key={story.id}
 						id={story.id}
 						title={story.title}
 						cover={story.cover}
-						noOfArticles={story._count.articles}
-						factuality={45}
+						articleCount={story.articleCount}
+						factuality={story.factuality}
 					/>
 				))}
 			</div>

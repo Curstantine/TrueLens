@@ -37,7 +37,7 @@ export const storyRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ input }) => {
-			const [total, docs] = await db.$transaction([
+			const [total, data] = await db.$transaction([
 				db.story.count({
 					where: { status: input.status !== null ? input.status : undefined },
 				}),
@@ -52,15 +52,27 @@ export const storyRouter = createTRPCRouter({
 						modifiedAt: true,
 						cover: true,
 						status: true,
-						_count: {
-							select: { articles: true },
-						},
+						articles: { select: { factuality: true } },
 					},
 					orderBy: {
 						[input.orderBy]: input.orderDirection,
 					},
 				}),
 			]);
+
+			const docs = data.map((x) => {
+				const total = x.articles.reduce((a, y) => (a += y.factuality), 0);
+				const len = x.articles.length;
+
+				// @ts-expect-error we want to remove the property regardless
+				delete x.articles;
+
+				return {
+					...x,
+					factuality: Math.round((total / len) * 100),
+					articleCount: len,
+				} as Omit<typeof x, "articles"> & Record<"factuality" | "articleCount", number>;
+			});
 
 			return { docs, total };
 		}),

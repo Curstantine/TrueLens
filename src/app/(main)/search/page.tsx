@@ -39,7 +39,7 @@ export default async function Page({ searchParams }: Props) {
 						id={story.id}
 						title={story.title}
 						cover={story.cover}
-						noOfArticles={story._count.articles}
+						articleCount={story._count.articles}
 						factuality={45}
 					/>
 				))}
