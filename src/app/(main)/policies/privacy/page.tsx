@@ -2,7 +2,7 @@ import { EMAIL } from "~/constants";
 
 export default function Page() {
 	return (
-		<div className="bg-background p-6 text-foreground lg:!max-w-prose 2xl:container">
+		<div className="container max-w-prose bg-background p-6 text-foreground">
 			<h1 className="mb-4 text-3xl font-bold">Privacy Policy</h1>
 			<ul className="text-sm text-muted-foreground">
 				<li>Effective Date: March 10, 2025</li>

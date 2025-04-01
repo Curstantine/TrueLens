@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { PAPER_URL } from "~/constants";
+import { PAPER_URL, GITHUB_REPO } from "~/constants";
 
 import { Spring, CurvedSpring } from "~/app/_components/Spring";
 import SideContentSection from "~/app/_components/SideContentSection";
@@ -18,6 +18,10 @@ import LandingFourImage from "~/app/assets/landing-4.png";
 import ProfileKirushna from "~/app/assets/members/kirushna.jpeg";
 import ProfileRachala from "~/app/assets/members/rachala.jpg";
 import ProfileStephanie from "~/app/assets/members/Stephanie.jpg";
+import ProfileFayaza from "~/app/assets/members/fayaza.png";
+import ProfileLihini from "~/app/assets/members/lihini.png";
+import Button from "~/app/_components/form/Button";
+import GithubLogo from "~/app/_components/icons/GithubLogo";
 
 const TEAM: MemberData[] = [
 	{
@@ -53,6 +57,7 @@ const TEAM: MemberData[] = [
 		links: {
 			linkedin: "https://www.linkedin.com/in/lihini-nayanathara-3372ab2b4",
 		},
+		image: ProfileLihini,
 	},
 	{
 		name: "Mohamed Jiffry Fathima Fayaza",
@@ -60,6 +65,7 @@ const TEAM: MemberData[] = [
 		links: {
 			linkedin: "http://www.linkedin.com/in/fayazamjf8",
 		},
+		image: ProfileFayaza,
 	},
 	{
 		name: "Sheruka Caiden Perera",
@@ -192,6 +198,24 @@ export default function Page() {
 						links={member.links}
 					/>
 				))}
+			</section>
+
+			<section
+				id="open-source"
+				className="mx-auto mt-24 flex max-w-3xl flex-col items-center gap-2 rounded-md border border-border px-6 py-4"
+			>
+				<h1 className="text-center text-3xl font-semibold">We are now open source!</h1>
+				<div className="max-w-prose text-center text-pretty">
+					<p>
+						As part of our mission to improve the transparency between us and the user,
+						TrueLens is fully open-source. You are welcomed to report bugs, feature
+						requests, or even contribute as a developer.
+					</p>
+				</div>
+				<a href={GITHUB_REPO} className="mt-2 inline-flex items-center gap-2 text-primary">
+					<GithubLogo className="size-7" />
+					Check the repostory
+				</a>
 			</section>
 		</main>
 	);
