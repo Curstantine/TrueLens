@@ -56,7 +56,7 @@ const columns = [
 			</Link>
 		),
 	}),
-	columnHelper.accessor("_count.articles", { header: "Article #", size: 100 }),
+	columnHelper.accessor("articleCount", { header: "Article #", size: 100 }),
 	columnHelper.accessor("createdAt", {
 		header: "Created At",
 		minSize: 150,
