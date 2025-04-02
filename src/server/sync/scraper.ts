@@ -22,7 +22,13 @@ export async function runScraper() {
 }
 
 export async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
-	const resp = await fetch(`https://www.adaderana.lk/hot-news/?pageno=${page}`);
+	const resp = await fetch(`https://www.adaderana.lk/hot-news/?pageno=${page}`, {
+		headers: {
+			"User-Agent":
+				"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+		},
+	});
+
 	const html = await resp.text();
 
 	const $ = cheerio.load(html);
