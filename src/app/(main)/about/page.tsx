@@ -20,7 +20,6 @@ import ProfileRachala from "~/app/assets/members/rachala.jpg";
 import ProfileStephanie from "~/app/assets/members/Stephanie.jpg";
 import ProfileFayaza from "~/app/assets/members/fayaza.png";
 import ProfileLihini from "~/app/assets/members/lihini.png";
-import Button from "~/app/_components/form/Button";
 import GithubLogo from "~/app/_components/icons/GithubLogo";
 
 const TEAM: MemberData[] = [
