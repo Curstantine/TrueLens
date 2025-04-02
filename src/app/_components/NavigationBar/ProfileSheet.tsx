@@ -17,10 +17,11 @@ import { ListItemButton, ListItemLink } from "~/app/_components/list/ListItem";
 import LogoutRoundedIcon from "~/app/_components/icons/material/LogoutRounded";
 import PersonOutlineRoundedIcon from "~/app/_components/icons/material/PersonOutlineRounded";
 import SettingsOutlineRounded from "~/app/_components/icons/material/SettingsOutlineRounded";
+import AdminPanelSettingsOutlineRoundedIcon from "~/app/_components/icons/material/AdminPanelSettingsOutlineRounded";
 
-type Props = { name: string; email: string; children: ReactNode };
+type Props = { name: string; email: string; showAdmin: boolean; children: ReactNode };
 
-export default function ProfileSheet({ name, email, children }: Props) {
+export default function ProfileSheet({ name, email, showAdmin, children }: Props) {
 	const buttonRef = useRef<HTMLButtonElement>(null);
 	const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -68,6 +69,7 @@ export default function ProfileSheet({ name, email, children }: Props) {
 						initial={initialPos}
 						onBlur={onBlur}
 						show={isOpen}
+						showAdmin={showAdmin}
 					/>,
 					document.body,
 					"nav-profile-sheet",
@@ -83,7 +85,7 @@ type SheetProps = Omit<Props, "children"> & {
 	onBlur: FocusEventHandler<unknown>;
 };
 
-function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
+function Sheet({ ref, show, name, email, initial, showAdmin, onBlur }: SheetProps) {
 	return (
 		<div
 			ref={ref}
@@ -110,6 +112,13 @@ function Sheet({ ref, show, name, email, initial, onBlur }: SheetProps) {
 			<ul className="">
 				<ListItemLink href="/profile" label="Profile" icon={PersonOutlineRoundedIcon} />
 				<ListItemLink href="/settings" label="Settings" icon={SettingsOutlineRounded} />
+				{showAdmin && (
+					<ListItemLink
+						href="/admin"
+						label="Admin Panel"
+						icon={AdminPanelSettingsOutlineRoundedIcon}
+					/>
+				)}
 				<ListItemButton
 					label="Sign out"
 					icon={LogoutRoundedIcon}

@@ -3,7 +3,7 @@
 import clsx from "clsx/lite";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { keepPreviousData, skipToken } from "@tanstack/react-query";
+import { keepPreviousData } from "@tanstack/react-query";
 import {
 	createColumnHelper,
 	flexRender,
@@ -80,24 +80,17 @@ const columns = [
 
 type EditLinkProps = { id: string };
 function EditLink({ id }: EditLinkProps) {
-	const [hovered, setHovered] = useState(false);
-	api.story.getById.usePrefetchQuery(hovered ? { id } : skipToken, {
-		staleTime: 600000,
-	});
+	api.story.getById.usePrefetchQuery({ id }, { staleTime: 600000 });
 
 	return (
-		<Link
-			href={`/admin/stories/${id}`}
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}
-		>
+		<Link href={`/admin/stories/${id}`}>
 			<EditSquareOutlineRounded className="size-5" />
 		</Link>
 	);
 }
 
 export default function StoryTable() {
-	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 100 });
+	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
 	const storyQuery = api.story.getAll.useQuery(
 		{ limit: pagination.pageSize, offset: pagination.pageIndex, status: null },
 		{ placeholderData: keepPreviousData },
@@ -114,8 +107,6 @@ export default function StoryTable() {
 		manualPagination: true,
 		getCoreRowModel: getCoreRowModel(),
 	});
-
-	if (storyQuery.status !== "success") return <span>Loading</span>;
 
 	return (
 		<div>
@@ -157,9 +148,12 @@ export default function StoryTable() {
 
 				<div className="flex-1" />
 
-				<span className="text-sm text-muted-foreground">
-					Showing {pagination.pageIndex}-{pagination.pageSize} of {storyQuery.data.total}{" "}
-					stories
+				<span
+					aria-disabled={!storyQuery.data}
+					className="text-sm text-muted-foreground aria-disabled:opacity-50"
+				>
+					Showing {pagination.pageIndex}-{pagination.pageSize} of{" "}
+					{storyQuery.data?.total ?? 0} stories
 				</span>
 			</div>
 		</div>

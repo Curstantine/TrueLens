@@ -6,6 +6,7 @@ import { auth } from "~/server/auth";
 import Avatar from "~/app/_components/Avatar";
 import PersonOutlineRoundedIcon from "~/app/_components/icons/material/PersonOutlineRounded";
 import ProfileSheet from "~/app/_components/NavigationBar/ProfileSheet";
+import { UserRole } from "@prisma/client";
 
 export default async function Profile() {
 	const session = await auth();
@@ -22,7 +23,11 @@ export default async function Profile() {
 	}
 
 	return (
-		<ProfileSheet name={session.user.name} email={session.user.email}>
+		<ProfileSheet
+			name={session.user.name}
+			email={session.user.email}
+			showAdmin={session.user.role === UserRole.ADMIN}
+		>
 			<Avatar
 				avatarUrl={session.user.image}
 				alt={`${session.user.name}'s avatar`}
