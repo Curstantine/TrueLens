@@ -158,6 +158,7 @@ model NewsOutlet {
 
 enum ConfigurationKey {
     LAST_SYNC_DATE
+    BREAKING_NEWS_STORY_ID
 }
 
 model Configuration {

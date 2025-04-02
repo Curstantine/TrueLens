@@ -1,10 +1,24 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { StoryStatus } from "@prisma/client";
+import { type Article, ConfigurationKey, StoryStatus } from "@prisma/client";
 
 import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+
+function calculateStoryFactuality<T extends { articles: Pick<Article, "factuality">[] }>(x: T) {
+	const total = x.articles.reduce((a, y) => (a += y.factuality), 0);
+	const len = x.articles.length;
+
+	// @ts-expect-error we want to remove the property regardless
+	delete x.articles;
+
+	return {
+		...x,
+		factuality: Math.round((total / len) * 100),
+		articleCount: len,
+	} as Omit<typeof x, "articles"> & Record<"factuality" | "articleCount", number>;
+}
 
 export const storyRouter = createTRPCRouter({
 	create: publicProcedure
@@ -25,7 +39,6 @@ export const storyRouter = createTRPCRouter({
 				},
 			});
 		}),
-
 	getAll: publicProcedure
 		.input(
 			z.object({
@@ -60,28 +73,47 @@ export const storyRouter = createTRPCRouter({
 				}),
 			]);
 
-			const docs = data.map((x) => {
-				const total = x.articles.reduce((a, y) => (a += y.factuality), 0);
-				const len = x.articles.length;
-
-				// @ts-expect-error we want to remove the property regardless
-				delete x.articles;
-
-				return {
-					...x,
-					factuality: Math.round((total / len) * 100),
-					articleCount: len,
-				} as Omit<typeof x, "articles"> & Record<"factuality" | "articleCount", number>;
-			});
-
+			const docs = data.map(calculateStoryFactuality);
 			return { docs, total };
 		}),
-	approveStory: publicProcedure
+	approveStory: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.mutation(async ({ input }) => {
 			return await db.story.update({
 				where: { id: input.id },
 				data: { status: StoryStatus.PUBLISHED },
+			});
+		}),
+	getBreakingStory: publicProcedure.query(async () => {
+		const breaking = await db.configuration.findUnique({
+			where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
+			select: { value: true },
+		});
+
+		if (!breaking) {
+			throw new TRPCError({
+				code: "NOT_FOUND",
+				message: "Could not find a breaking news story",
+			});
+		}
+
+		return await db.story.findUnique({ where: { id: breaking.value } });
+	}),
+	updateBreakingStory: adminProcedure
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.mutation(async ({ input }) => {
+			const exists = await db.story.findUnique({
+				where: { id: input.id },
+				select: { id: true },
+			});
+
+			if (!exists) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
+			}
+
+			return await db.configuration.update({
+				where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
+				data: { value: input.id },
 			});
 		}),
 	getById: publicProcedure
