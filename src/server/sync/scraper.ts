@@ -31,6 +31,7 @@ export async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 	const articles: SourceArticle[] = [];
 	const jobs: Promise<void>[] = [];
 
+	console.log(divs.toArray());
 	for (let i = 0; i < divs.length; i++) {
 		const article = $(divs[i]);
 		const header = article.find("h2.hidden-xs > a[target='_blank']");
