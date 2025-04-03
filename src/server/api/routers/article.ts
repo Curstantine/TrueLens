@@ -86,7 +86,7 @@ export const articleRouter = createTRPCRouter({
 		)
 		.query(async ({ input }) => {
 			const [total, docs] = await db.$transaction([
-				db.story.count(),
+				db.article.count(),
 				db.article.findMany({
 					take: input.limit,
 					skip: input.offset,

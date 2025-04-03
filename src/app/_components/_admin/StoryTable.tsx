@@ -264,7 +264,7 @@ function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
 	const utils = api.useUtils();
 	const deleteStory = api.story.delete.useMutation({
 		onError: (e) => {
-			toast.error("Failed to deleted to the story", {
+			toast.error("Failed to delete the story", {
 				description: e.message,
 			});
 		},
