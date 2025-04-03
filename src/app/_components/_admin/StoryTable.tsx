@@ -21,6 +21,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
 import PageHeaderOutlineRoundedIcon from "~/app/_components/icons/material/PageHeaderOutlineRounded";
+import DeleteOutlineRoundedIcon from "~/app/_components/icons/material/DeleteOutlineRounded";
 
 type Model = RouterOutputs["story"]["getAll"]["docs"][0];
 
@@ -75,6 +76,7 @@ const columns = [
 		cell: (cell) => (
 			<div className="mt-1 inline-flex gap-3">
 				<BreakingStoryButton id={cell.row.original.id} status={cell.row.original.status} />
+				<DeleteStoryButton id={cell.row.original.id} />
 				<EditLink id={cell.row.original.id} />
 			</div>
 		),
@@ -117,6 +119,44 @@ function BreakingStoryButton({ id, status }: BreakingStoryButtonProps) {
 			className="transition-[opacity,color] disabled:opacity-50 data-[selected='true']:text-green-600"
 		>
 			<PageHeaderOutlineRoundedIcon className="size-5" />
+		</button>
+	);
+}
+
+type DeleteStoryButtonProps = Pick<BreakingStoryButtonProps, "id">;
+function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
+	const [confirmed, confirm] = useState(false);
+	const utils = api.useUtils();
+	const deleteStory = api.story.delete.useMutation({
+		onError: (e) => {
+			toast.error("Failed to deleted to the story", {
+				description: e.message,
+			});
+		},
+		onSuccess: ([, input]) => {
+			utils.story.getAll.invalidate();
+			utils.story.getById.invalidate({ id: input.id });
+			utils.story.getByIdReduced.invalidate({ id: input.id });
+
+			toast.success("Successfully deleted story");
+		},
+	});
+
+	return (
+		<button
+			type="button"
+			data-confirmed={confirmed}
+			onBlur={() => confirm(false)}
+			onClick={() => {
+				if (confirmed) deleteStory.mutate({ id });
+				else {
+					toast.warning("Press again to confirm the delete action");
+					confirm(true);
+				}
+			}}
+			className="transition-[opacity,color] data-[confirmed='true']:text-red-600"
+		>
+			<DeleteOutlineRoundedIcon className="size-5" />
 		</button>
 	);
 }

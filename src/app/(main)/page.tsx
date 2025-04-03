@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 
-import { api, HydrateClient } from "~/trpc/server";
+import { api } from "~/trpc/server";
 
 import StoryCard from "~/app/_components/card/StoryCard";
 import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
@@ -11,45 +12,54 @@ import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
 import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
 import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
 
-import HeroTempImage from "~/app/assets/placeholder/img.png";
-
 export const metadata: Metadata = {
 	title: "TrueLens",
 };
 
-export default async function Page() {
+export default function Page() {
 	return (
-		<HydrateClient>
-			<main className="pb-6">
-				<Hero />
-				<section className="grid gap-6 px-6 xl:grid-cols-[1fr_--spacing(80)] 2xl:container">
-					<RecentStories />
-					<OutletRanking />
-				</section>
-			</main>
-		</HydrateClient>
+		<main className="pb-6">
+			<Hero />
+			<section className="grid gap-6 px-6 xl:grid-cols-[1fr_--spacing(80)] 2xl:container">
+				<RecentStories />
+				<OutletRanking />
+			</section>
+		</main>
 	);
 }
 
-function Hero() {
+async function Hero() {
+	const storyId = await api.configuration.getBreakingStoryId();
+	const story = await api.story.getByIdReduced({ id: storyId! });
+
 	return (
 		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
-			<Image
-				src={HeroTempImage}
-				alt=""
-				unoptimized
-				className="h-fit max-h-90 w-full object-cover"
-			/>
+			{story.cover && (
+				<Image
+					src={story.cover}
+					alt=""
+					width={1512}
+					height={360}
+					sizes="100vw"
+					quality={100}
+					className="h-fit max-h-90 w-full object-cover object-top"
+				/>
+			)}
 			<div className="absolute inset-0 flex items-end justify-between px-4 pb-6 2xl:container 2xl:px-0">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
-					<h1 className="text-xl leading-tight font-semibold">
-						Parliament sets up information counter for freshly elected MPs
-					</h1>
+					<Link
+						href={`/story/${story.id}`}
+						className="text-xl leading-tight font-semibold"
+					>
+						{story.title}
+					</Link>
 				</div>
 
 				<div className="flex w-fit rounded-md bg-background px-4 py-2 text-sm shadow-lg">
-					<span>12 Reports, 72% Factuality</span>
+					<span>
+						{story.articleCount} Reports, {story.factuality}% Factuality
+					</span>
 				</div>
 			</div>
 		</section>

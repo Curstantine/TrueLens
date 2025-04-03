@@ -84,6 +84,25 @@ export const storyRouter = createTRPCRouter({
 				data: { status: StoryStatus.PUBLISHED },
 			});
 		}),
+	getByIdReduced: publicProcedure
+		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
+		.query(async ({ input }) => {
+			const story = await db.story.findUnique({
+				where: { id: input.id },
+				select: {
+					id: true,
+					title: true,
+					cover: true,
+					articles: { select: { factuality: true } },
+				},
+			});
+
+			if (!story) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
+			}
+
+			return calculateStoryFactuality(story);
+		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
