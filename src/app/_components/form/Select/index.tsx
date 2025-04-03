@@ -6,6 +6,7 @@ import {
 	type FocusEventHandler,
 	type MouseEventHandler,
 	type ReactNode,
+	Children,
 } from "react";
 import { createPortal } from "react-dom";
 import { useDelayedToggleState } from "@jabascript/react/client";
@@ -45,7 +46,7 @@ export default function Select({
 
 		const bounding = e.currentTarget.getBoundingClientRect();
 
-		const childrenLength = children ? (Array.isArray(children) ? children.length : 1) : 0;
+		const childrenLength = Children.count(children);
 		const renderHeight = childrenLength * 32 + 16;
 
 		const availableSpace = window.innerHeight - bounding.bottom;

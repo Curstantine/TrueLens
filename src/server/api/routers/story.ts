@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { type Article, StoryStatus } from "@prisma/client";
+import { type Article, ConfigurationKey, StoryStatus } from "@prisma/client";
 
 import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
@@ -47,9 +47,20 @@ export const storyRouter = createTRPCRouter({
 				orderBy: z.enum(["createdAt", "title"]).default("createdAt"),
 				orderDirection: z.enum(["asc", "desc"]).default("desc"),
 				status: z.nativeEnum(StoryStatus).default(StoryStatus.PUBLISHED).or(z.null()),
+				includeBreakingNews: z.boolean().default(false),
 			}),
 		)
 		.query(async ({ input }) => {
+			let breakingNewsId: string | null = null;
+			if (!input.includeBreakingNews) {
+				const resp = await db.configuration.findUnique({
+					where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
+					select: { value: true },
+				});
+
+				breakingNewsId = resp?.value ?? null;
+			}
+
 			const [total, data] = await db.$transaction([
 				db.story.count({
 					where: { status: input.status !== null ? input.status : undefined },
@@ -57,7 +68,10 @@ export const storyRouter = createTRPCRouter({
 				db.story.findMany({
 					take: input.limit,
 					skip: input.offset,
-					where: { status: input.status !== null ? input.status : undefined },
+					where: {
+						id: !breakingNewsId ? undefined : { not: breakingNewsId },
+						status: input.status !== null ? input.status : undefined,
+					},
 					select: {
 						id: true,
 						title: true,

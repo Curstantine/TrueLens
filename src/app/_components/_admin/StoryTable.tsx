@@ -3,9 +3,9 @@
 import clsx from "clsx/lite";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useMemo, useState } from "react";
 import { StoryStatus } from "@prisma/client";
 import { keepPreviousData } from "@tanstack/react-query";
+import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import {
 	createColumnHelper,
 	flexRender,
@@ -17,6 +17,10 @@ import {
 } from "@tanstack/react-table";
 
 import { api, type RouterOutputs } from "~/trpc/react";
+import { asReadableStoryStatus } from "~/utils/grammar";
+
+import Select from "~/app/_components/form/Select";
+import SelectItem from "~/app/_components/form/Select/Item";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
@@ -85,8 +89,15 @@ const columns = [
 
 export default function StoryTable() {
 	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
+	const [status, setStatus] = useState<StoryStatus | "all">("all");
+
 	const storyQuery = api.story.getAll.useQuery(
-		{ limit: pagination.pageSize, offset: pagination.pageIndex, status: null },
+		{
+			limit: pagination.pageSize,
+			offset: pagination.pageIndex,
+			status: status === "all" ? null : status,
+			includeBreakingNews: true,
+		},
 		{ placeholderData: keepPreviousData },
 	);
 
@@ -104,6 +115,7 @@ export default function StoryTable() {
 
 	return (
 		<div>
+			<Filter status={[status, setStatus]} />
 			<table className="w-full">
 				<thead>
 					{table.getHeaderGroups().map((headerGroup) => (
@@ -150,6 +162,25 @@ export default function StoryTable() {
 					{storyQuery.data?.total ?? 0} stories
 				</span>
 			</div>
+		</div>
+	);
+}
+
+type FilterProps = { status: [StoryStatus | "all", Dispatch<SetStateAction<StoryStatus | "all">>] };
+function Filter({ status: [status, setStatus] }: FilterProps) {
+	return (
+		<div className="mb-2 grid grid-cols-[--spacing(48)_1fr]">
+			<Select
+				label="Status"
+				placeholder="Select a status"
+				defaultValue={status}
+				onValueChange={(x) => setStatus(x as StoryStatus)}
+			>
+				<SelectItem value="all" label="All" />
+				{Object.entries(StoryStatus).map(([key, value]) => (
+					<SelectItem key={key} value={key} label={asReadableStoryStatus(value)} />
+				))}
+			</Select>
 		</div>
 	);
 }
