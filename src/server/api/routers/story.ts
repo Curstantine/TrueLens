@@ -47,9 +47,20 @@ export const storyRouter = createTRPCRouter({
 				orderBy: z.enum(["createdAt", "title"]).default("createdAt"),
 				orderDirection: z.enum(["asc", "desc"]).default("desc"),
 				status: z.nativeEnum(StoryStatus).default(StoryStatus.PUBLISHED).or(z.null()),
+				includeBreakingNews: z.boolean().default(false),
 			}),
 		)
 		.query(async ({ input }) => {
+			let breakingNewsId: string | null = null;
+			if (!input.includeBreakingNews) {
+				const resp = await db.configuration.findUnique({
+					where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
+					select: { value: true },
+				});
+
+				breakingNewsId = resp?.value ?? null;
+			}
+
 			const [total, data] = await db.$transaction([
 				db.story.count({
 					where: { status: input.status !== null ? input.status : undefined },
@@ -57,7 +68,10 @@ export const storyRouter = createTRPCRouter({
 				db.story.findMany({
 					take: input.limit,
 					skip: input.offset,
-					where: { status: input.status !== null ? input.status : undefined },
+					where: {
+						id: !breakingNewsId ? undefined : { not: breakingNewsId },
+						status: input.status !== null ? input.status : undefined,
+					},
 					select: {
 						id: true,
 						title: true,
@@ -84,37 +98,24 @@ export const storyRouter = createTRPCRouter({
 				data: { status: StoryStatus.PUBLISHED },
 			});
 		}),
-	getBreakingStory: publicProcedure.query(async () => {
-		const breaking = await db.configuration.findUnique({
-			where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
-			select: { value: true },
-		});
-
-		if (!breaking) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				message: "Could not find a breaking news story",
-			});
-		}
-
-		return await db.story.findUnique({ where: { id: breaking.value } });
-	}),
-	updateBreakingStory: adminProcedure
+	getByIdReduced: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.mutation(async ({ input }) => {
-			const exists = await db.story.findUnique({
+		.query(async ({ input }) => {
+			const story = await db.story.findUnique({
 				where: { id: input.id },
-				select: { id: true },
+				select: {
+					id: true,
+					title: true,
+					cover: true,
+					articles: { select: { factuality: true } },
+				},
 			});
 
-			if (!exists) {
+			if (!story) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
 			}
 
-			return await db.configuration.update({
-				where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
-				data: { value: input.id },
-			});
+			return calculateStoryFactuality(story);
 		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))

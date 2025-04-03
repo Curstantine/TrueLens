@@ -59,7 +59,7 @@ export function SelectProvider({
 		for (let i = 0; i < children.length; i++) {
 			const xr = children[i];
 			// @ts-expect-error - React node could have the props we are looking
-			if (xr?.props?.value && xr?.props.label) {
+			if (xr?.props?.value && xr?.props.label && xr?.props?.value === defaultValue) {
 				// @ts-expect-error - ^^ check already makes sure these exist
 				const { value, label } = xr.props as { value: string; label: string };
 				select(value, label);

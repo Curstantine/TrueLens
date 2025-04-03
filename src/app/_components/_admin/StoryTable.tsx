@@ -2,8 +2,10 @@
 
 import clsx from "clsx/lite";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { StoryStatus } from "@prisma/client";
 import { keepPreviousData } from "@tanstack/react-query";
+import { type Dispatch, type SetStateAction, useMemo, useState } from "react";
 import {
 	createColumnHelper,
 	flexRender,
@@ -15,10 +17,15 @@ import {
 } from "@tanstack/react-table";
 
 import { api, type RouterOutputs } from "~/trpc/react";
+import { asReadableStoryStatus } from "~/utils/grammar";
+
+import Select from "~/app/_components/form/Select";
+import SelectItem from "~/app/_components/form/Select/Item";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
-import { StoryStatus } from "@prisma/client";
+import PageHeaderOutlineRoundedIcon from "~/app/_components/icons/material/PageHeaderOutlineRounded";
+import DeleteOutlineRoundedIcon from "~/app/_components/icons/material/DeleteOutlineRounded";
 
 type Model = RouterOutputs["story"]["getAll"]["docs"][0];
 
@@ -72,27 +79,25 @@ const columns = [
 		size: 100,
 		cell: (cell) => (
 			<div className="mt-1 inline-flex gap-3">
+				<BreakingStoryButton id={cell.row.original.id} status={cell.row.original.status} />
+				<DeleteStoryButton id={cell.row.original.id} />
 				<EditLink id={cell.row.original.id} />
 			</div>
 		),
 	}),
 ];
 
-type EditLinkProps = { id: string };
-function EditLink({ id }: EditLinkProps) {
-	api.story.getById.usePrefetchQuery({ id }, { staleTime: 600000 });
-
-	return (
-		<Link href={`/admin/stories/${id}`}>
-			<EditSquareOutlineRounded className="size-5" />
-		</Link>
-	);
-}
-
 export default function StoryTable() {
 	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
+	const [status, setStatus] = useState<StoryStatus | "all">("all");
+
 	const storyQuery = api.story.getAll.useQuery(
-		{ limit: pagination.pageSize, offset: pagination.pageIndex, status: null },
+		{
+			limit: pagination.pageSize,
+			offset: pagination.pageIndex,
+			status: status === "all" ? null : status,
+			includeBreakingNews: true,
+		},
 		{ placeholderData: keepPreviousData },
 	);
 
@@ -110,6 +115,7 @@ export default function StoryTable() {
 
 	return (
 		<div>
+			<Filter status={[status, setStatus]} />
 			<table className="w-full">
 				<thead>
 					{table.getHeaderGroups().map((headerGroup) => (
@@ -160,6 +166,25 @@ export default function StoryTable() {
 	);
 }
 
+type FilterProps = { status: [StoryStatus | "all", Dispatch<SetStateAction<StoryStatus | "all">>] };
+function Filter({ status: [status, setStatus] }: FilterProps) {
+	return (
+		<div className="mb-2 grid grid-cols-[--spacing(48)_1fr]">
+			<Select
+				label="Status"
+				placeholder="Select a status"
+				defaultValue={status}
+				onValueChange={(x) => setStatus(x as StoryStatus)}
+			>
+				<SelectItem value="all" label="All" />
+				{Object.entries(StoryStatus).map(([key, value]) => (
+					<SelectItem key={key} value={key} label={asReadableStoryStatus(value)} />
+				))}
+			</Select>
+		</div>
+	);
+}
+
 type HeaderProps = { header: Header<Model, unknown> };
 
 function TableHeader({ header }: HeaderProps) {
@@ -189,5 +214,85 @@ function TableRow({ row }: RowProps) {
 				);
 			})}
 		</tr>
+	);
+}
+
+type EditLinkProps = { id: string };
+function EditLink({ id }: EditLinkProps) {
+	api.story.getById.usePrefetchQuery({ id }, { staleTime: 600000 });
+
+	return (
+		<Link href={`/admin/stories/${id}`}>
+			<EditSquareOutlineRounded className="size-5" />
+		</Link>
+	);
+}
+
+type BreakingStoryButtonProps = Pick<EditLinkProps, "id"> & { status: StoryStatus };
+function BreakingStoryButton({ id, status }: BreakingStoryButtonProps) {
+	const utils = api.useUtils();
+	const breakingStoryQuery = api.configuration.getBreakingStoryId.useQuery();
+	const updateBreakingStory = api.configuration.updateBreakingStoryId.useMutation({
+		onError: (e) => {
+			toast.error("Failed to update breaking news", {
+				description: e.message,
+			});
+		},
+		onSuccess: () => {
+			utils.configuration.getBreakingStoryId.invalidate();
+			toast.success("Successfully updated breaking news");
+		},
+	});
+
+	return (
+		<button
+			type="button"
+			title="Update as breaking story"
+			disabled={!breakingStoryQuery.data || status !== StoryStatus.PUBLISHED}
+			data-selected={breakingStoryQuery.data === id}
+			onClick={() => updateBreakingStory.mutate({ value: id })}
+			className="transition-[opacity,color] disabled:opacity-50 data-[selected='true']:text-green-600"
+		>
+			<PageHeaderOutlineRoundedIcon className="size-5" />
+		</button>
+	);
+}
+
+type DeleteStoryButtonProps = Pick<BreakingStoryButtonProps, "id">;
+function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
+	const [confirmed, confirm] = useState(false);
+	const utils = api.useUtils();
+	const deleteStory = api.story.delete.useMutation({
+		onError: (e) => {
+			toast.error("Failed to delete the story", {
+				description: e.message,
+			});
+		},
+		onSuccess: ([, input]) => {
+			utils.story.getAll.invalidate();
+			utils.story.getById.invalidate({ id: input.id });
+			utils.story.getByIdReduced.invalidate({ id: input.id });
+
+			toast.success("Successfully deleted story");
+		},
+	});
+
+	return (
+		<button
+			type="button"
+			title="Delete story"
+			data-confirmed={confirmed}
+			onBlur={() => confirm(false)}
+			onClick={() => {
+				if (confirmed) deleteStory.mutate({ id });
+				else {
+					toast.warning("Press again to confirm the delete action");
+					confirm(true);
+				}
+			}}
+			className="transition-[opacity,color] data-[confirmed='true']:text-red-600"
+		>
+			<DeleteOutlineRoundedIcon className="size-5" />
+		</button>
 	);
 }

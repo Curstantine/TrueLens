@@ -119,7 +119,6 @@ model Story {
     cover          String?
     status         StoryStatus @default(NEEDS_APPROVAL)
     createdAt      DateTime    @default(now())
-    isBreakingNews Boolean     @default(false)
     synchronizedAt DateTime    @default(now())
     modifiedAt     DateTime    @default(now())
 

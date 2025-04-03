@@ -5,5 +5,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-	return <main className="">Admin Panel Home</main>;
+	return (
+		<main className="space-y-4 pt-4 pl-6">
+			<h1 className="text-2xl font-semibold">Dashboard</h1>
+		</main>
+	);
 }
