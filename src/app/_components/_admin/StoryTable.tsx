@@ -83,84 +83,6 @@ const columns = [
 	}),
 ];
 
-type EditLinkProps = { id: string };
-function EditLink({ id }: EditLinkProps) {
-	api.story.getById.usePrefetchQuery({ id }, { staleTime: 600000 });
-
-	return (
-		<Link href={`/admin/stories/${id}`}>
-			<EditSquareOutlineRounded className="size-5" />
-		</Link>
-	);
-}
-
-type BreakingStoryButtonProps = Pick<EditLinkProps, "id"> & { status: StoryStatus };
-function BreakingStoryButton({ id, status }: BreakingStoryButtonProps) {
-	const utils = api.useUtils();
-	const breakingStoryQuery = api.configuration.getBreakingStoryId.useQuery();
-	const updateBreakingStory = api.configuration.updateBreakingStoryId.useMutation({
-		onError: (e) => {
-			toast.error("Failed to update breaking news", {
-				description: e.message,
-			});
-		},
-		onSuccess: () => {
-			utils.configuration.getBreakingStoryId.invalidate();
-			toast.success("Successfully updated breaking news");
-		},
-	});
-
-	return (
-		<button
-			type="button"
-			disabled={!breakingStoryQuery.data || status !== StoryStatus.PUBLISHED}
-			data-selected={breakingStoryQuery.data === id}
-			onClick={() => updateBreakingStory.mutate({ value: id })}
-			className="transition-[opacity,color] disabled:opacity-50 data-[selected='true']:text-green-600"
-		>
-			<PageHeaderOutlineRoundedIcon className="size-5" />
-		</button>
-	);
-}
-
-type DeleteStoryButtonProps = Pick<BreakingStoryButtonProps, "id">;
-function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
-	const [confirmed, confirm] = useState(false);
-	const utils = api.useUtils();
-	const deleteStory = api.story.delete.useMutation({
-		onError: (e) => {
-			toast.error("Failed to deleted to the story", {
-				description: e.message,
-			});
-		},
-		onSuccess: ([, input]) => {
-			utils.story.getAll.invalidate();
-			utils.story.getById.invalidate({ id: input.id });
-			utils.story.getByIdReduced.invalidate({ id: input.id });
-
-			toast.success("Successfully deleted story");
-		},
-	});
-
-	return (
-		<button
-			type="button"
-			data-confirmed={confirmed}
-			onBlur={() => confirm(false)}
-			onClick={() => {
-				if (confirmed) deleteStory.mutate({ id });
-				else {
-					toast.warning("Press again to confirm the delete action");
-					confirm(true);
-				}
-			}}
-			className="transition-[opacity,color] data-[confirmed='true']:text-red-600"
-		>
-			<DeleteOutlineRoundedIcon className="size-5" />
-		</button>
-	);
-}
-
 export default function StoryTable() {
 	const [pagination, page] = useState<PaginationState>({ pageIndex: 0, pageSize: 50 });
 	const storyQuery = api.story.getAll.useQuery(
@@ -261,5 +183,85 @@ function TableRow({ row }: RowProps) {
 				);
 			})}
 		</tr>
+	);
+}
+
+type EditLinkProps = { id: string };
+function EditLink({ id }: EditLinkProps) {
+	api.story.getById.usePrefetchQuery({ id }, { staleTime: 600000 });
+
+	return (
+		<Link href={`/admin/stories/${id}`}>
+			<EditSquareOutlineRounded className="size-5" />
+		</Link>
+	);
+}
+
+type BreakingStoryButtonProps = Pick<EditLinkProps, "id"> & { status: StoryStatus };
+function BreakingStoryButton({ id, status }: BreakingStoryButtonProps) {
+	const utils = api.useUtils();
+	const breakingStoryQuery = api.configuration.getBreakingStoryId.useQuery();
+	const updateBreakingStory = api.configuration.updateBreakingStoryId.useMutation({
+		onError: (e) => {
+			toast.error("Failed to update breaking news", {
+				description: e.message,
+			});
+		},
+		onSuccess: () => {
+			utils.configuration.getBreakingStoryId.invalidate();
+			toast.success("Successfully updated breaking news");
+		},
+	});
+
+	return (
+		<button
+			type="button"
+			title="Update as breaking story"
+			disabled={!breakingStoryQuery.data || status !== StoryStatus.PUBLISHED}
+			data-selected={breakingStoryQuery.data === id}
+			onClick={() => updateBreakingStory.mutate({ value: id })}
+			className="transition-[opacity,color] disabled:opacity-50 data-[selected='true']:text-green-600"
+		>
+			<PageHeaderOutlineRoundedIcon className="size-5" />
+		</button>
+	);
+}
+
+type DeleteStoryButtonProps = Pick<BreakingStoryButtonProps, "id">;
+function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
+	const [confirmed, confirm] = useState(false);
+	const utils = api.useUtils();
+	const deleteStory = api.story.delete.useMutation({
+		onError: (e) => {
+			toast.error("Failed to deleted to the story", {
+				description: e.message,
+			});
+		},
+		onSuccess: ([, input]) => {
+			utils.story.getAll.invalidate();
+			utils.story.getById.invalidate({ id: input.id });
+			utils.story.getByIdReduced.invalidate({ id: input.id });
+
+			toast.success("Successfully deleted story");
+		},
+	});
+
+	return (
+		<button
+			type="button"
+			title="Delete story"
+			data-confirmed={confirmed}
+			onBlur={() => confirm(false)}
+			onClick={() => {
+				if (confirmed) deleteStory.mutate({ id });
+				else {
+					toast.warning("Press again to confirm the delete action");
+					confirm(true);
+				}
+			}}
+			className="transition-[opacity,color] data-[confirmed='true']:text-red-600"
+		>
+			<DeleteOutlineRoundedIcon className="size-5" />
+		</button>
 	);
 }

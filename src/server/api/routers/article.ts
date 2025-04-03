@@ -75,11 +75,27 @@ export const articleRouter = createTRPCRouter({
 				},
 			});
 		}),
-	getAll: publicProcedure.query(async () => {
-		return await db.article.findMany({
-			include: { reporter: true, story: true },
-		});
-	}),
+	getAll: publicProcedure
+		.input(
+			z.object({
+				limit: z.number().min(1).max(100).default(100),
+				offset: z.number().min(0).default(0),
+				orderBy: z.enum(["createdAt", "title"]).default("createdAt"),
+				orderDirection: z.enum(["asc", "desc"]).default("desc"),
+			}),
+		)
+		.query(async ({ input }) => {
+			const [total, docs] = await db.$transaction([
+				db.story.count(),
+				db.article.findMany({
+					take: input.limit,
+					skip: input.offset,
+					include: { reporter: true, story: true },
+				}),
+			]);
+
+			return { total, docs };
+		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.query(async ({ input }) => {
