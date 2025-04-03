@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
+	void api.configuration.getBreakingStoryId.prefetch();
 	void api.story.getAll.prefetch({ limit: 100, offset: 0, status: null });
 
 	return (

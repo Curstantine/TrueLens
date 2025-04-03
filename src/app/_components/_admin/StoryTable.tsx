@@ -2,7 +2,9 @@
 
 import clsx from "clsx/lite";
 import Link from "next/link";
+import { toast } from "sonner";
 import { useMemo, useState } from "react";
+import { StoryStatus } from "@prisma/client";
 import { keepPreviousData } from "@tanstack/react-query";
 import {
 	createColumnHelper,
@@ -18,7 +20,7 @@ import { api, type RouterOutputs } from "~/trpc/react";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
-import { StoryStatus } from "@prisma/client";
+import PageHeaderOutlineRoundedIcon from "~/app/_components/icons/material/PageHeaderOutlineRounded";
 
 type Model = RouterOutputs["story"]["getAll"]["docs"][0];
 
@@ -72,6 +74,7 @@ const columns = [
 		size: 100,
 		cell: (cell) => (
 			<div className="mt-1 inline-flex gap-3">
+				<BreakingStoryButton id={cell.row.original.id} status={cell.row.original.status} />
 				<EditLink id={cell.row.original.id} />
 			</div>
 		),
@@ -86,6 +89,35 @@ function EditLink({ id }: EditLinkProps) {
 		<Link href={`/admin/stories/${id}`}>
 			<EditSquareOutlineRounded className="size-5" />
 		</Link>
+	);
+}
+
+type BreakingStoryButtonProps = Pick<EditLinkProps, "id"> & { status: StoryStatus };
+function BreakingStoryButton({ id, status }: BreakingStoryButtonProps) {
+	const utils = api.useUtils();
+	const breakingStoryQuery = api.configuration.getBreakingStoryId.useQuery();
+	const updateBreakingStory = api.configuration.updateBreakingStoryId.useMutation({
+		onError: (e) => {
+			toast.error("Failed to update breaking news", {
+				description: e.message,
+			});
+		},
+		onSuccess: () => {
+			utils.configuration.getBreakingStoryId.invalidate();
+			toast.success("Successfully updated breaking news");
+		},
+	});
+
+	return (
+		<button
+			type="button"
+			disabled={!breakingStoryQuery.data || status !== StoryStatus.PUBLISHED}
+			data-selected={breakingStoryQuery.data === id}
+			onClick={() => updateBreakingStory.mutate({ value: id })}
+			className="transition-[opacity,color] disabled:opacity-50 data-[selected='true']:text-green-600"
+		>
+			<PageHeaderOutlineRoundedIcon className="size-5" />
+		</button>
 	);
 }
 

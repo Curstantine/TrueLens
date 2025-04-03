@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { type Article, ConfigurationKey, StoryStatus } from "@prisma/client";
+import { type Article, StoryStatus } from "@prisma/client";
 
 import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
@@ -82,38 +82,6 @@ export const storyRouter = createTRPCRouter({
 			return await db.story.update({
 				where: { id: input.id },
 				data: { status: StoryStatus.PUBLISHED },
-			});
-		}),
-	getBreakingStory: publicProcedure.query(async () => {
-		const breaking = await db.configuration.findUnique({
-			where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
-			select: { value: true },
-		});
-
-		if (!breaking) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				message: "Could not find a breaking news story",
-			});
-		}
-
-		return await db.story.findUnique({ where: { id: breaking.value } });
-	}),
-	updateBreakingStory: adminProcedure
-		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.mutation(async ({ input }) => {
-			const exists = await db.story.findUnique({
-				where: { id: input.id },
-				select: { id: true },
-			});
-
-			if (!exists) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Story not found" });
-			}
-
-			return await db.configuration.update({
-				where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
-				data: { value: input.id },
 			});
 		}),
 	getById: publicProcedure
