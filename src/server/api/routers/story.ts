@@ -231,6 +231,7 @@ export const storyRouter = createTRPCRouter({
 		.mutation(async ({ input }) => {
 			return await db.$transaction([
 				db.article.deleteMany({ where: { storyId: input.id } }),
+				db.comment.deleteMany({ where: { storyId: input.id } }),
 				db.story.delete({ where: { id: input.id } }),
 			]);
 		}),
