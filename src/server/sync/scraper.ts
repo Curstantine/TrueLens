@@ -91,7 +91,7 @@ export async function scrapeDeranaArticleBody(
 
 	if (body.length === 0 && retryCount < 4) {
 		await wait(1000);
-		return scrapeDeranaArticleBody(url, retryCount + 1);
+		return scrapeDeranaArticleBody(nid, retryCount + 1);
 	}
 
 	return { body, coverImageUrl };
