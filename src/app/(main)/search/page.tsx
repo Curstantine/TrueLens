@@ -39,8 +39,8 @@ export default async function Page({ searchParams }: Props) {
 						id={story.id}
 						title={story.title}
 						cover={story.cover}
-						articleCount={story._count.articles}
-						factuality={45}
+						articleCount={story.articleCount}
+						factuality={story.factuality}
 					/>
 				))}
 			</div>

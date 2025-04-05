@@ -93,8 +93,8 @@ class SourceArticle:
             author=author,
         )
 
-    def set_cluster_id(self, cluster_id: int):
-        self.cluster_id = cluster_id
+    def set_cluster_id(self, cluster_id: int | None):
+        self.cluster_id = cluster_id if cluster_id is not None else -1
 
 
 def load_articles() -> List[SourceArticle]:
@@ -108,7 +108,7 @@ def load_articles() -> List[SourceArticle]:
     return articles
 
 
-def cluster_articles(articles: List[SourceArticle]) -> List[Dict]:
+def cluster_articles(articles: List[SourceArticle]) -> List[SourceArticle]:
     """Cluster articles using BERTopic."""
     docs = []
     for article in articles:
@@ -123,22 +123,24 @@ def cluster_articles(articles: List[SourceArticle]) -> List[Dict]:
         embedding_model=embedding_model,
         min_topic_size=2,
     )
-    topics = topic_model.fit_transform(docs)
+    topics, _ = topic_model.fit_transform(docs)
     topic_model.save(MODEL_DIR, serialization="safetensors", save_ctfidf=True)
 
     print(topic_model.get_topic_info())
     for i, article in enumerate(articles):
-        article.set_cluster_id(topic_model.topics_[i])
+        article.set_cluster_id(topics[i])
 
     return articles
 
 
-def save_grouped_articles(articles: List[SourceArticle]) -> Dict:
+def save_grouped_articles(articles: List[SourceArticle]) -> Dict[str, List[Dict]]:
     """Save clustered articles to a JSON file."""
-    grouped_articles: Dict[str, Dict] = {}
+    grouped_articles: Dict[str, List[Dict]] = {}
     for article in articles:
-        cluster_id = article.cluster_id if article.cluster_id is not None else -1
-        grouped_articles.setdefault(cluster_id, []).append(article.to_dict())
+        if article.cluster_id == -1:
+            continue
+
+        grouped_articles.setdefault(str(article.cluster_id), []).append(article.to_dict())
 
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:

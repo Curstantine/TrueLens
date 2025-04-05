@@ -75,10 +75,10 @@ export const storyRouter = createTRPCRouter({
 					select: {
 						id: true,
 						title: true,
-						createdAt: true,
-						modifiedAt: true,
 						cover: true,
 						status: true,
+						createdAt: true,
+						modifiedAt: true,
 						articles: { select: { factuality: true } },
 					},
 					orderBy: {
@@ -188,7 +188,7 @@ export const storyRouter = createTRPCRouter({
 		)
 		.query(async ({ input }) => {
 			const isUrl = input.query?.startsWith("http") ?? false;
-			return await db.story.findMany({
+			const data = await db.story.findMany({
 				take: input.limit,
 				skip: input.offset,
 				where: {
@@ -198,10 +198,15 @@ export const storyRouter = createTRPCRouter({
 					},
 					status: StoryStatus.PUBLISHED,
 				},
-				include: {
-					_count: { select: { articles: true } },
+				select: {
+					id: true,
+					title: true,
+					cover: true,
+					articles: { select: { factuality: true } },
 				},
 			});
+
+			return data.map(calculateStoryFactuality);
 		}),
 	update: publicProcedure
 		.input(
