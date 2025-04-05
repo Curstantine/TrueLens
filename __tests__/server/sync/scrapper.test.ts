@@ -31,7 +31,7 @@ describe("scrapeDailyMirrorArticle", async () => {
 				.lessThanOrEqual(new Date())
 				.and.greaterThanOrEqual(new Date(Date.now() - 1000 * 60 * 60 * 24 * 7));
 
-			expect(article.body).lengthOf.greaterThan(1);
+			expect(article.body).lengthOf.gte(1);
 			expect(
 				article.coverImageUrl === undefined || article.coverImageUrl.startsWith("http"),
 			).toBeTruthy();
@@ -40,8 +40,7 @@ describe("scrapeDailyMirrorArticle", async () => {
 			expect(article.author.name).toBeDefined();
 			expect(article.author.isSystem).toBeDefined();
 
-			// Daily Mirror does not support authors
-			expect(article.author.isSystem).oneOf([true, false]);
+			expect(article.author.isSystem).toBeTypeOf("boolean");
 			if (article.author.isSystem) expect(article.author.name).toBe("system-daily_mirror");
 			else expect(article.author.name).toBeDefined();
 		}
