@@ -59,7 +59,7 @@ export async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 		jobs.push(
 			(async () => {
 				const set = articles[newIdx - 1]!;
-				const { body, coverImageUrl } = await scrapeDeranaArticleBody(url);
+				const { body, coverImageUrl } = await scrapeDeranaArticleBody(externalId);
 				set.body = body;
 				set.coverImageUrl = coverImageUrl;
 			})(),
@@ -72,10 +72,10 @@ export async function scrapeDeranaHotNews(page = 1): Promise<SourceArticle[]> {
 }
 
 export async function scrapeDeranaArticleBody(
-	url: string,
+	nid: string,
 	retryCount = 0,
 ): Promise<Pick<SourceArticle, "body" | "coverImageUrl">> {
-	const resp = await fetch(url);
+	const resp = await fetch(`https://adaderana.lk/news.php?nid=${nid}`);
 	const html = await resp.text();
 
 	const $ = cheerio.load(html);
