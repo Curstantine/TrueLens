@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
 
 export const reporterRouter = createTRPCRouter({
-	create: publicProcedure
+	create: adminProcedure
 		.input(
 			z.object({
 				name: z.string().min(1, "Name is required"),
@@ -65,7 +65,7 @@ export const reporterRouter = createTRPCRouter({
 
 			return reporter;
 		}),
-	update: publicProcedure
+	update: adminProcedure
 		.input(
 			z.object({
 				id: objectId("id must be a valid MongoDB ObjectId"),
@@ -95,7 +95,7 @@ export const reporterRouter = createTRPCRouter({
 				},
 			});
 		}),
-	delete: publicProcedure
+	delete: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.mutation(async ({ input }) => {
 			const reporter = await db.reporter.findUnique({

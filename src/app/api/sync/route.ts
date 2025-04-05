@@ -4,16 +4,17 @@ import { join as joinPath, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 
-import { NextResponse } from "next/server";
 import { wait } from "@jabascript/core";
-import type { NewsOutlet, Reporter } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { NextResponse } from "next/server";
+import { UserRole, type NewsOutlet, type Reporter } from "@prisma/client";
 
-import { factCheckingModel, summarizationModel } from "~/server/ai";
 import { api } from "~/trpc/server";
-
-import { isMostlyEnglish, readClusteredArticles } from "~/server/sync/utils";
+import { auth } from "~/server/auth";
+import { runScraper } from "~/server/sync/scraper";
 import { getCoverImage, getSiteFavicon } from "~/server/sync/web";
+import { factCheckingModel, summarizationModel } from "~/server/ai";
+import { isMostlyEnglish, readClusteredArticles } from "~/server/sync/utils";
 import type {
 	ClusteredSourceArticles,
 	ClusteredSummaryFactualityReport,
@@ -26,7 +27,6 @@ import {
 	ARTICLE_SUMMARY,
 	STORY_FACTUALITY_REPORT,
 } from "~/server/sync/models";
-import { runScraper } from "~/server/sync/scraper";
 
 export const runtime = "nodejs";
 
@@ -36,7 +36,11 @@ const CLUSTERED_FILE = joinPath(DATA_FOLDER, "clustered.json");
 
 const log = (...msg: string[]) => console.log(`[sync]`, ...msg);
 
-export async function POST() {
+export const POST = auth(async function POST(req) {
+	if (req.auth?.user.role !== UserRole.ADMIN) {
+		return NextResponse.json({ status: "error", message: "Unauthorized" }, { status: 401 });
+	}
+
 	log("Scraping articles...");
 	const scrapped = await runScraper();
 	const lastDBUpdate = await api.configuration.getLastSync();
@@ -224,7 +228,7 @@ export async function POST() {
 	await api.configuration.updateLastSync({ value: new Date().toISOString() });
 
 	return NextResponse.json({ status: "ok" });
-}
+});
 
 async function summarize(article: SourceArticle): Promise<ArticleSummary> {
 	const model = summarizationModel()
@@ -246,7 +250,7 @@ async function factualize(articles: SummarizedArticle[]): Promise<StoryFactualit
 	const prompt = `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
 	The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
 	Factuality is a float between 0 and 1, where 0 is completely false and 1 is completely true.
-	
+
 	EXAMPLE OUTPUT:
 	{
 		data: [

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
 
@@ -9,7 +9,7 @@ export const articleRouter = createTRPCRouter({
 	/**
 	 * Create a new article.
 	 */
-	create: publicProcedure
+	create: adminProcedure
 		.input(
 			z.object({
 				title: z.string().min(1, "Title is required"),
@@ -110,7 +110,7 @@ export const articleRouter = createTRPCRouter({
 
 			return article;
 		}),
-	update: publicProcedure
+	update: adminProcedure
 		.input(
 			z.object({
 				id: objectId("Article ID must be a valid MongoDB ObjectId"),
@@ -184,7 +184,7 @@ export const articleRouter = createTRPCRouter({
 				},
 			});
 		}),
-	delete: publicProcedure
+	delete: adminProcedure
 		.input(z.object({ id: z.string().min(1, "Article ID is required") }))
 		.mutation(async ({ input }) => {
 			const article = await db.article.findUnique({

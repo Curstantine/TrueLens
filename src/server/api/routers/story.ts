@@ -21,7 +21,7 @@ function calculateStoryFactuality<T extends { articles: Pick<Article, "factualit
 }
 
 export const storyRouter = createTRPCRouter({
-	create: publicProcedure
+	create: adminProcedure
 		.input(
 			z.object({
 				title: z.string().min(1, "Title is required"),
@@ -208,7 +208,7 @@ export const storyRouter = createTRPCRouter({
 
 			return data.map(calculateStoryFactuality);
 		}),
-	update: publicProcedure
+	update: adminProcedure
 		.input(
 			z.object({
 				id: objectId("id must be a valid MongoDB ObjectId"),
@@ -231,7 +231,7 @@ export const storyRouter = createTRPCRouter({
 			});
 		}),
 
-	delete: publicProcedure
+	delete: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
 		.mutation(async ({ input }) => {
 			return await db.$transaction([

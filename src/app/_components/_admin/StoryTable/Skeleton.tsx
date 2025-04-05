@@ -1,7 +1,8 @@
+import storyTableColumns from "~/app/_components/_admin/StoryTable/columns";
+
 import { TableHeaderSkeleton } from "~/app/_components/Table/Header";
 import { TableRowSkeleton } from "~/app/_components/Table/Row";
 import { StoryTableFilterSkeleton } from "~/app/_components/_admin/StoryTable/Filter";
-import storyTableColumns from "~/app/_components/_admin/StoryTable/columns";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 
@@ -11,15 +12,17 @@ export function StoryTableSkeleton() {
 			<StoryTableFilterSkeleton />
 			<table className="w-full">
 				<thead>
-					{storyTableColumns.map((x, i) => (
-						// @ts-expect-error def error, we check for the correct types inside the component helper
-						<TableHeaderSkeleton key={i} column={x} />
-					))}
+					<tr>
+						{storyTableColumns.map((x, i) => (
+							// @ts-expect-error def error, we check for the correct types inside the component helper
+							<TableHeaderSkeleton key={i} column={x} />
+						))}
+					</tr>
 				</thead>
 				<tbody>
-					{Array.from({ length: 25 }, () => 10).map((x) => (
+					{Array.from({ length: 25 }, () => 10).map((_, i) => (
 						// @ts-expect-error def error, we check for the correct types inside the component helper
-						<TableRowSkeleton key={x} columnDefs={storyTableColumns} />
+						<TableRowSkeleton key={i} columnDefs={storyTableColumns} />
 					))}
 				</tbody>
 			</table>

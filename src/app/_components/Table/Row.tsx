@@ -27,7 +27,7 @@ export function TableRowSkeleton({ columnDefs }: StoryTableRowSkeletonProps) {
 		<tr className="h-12 border-b border-border">
 			{columnDefs.map((x, i) => (
 				<td key={i} className="px-2 py-2">
-					<div className="h-3 animate-pulse rounded-full bg-accent" />
+					<div className="h-3 animate-pulse rounded-full bg-muted" />
 				</td>
 			))}
 		</tr>
