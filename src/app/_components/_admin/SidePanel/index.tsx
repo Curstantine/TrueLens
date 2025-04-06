@@ -56,7 +56,7 @@ export default function AdminSidePanel() {
 
 			<div className="flex-1" />
 			<span className="text-xs text-muted-foreground">
-				Build: {BUILD_DATE.getFullYear()}.{BUILD_DATE.getMonth()}.{BUILD_DATE.getDay()}
+				Build: {BUILD_DATE.getFullYear()}.{BUILD_DATE.getMonth()}.{BUILD_DATE.getDate()}
 			</span>
 		</div>
 	);
