@@ -5,15 +5,16 @@ import InstagramLogo from "~/app/_components/icons/InstagramLogo";
 import LinkedinLogo from "~/app/_components/icons/LinkedinLogo";
 import Logo from "~/app/_components/icons/Logo";
 import MailOutlineIcon from "~/app/_components/icons/material/MailOutlineIcon";
+import { GITHUB_REPO, PAPER_URL } from "~/constants";
 
-type FooterLink = { label: string; href: string };
+type FooterLink = { label: string; href: string; out?: boolean };
 type FooterIconLink = FooterLink & { icon: ComponentType<SVGProps<SVGSVGElement>> };
 
 export const QUICK_LINKS: FooterLink[] = [
 	{ label: "About", href: "/about" },
-	{ label: "Mission", href: "/about/mission" },
+	{ label: "Methodology", href: PAPER_URL, out: true },
 	{ label: "FAQs", href: "/about/faq" },
-	{ label: "Methodology", href: "/about/methodology" },
+	{ label: "Source", href: GITHUB_REPO, out: true },
 	{ label: "Plans", href: "/plans" },
 ];
 
@@ -60,14 +61,26 @@ export default function Footer() {
 }
 
 function QuickLinks() {
+	const className = "text-sm hover:underline";
+
 	return (
 		<div className="grid grid-cols-2 gap-2">
 			<h2 className="col-span-2 font-medium text-foreground">Quick Links</h2>
-			{QUICK_LINKS.map(({ label, href }) => (
-				<Link key={label} href={href} className="text-sm hover:underline">
-					{label}
-				</Link>
-			))}
+			{QUICK_LINKS.map(({ label, href, out }) => {
+				if (out) {
+					return (
+						<a key={label} href={href} target="_blank" className={className}>
+							{label}
+						</a>
+					);
+				}
+
+				return (
+					<Link key={label} href={href} className={className}>
+						{label}
+					</Link>
+				);
+			})}
 		</div>
 	);
 }
