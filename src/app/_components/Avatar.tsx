@@ -9,21 +9,27 @@ type Props = {
 	alt: string;
 	initials: string;
 	className?: string;
+	rounded?: boolean;
 };
 
-export default function Avatar({ avatarUrl, alt, initials, className }: Props) {
+export default function Avatar({ avatarUrl, alt, initials, className, rounded = true }: Props) {
 	const [shouldShow, show] = useState(!!avatarUrl);
 
 	return (
-		<div className={clsx("grid size-10 place-items-center rounded-full bg-muted", className)}>
+		<div
+			className={clsx(
+				"grid size-10 place-items-center bg-muted",
+				className,
+				rounded && "rounded-full",
+			)}
+		>
 			{shouldShow && avatarUrl ? (
 				<Image
 					src={avatarUrl}
 					alt={alt}
-					width={40}
-					height={40}
-					className="size-full rounded-full"
-					unoptimized
+					width={56}
+					height={56}
+					className={clsx("size-full", rounded && "rounded-full")}
 					draggable={false}
 					onError={() => show(false)}
 				/>

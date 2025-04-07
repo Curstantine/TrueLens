@@ -2,8 +2,8 @@ import { getInitials } from "~/utils/grammar";
 
 import Avatar from "~/app/_components/Avatar";
 import { DateSpan } from "~/app/_components/DateSpan";
-import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 import FactualityLabel from "~/app/_components/FactualityLabel";
+import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 
 type Props = {
 	title: string;
@@ -32,6 +32,7 @@ export default function ArticleCard({
 					alt={publisherName}
 					initials={getInitials(publisherName)}
 					className="!size-7 text-xs"
+					rounded={false}
 				/>
 				<span className="text-sm text-muted-foreground">{publisherName}</span>
 				<div className="flex-1" />
