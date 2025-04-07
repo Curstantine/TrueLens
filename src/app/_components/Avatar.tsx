@@ -21,7 +21,7 @@ export default function Avatar({ avatarUrl, alt, initials, className, rounded = 
 				"grid size-10 place-items-center",
 				className,
 				!shouldShow && "bg-muted",
-				rounded && "rounded-full",
+				(!shouldShow || rounded) && "rounded-full",
 			)}
 		>
 			{shouldShow && avatarUrl ? (
