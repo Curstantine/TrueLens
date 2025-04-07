@@ -1,13 +1,12 @@
 import clsx from "clsx/lite";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
-import { ChangeEventHandler, MouseEventHandler, useState, useTransition } from "react";
+import { ChangeEventHandler, MouseEventHandler, useState } from "react";
 import { type Control, type FieldPath, type FieldValues, useController } from "react-hook-form";
 
 import Button from "~/app/_components/form/Button";
 import ErrorField from "~/app/_components/form/hooked/ErrorField";
+import { UploadButton } from "~/app/_components/_admin/form/CoverField";
 
-import LoaderIcon from "~/app/_components/icons/Loader";
 import DeleteRoundedIcon from "~/app/_components/icons/material/DeleteRounded";
 import UploadRoundedIcon from "~/app/_components/icons/material/UploadRounded";
 
@@ -89,49 +88,5 @@ export default function AdminHookedLogoField<T extends FieldValues, N extends Fi
 
 			<ErrorField control={control} name={name} />
 		</div>
-	);
-}
-
-type UploadButtonProps = {
-	temp: File | null;
-	onUploadComplete: (url: string) => void;
-};
-
-function UploadButton({ temp, onUploadComplete }: UploadButtonProps) {
-	const [isPending, startTransition] = useTransition();
-
-	const onUpload: MouseEventHandler<HTMLButtonElement> = async (e) => {
-		e.preventDefault();
-		if (!temp) return;
-
-		startTransition(async () => {
-			const blob = await upload(`outlets/${temp.name}`, temp, {
-				access: "public",
-				handleUploadUrl: "/api/uploads",
-			});
-
-			startTransition(() => onUploadComplete.call(undefined, blob.url));
-		});
-	};
-
-	return (
-		<Button
-			type="button"
-			intent="primary"
-			className={clsx(
-				"gap-2 transition-[width] duration-emphasized ease-emphasized-decelerate",
-				isPending ? "w-9" : "w-26",
-			)}
-			onClick={onUpload}
-		>
-			{isPending ? (
-				<LoaderIcon className="size-5 animate-spin" />
-			) : (
-				<>
-					<UploadRoundedIcon className="size-5" />
-					Upload
-				</>
-			)}
-		</Button>
 	);
 }

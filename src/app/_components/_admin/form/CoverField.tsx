@@ -97,7 +97,7 @@ type UploadButtonProps = {
 	onUploadComplete: (url: string) => void;
 };
 
-function UploadButton({ temp, onUploadComplete }: UploadButtonProps) {
+export function UploadButton({ temp, onUploadComplete }: UploadButtonProps) {
 	const [isPending, startTransition] = useTransition();
 
 	const onUpload: MouseEventHandler<HTMLButtonElement> = async (e) => {
