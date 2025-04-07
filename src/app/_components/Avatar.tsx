@@ -18,8 +18,9 @@ export default function Avatar({ avatarUrl, alt, initials, className, rounded = 
 	return (
 		<div
 			className={clsx(
-				"grid size-10 place-items-center bg-muted",
+				"grid size-10 place-items-center",
 				className,
+				!shouldShow && "bg-muted",
 				rounded && "rounded-full",
 			)}
 		>

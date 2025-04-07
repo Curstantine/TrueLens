@@ -10,7 +10,7 @@ import { asReadableUserRole } from "~/utils/grammar";
 
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
 import PersonAddOutlineRoundedIcon from "~/app/_components/icons/material/PersonAddOutlineRounded";
-import { PersonRemoveOutlineRoundedIcon } from "~/app/_components/icons/material/PersonRemoveOutlineRounded";
+import PersonRemoveOutlineRoundedIcon from "~/app/_components/icons/material/PersonRemoveOutlineRounded";
 
 type EditLinkProps = { id: string };
 export function EditLink({ id }: EditLinkProps) {

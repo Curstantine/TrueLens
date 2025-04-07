@@ -8,6 +8,7 @@ import CloudSyncOutlineRounded from "~/app/_components/icons/material/CloudSyncO
 import GroupOutlineRoundedIcon from "~/app/_components/icons/material/GroupOutlineRounded";
 import HistoryEduOutlineRoundedIcon from "~/app/_components/icons/material/HistoryEduOutlineRounded";
 import SpaceDashboardOutlineIcon from "~/app/_components/icons/material/SpaceDashboardOutline";
+import HomeWorkOutlineRoundedIcon from "~/app/_components/icons/material/HomeWorkOutlineRounded";
 
 const BUILD_DATE = new Date();
 
@@ -37,9 +38,9 @@ export default function AdminSidePanel() {
 					icon={<ArticleOutlineRoundedIcon className="size-6" />}
 				/>
 				<AdminSidePanelItem
-					href="/admin/users"
-					label="Users"
-					icon={<GroupOutlineRoundedIcon className="size-6" />}
+					href="/admin/outlets"
+					label="Outlets"
+					icon={<HomeWorkOutlineRoundedIcon className="size-6" />}
 				/>
 			</ul>
 
@@ -47,6 +48,11 @@ export default function AdminSidePanel() {
 				<span className="pl-2 text-xs font-medium text-muted-foreground">
 					Administrative
 				</span>
+				<AdminSidePanelItem
+					href="/admin/users"
+					label="Users"
+					icon={<GroupOutlineRoundedIcon className="size-6" />}
+				/>
 				<AdminSidePanelItem
 					href="/admin/sync"
 					label="Synchronization"

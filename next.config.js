@@ -9,6 +9,7 @@ const config = {
 	images: {
 		remotePatterns: [
 			{ protocol: "https", hostname: "1pyh0peyi3duiz1l.public.blob.vercel-storage.com" },
+			{ protocol: "https", hostname: "lh3.googleusercontent.com" },
 		],
 	},
 	experimental: {
