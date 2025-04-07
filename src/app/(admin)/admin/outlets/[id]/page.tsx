@@ -11,9 +11,9 @@ import { api, RouterOutputs } from "~/trpc/react";
 
 import Button from "~/app/_components/form/Button";
 import HookedInput from "~/app/_components/form/hooked/Input";
+import AdminHookedLogoField from "~/app/_components/_admin/form/LogoField";
 
 import DeleteRoundedIcon from "~/app/_components/icons/material/DeleteRounded";
-import AdminHookedCoverField from "~/app/_components/_admin/form/CoverField";
 
 type Props = {
 	params: Promise<{ id: string }>;
@@ -90,7 +90,7 @@ function Form({ data }: FormProps) {
 
 	return (
 		<form onSubmit={onSubmit} noValidate className="grid grid-cols-[--spacing(64)_1fr] gap-3">
-			<AdminHookedCoverField control={control} name="logoUrl" />
+			<AdminHookedLogoField control={control} name="logoUrl" />
 			<div className="flex flex-col gap-3">
 				<HookedInput
 					control={control}

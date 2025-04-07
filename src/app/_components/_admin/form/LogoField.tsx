@@ -48,7 +48,7 @@ export default function AdminHookedLogoField<T extends FieldValues, N extends Fi
 		<div className="space-y-1">
 			<div
 				className={clsx(
-					"relative aspect-[16/3.5] w-full rounded-md",
+					"relative aspect-square w-full rounded-md",
 					!hasImage && "border border-dashed border-input",
 				)}
 			>
@@ -79,8 +79,8 @@ export default function AdminHookedLogoField<T extends FieldValues, N extends Fi
 				{!hasImage && (
 					<label className="absolute inset-0 flex flex-col items-center justify-center">
 						<UploadRoundedIcon className="size-8 text-primary" />
-						<span className="text-secondary-foreground">
-							Drag & drop or click here to upload a cover
+						<span className="text-center text-secondary-foreground">
+							Drag & drop or click here to upload a logo
 						</span>
 						<input type="file" accept="image/*" hidden onChange={onFileSelect} />
 					</label>
