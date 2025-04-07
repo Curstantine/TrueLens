@@ -1,4 +1,4 @@
-import userTableColumns from "~/app/_components/_admin/UserTable/columns";
+import outletTableColumns from "~/app/_components/_admin/OutletTable/columns";
 
 import { TableHeaderSkeleton } from "~/app/_components/Table/Header";
 import { TableRowSkeleton } from "~/app/_components/Table/Row";
@@ -11,7 +11,7 @@ export default function UserTableSkeleton() {
 			<table className="w-full">
 				<thead>
 					<tr>
-						{userTableColumns.map((x, i) => (
+						{outletTableColumns.map((x, i) => (
 							// @ts-expect-error def error, we check for the correct types inside the component helper
 							<TableHeaderSkeleton key={i} column={x} />
 						))}
@@ -20,7 +20,7 @@ export default function UserTableSkeleton() {
 				<tbody>
 					{Array.from({ length: 25 }, () => 10).map((_, i) => (
 						// @ts-expect-error def error, we check for the correct types inside the component helper
-						<TableRowSkeleton key={i} columnDefs={userTableColumns} />
+						<TableRowSkeleton key={i} columnDefs={outletTableColumns} />
 					))}
 				</tbody>
 			</table>
