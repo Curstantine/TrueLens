@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { type Article, ConfigurationKey, StoryStatus } from "@prisma/client";
+import { type Article, ConfigurationKey, type Prisma, StoryStatus } from "@prisma/client";
 
 import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
@@ -61,17 +61,17 @@ export const storyRouter = createTRPCRouter({
 				breakingNewsId = resp?.value ?? null;
 			}
 
+			const where: Prisma.StoryWhereInput = {
+				id: !breakingNewsId ? undefined : { not: breakingNewsId },
+				status: input.status !== null ? input.status : undefined,
+			};
+
 			const [total, data] = await db.$transaction([
-				db.story.count({
-					where: { status: input.status !== null ? input.status : undefined },
-				}),
+				db.story.count({ where }),
 				db.story.findMany({
 					take: input.limit,
 					skip: input.offset,
-					where: {
-						id: !breakingNewsId ? undefined : { not: breakingNewsId },
-						status: input.status !== null ? input.status : undefined,
-					},
+					where,
 					select: {
 						id: true,
 						title: true,

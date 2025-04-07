@@ -1,16 +1,31 @@
-import { StoryStatus } from "@prisma/client";
+import { StoryStatus, UserRole } from "@prisma/client";
 
-export function getInitials(name: string | null | undefined) {
-	if (!name) return "N/A";
+export function getInitials(name: string | null | undefined): string {
+	if (!name?.trim()) return "N/A";
 
-	const [firstName, lastName] = name.split(" ");
+	const names = name.split(/\s+/).filter((x) => x.length > 0);
+	if (names.length === 0) return "N/A";
 
-	if (!firstName && !lastName) return "N/A";
-	if (firstName && !lastName) return firstName.substring(0, 2);
+	const first = names[0]!;
+	const last = names[names.length - 1];
 
-	return `${firstName?.at(0) ?? ""}${lastName?.at(0) ?? ""}`;
+	if (names.length === 1 || last === undefined) {
+		return first.slice(0, 2).toUpperCase();
+	}
+
+	return (first[0] + last[0]!).toUpperCase();
 }
 
+export function asReadableUserRole(role: UserRole) {
+	switch (role) {
+		case UserRole.ADMIN:
+			return "Admin";
+		case UserRole.MODERATOR:
+			return "Moderator";
+		case UserRole.USER:
+			return "User";
+	}
+}
 export function asReadableStoryStatus(status: StoryStatus) {
 	switch (status) {
 		case StoryStatus.NEEDS_APPROVAL:
