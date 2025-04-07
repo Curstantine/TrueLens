@@ -28,7 +28,7 @@ export default function NavigationBar() {
 					</li>
 
 					<li>
-						<Link href="/contact">Plans</Link>
+						<Link href="/plans">Plans</Link>
 					</li>
 				</ul>
 

@@ -144,7 +144,7 @@ function Form({ data }: FormProps) {
 							summary={article.content}
 							url={article.externalUrl}
 							publishedAt={article.publishedAt}
-							publisherLogo={undefined}
+							publisherLogo={article.outlet.logoUrl}
 							publisherName={article.outlet.name}
 							factuality={article.factuality}
 						/>

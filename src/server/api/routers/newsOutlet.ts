@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 
 import { objectId } from "~/server/validation/mongo";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { db } from "~/server/db";
 
 export const newsOutletRouter = createTRPCRouter({
 	create: adminProcedure
@@ -14,7 +13,7 @@ export const newsOutletRouter = createTRPCRouter({
 				logoUrl: z.string().optional(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			const outlet = await db.newsOutlet.findUnique({
 				where: { name: input.name },
 				select: { id: true },
@@ -43,15 +42,28 @@ export const newsOutletRouter = createTRPCRouter({
 				offset: z.number().min(0).default(0),
 			}),
 		)
-		.query(async ({ input }) => {
-			return await db.newsOutlet.findMany({
-				take: input.limit,
-				skip: input.offset,
-			});
+		.query(async ({ input, ctx: { db } }) => {
+			const [total, docs] = await db.$transaction([
+				db.newsOutlet.count(),
+				db.newsOutlet.findMany({
+					take: input.limit,
+					skip: input.offset,
+					select: {
+						id: true,
+						name: true,
+						logoUrl: true,
+						url: true,
+						createdAt: true,
+						_count: { select: { articles: true } },
+					},
+				}),
+			]);
+
+			return { total, docs };
 		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			const outlet = await db.newsOutlet.findUnique({ where: { id: input.id } });
 			if (!outlet) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
@@ -61,7 +73,7 @@ export const newsOutletRouter = createTRPCRouter({
 		}),
 	getByUrl: publicProcedure
 		.input(z.object({ url: z.string().url() }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			const outlet = await db.newsOutlet.findUnique({ where: { url: input.url } });
 			if (!outlet) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "News outlet not found" });
@@ -78,7 +90,7 @@ export const newsOutletRouter = createTRPCRouter({
 				logoUrl: z.string().optional(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			return await db.newsOutlet.update({
 				where: { id: input.id },
 				data: {
@@ -91,7 +103,7 @@ export const newsOutletRouter = createTRPCRouter({
 
 	delete: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			return await db.$transaction([
 				db.newsOutlet.delete({ where: { id: input.id } }),
 				db.article.deleteMany({ where: { outletId: input.id } }),

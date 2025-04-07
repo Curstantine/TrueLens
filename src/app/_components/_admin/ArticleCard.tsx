@@ -39,6 +39,7 @@ export default function AdminArticleCard({
 					alt={publisherName}
 					initials={getInitials(publisherName)}
 					className="!size-7 text-xs"
+					rounded={false}
 				/>
 				<span className="text-sm text-muted-foreground">{publisherName}</span>
 				<div className="flex-1" />

@@ -1,13 +1,12 @@
 import clsx from "clsx/lite";
 import Image from "next/image";
-import { upload } from "@vercel/blob/client";
-import { ChangeEventHandler, MouseEventHandler, useState, useTransition } from "react";
+import { ChangeEventHandler, MouseEventHandler, useState } from "react";
 import { type Control, type FieldPath, type FieldValues, useController } from "react-hook-form";
 
 import Button from "~/app/_components/form/Button";
 import ErrorField from "~/app/_components/form/hooked/ErrorField";
+import { UploadButton } from "~/app/_components/_admin/form/CoverField";
 
-import LoaderIcon from "~/app/_components/icons/Loader";
 import DeleteRoundedIcon from "~/app/_components/icons/material/DeleteRounded";
 import UploadRoundedIcon from "~/app/_components/icons/material/UploadRounded";
 
@@ -16,7 +15,7 @@ type CoverFieldProps<T extends FieldValues, N extends FieldPath<T> = FieldPath<T
 	name: N;
 };
 
-export default function AdminHookedCoverField<T extends FieldValues, N extends FieldPath<T>>({
+export default function AdminHookedLogoField<T extends FieldValues, N extends FieldPath<T>>({
 	control,
 	name,
 }: CoverFieldProps<T, N>) {
@@ -48,7 +47,7 @@ export default function AdminHookedCoverField<T extends FieldValues, N extends F
 		<div className="space-y-1">
 			<div
 				className={clsx(
-					"relative aspect-[16/3.5] w-full rounded-md",
+					"relative aspect-square w-full rounded-md",
 					!hasImage && "border border-dashed border-input",
 				)}
 			>
@@ -79,8 +78,8 @@ export default function AdminHookedCoverField<T extends FieldValues, N extends F
 				{!hasImage && (
 					<label className="absolute inset-0 flex flex-col items-center justify-center">
 						<UploadRoundedIcon className="size-8 text-primary" />
-						<span className="text-secondary-foreground">
-							Drag & drop or click here to upload a cover
+						<span className="text-center text-secondary-foreground">
+							Drag & drop or click here to upload a logo
 						</span>
 						<input type="file" accept="image/*" hidden onChange={onFileSelect} />
 					</label>
@@ -89,49 +88,5 @@ export default function AdminHookedCoverField<T extends FieldValues, N extends F
 
 			<ErrorField control={control} name={name} />
 		</div>
-	);
-}
-
-type UploadButtonProps = {
-	temp: File | null;
-	onUploadComplete: (url: string) => void;
-};
-
-export function UploadButton({ temp, onUploadComplete }: UploadButtonProps) {
-	const [isPending, startTransition] = useTransition();
-
-	const onUpload: MouseEventHandler<HTMLButtonElement> = async (e) => {
-		e.preventDefault();
-		if (!temp) return;
-
-		startTransition(async () => {
-			const blob = await upload(`covers/${temp.name}`, temp, {
-				access: "public",
-				handleUploadUrl: "/api/uploads",
-			});
-
-			startTransition(() => onUploadComplete.call(undefined, blob.url));
-		});
-	};
-
-	return (
-		<Button
-			type="button"
-			intent="primary"
-			className={clsx(
-				"gap-2 transition-[width] duration-emphasized ease-emphasized-decelerate",
-				isPending ? "w-9" : "w-26",
-			)}
-			onClick={onUpload}
-		>
-			{isPending ? (
-				<LoaderIcon className="size-5 animate-spin" />
-			) : (
-				<>
-					<UploadRoundedIcon className="size-5" />
-					Upload
-				</>
-			)}
-		</Button>
 	);
 }
