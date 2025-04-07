@@ -33,19 +33,18 @@ async function Hero() {
 	const story = await api.story.getByIdReduced({ id: storyId! });
 
 	return (
-		<section id="hero" className="relative col-span-full min-h-90 bg-accent">
+		<section id="hero" className="relative col-span-full min-h-64 bg-accent sm:min-h-90">
 			{story.cover && (
 				<Image
 					src={story.cover}
 					alt=""
-					width={1512}
-					height={360}
+					fill
 					sizes="100vw"
 					quality={100}
-					className="h-fit max-h-90 w-full object-cover object-top"
+					className="object-cover object-top"
 				/>
 			)}
-			<div className="absolute inset-0 flex items-end justify-between px-4 pb-6 2xl:container 2xl:px-0">
+			<div className="absolute inset-0 flex flex-col-reverse justify-start gap-2 px-4 pb-6 md:flex-row md:items-end md:justify-between md:gap-0 2xl:container 2xl:px-0">
 				<div className="flex max-w-lg flex-col rounded-md bg-background px-4 py-2 shadow-lg">
 					<span className="text-sm text-muted-foreground">Breaking News</span>
 					<Link
