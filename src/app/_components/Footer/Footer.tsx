@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ComponentType, SVGProps } from "react";
 
 import InstagramLogo from "~/app/_components/icons/InstagramLogo";
+import LinkedinLogo from "~/app/_components/icons/LinkedinLogo";
 import Logo from "~/app/_components/icons/Logo";
 import MailOutlineIcon from "~/app/_components/icons/material/MailOutlineIcon";
 
@@ -23,6 +24,11 @@ export const CONTACT_LINKS: FooterIconLink[] = [
 		icon: MailOutlineIcon,
 	},
 	{ label: "@truelens.lk", href: "https://instagram.com/truelens.lk", icon: InstagramLogo },
+	{
+		label: "truelenslk",
+		href: "https://www.linkedin.com/company/truelenslk",
+		icon: LinkedinLogo,
+	},
 ];
 
 export default function Footer() {
