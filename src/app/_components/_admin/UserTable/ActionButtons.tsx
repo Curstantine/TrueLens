@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { toast } from "sonner";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { UserRole } from "@prisma/client";
 
 import { api } from "~/trpc/react";
 import { asReadableUserRole } from "~/utils/grammar";
 
-import DeleteOutlineRoundedIcon from "~/app/_components/icons/material/DeleteOutlineRounded";
 import EditSquareOutlineRounded from "~/app/_components/icons/material/EditSquareOutlineRounded";
 import PersonAddOutlineRoundedIcon from "~/app/_components/icons/material/PersonAddOutlineRounded";
 import { PersonRemoveOutlineRoundedIcon } from "~/app/_components/icons/material/PersonRemoveOutlineRounded";
@@ -101,7 +100,7 @@ export function DemoteUserButton({ id, role }: PromoteUserButtonProps) {
 		onSuccess: () => {
 			if (promoting === null) return;
 			utils.user.getAll.invalidate();
-			toast.success(`Successfully demote the user to ${promotingName}`);
+			toast.success(`Successfully demoted the user to ${promotingName}`);
 		},
 	});
 
@@ -117,45 +116,6 @@ export function DemoteUserButton({ id, role }: PromoteUserButtonProps) {
 			className="transition-[opacity,color] disabled:opacity-50"
 		>
 			<PersonRemoveOutlineRoundedIcon className="size-5" />
-		</button>
-	);
-}
-
-type DeleteStoryButtonProps = Pick<PromoteUserButtonProps, "id">;
-export function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
-	const [confirmed, confirm] = useState(false);
-	const utils = api.useUtils();
-	const deleteStory = api.story.delete.useMutation({
-		onError: (e) => {
-			toast.error("Failed to delete the story", {
-				description: e.message,
-			});
-		},
-		onSuccess: ([, , input]) => {
-			utils.story.getAll.invalidate();
-			utils.story.getById.invalidate({ id: input.id });
-			utils.story.getByIdReduced.invalidate({ id: input.id });
-
-			toast.success("Successfully deleted story");
-		},
-	});
-
-	return (
-		<button
-			type="button"
-			title="Delete story"
-			data-confirmed={confirmed}
-			onBlur={() => confirm(false)}
-			onClick={() => {
-				if (confirmed) deleteStory.mutate({ id });
-				else {
-					toast.warning("Press again to confirm the delete action");
-					confirm(true);
-				}
-			}}
-			className="transition-[opacity,color] data-[confirmed='true']:text-red-600"
-		>
-			<DeleteOutlineRoundedIcon className="size-5" />
 		</button>
 	);
 }
