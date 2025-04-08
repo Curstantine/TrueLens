@@ -145,11 +145,12 @@ model Article {
 
 // Represents a NewsOutlet that employs reporters
 model NewsOutlet {
-    id        String   @id @default(auto()) @map("_id") @db.ObjectId
-    name      String   @unique
-    url       String   @unique
-    logoUrl   String?
-    createdAt DateTime @default(now())
+    id               String   @id @default(auto()) @map("_id") @db.ObjectId
+    name             String   @unique
+    url              String   @unique
+    logoUrl          String?
+    totalFactuality  Int      @default(0)
+    createdAt        DateTime @default(now())
 
     articles Article[]
 }

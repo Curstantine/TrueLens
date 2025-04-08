@@ -1,16 +1,12 @@
-import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
+import { Suspense } from "react";
+import type { Metadata } from "next";
 
 import { api } from "~/trpc/server";
 
 import StoryCard from "~/app/_components/card/StoryCard";
 import OutletRankingItem from "~/app/_components/list/OutletRankingItem";
-
-import AdaDeranaLogo from "~/app/assets/outlets/ada_derana.png";
-import NewsFirstLogo from "~/app/assets/outlets/news_first.png";
-import HiruNewsLogo from "~/app/assets/outlets/hiru_news.jpg";
-import TheMorningLogo from "~/app/assets/outlets/the_morning.png";
 
 export const metadata: Metadata = {
 	title: "TrueLens",
@@ -22,7 +18,9 @@ export default function Page() {
 			<Hero />
 			<section className="grid gap-6 px-6 xl:grid-cols-[1fr_--spacing(80)] 2xl:container">
 				<RecentStories />
-				<OutletRanking />
+				<Suspense>
+					<OutletRanking />
+				</Suspense>
 			</section>
 		</main>
 	);
@@ -92,39 +90,23 @@ async function RecentStories() {
 	);
 }
 
-function OutletRanking() {
+async function OutletRanking() {
+	const outlets = await api.newsOutlet.getAll({ limit: 10 });
+
 	return (
 		<div className="flex flex-col gap-y-1 pt-6">
 			<h2 className="px-2 font-medium">Outlet Credibility Ranking</h2>
 			<ul>
-				<OutletRankingItem
-					place={1}
-					name="Ada Derana"
-					credibility={50}
-					publications={120}
-					logo={AdaDeranaLogo}
-				/>
-				<OutletRankingItem
-					place={2}
-					name="NewsFirst"
-					credibility={50}
-					publications={120}
-					logo={NewsFirstLogo}
-				/>
-				<OutletRankingItem
-					place={3}
-					name="Hiru News"
-					credibility={50}
-					publications={120}
-					logo={HiruNewsLogo}
-				/>
-				<OutletRankingItem
-					place={4}
-					name="The Morning"
-					credibility={50}
-					publications={120}
-					logo={TheMorningLogo}
-				/>
+				{outlets.docs.map((outlet, i) => (
+					<OutletRankingItem
+						key={outlet.id}
+						place={i + 1}
+						name={outlet.name}
+						credibility={outlet.credibility}
+						publications={outlet._count.articles}
+						logo={outlet.logoUrl}
+					/>
+				))}
 			</ul>
 		</div>
 	);

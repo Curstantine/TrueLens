@@ -43,7 +43,7 @@ export const newsOutletRouter = createTRPCRouter({
 			}),
 		)
 		.query(async ({ input, ctx: { db } }) => {
-			const [total, docs] = await db.$transaction([
+			const [total, data] = await db.$transaction([
 				db.newsOutlet.count(),
 				db.newsOutlet.findMany({
 					take: input.limit,
@@ -54,10 +54,23 @@ export const newsOutletRouter = createTRPCRouter({
 						logoUrl: true,
 						url: true,
 						createdAt: true,
+						totalFactuality: true,
 						_count: { select: { articles: true } },
 					},
 				}),
 			]);
+
+			const docs = data.map((x) => {
+				const credibility = Math.round((x.totalFactuality / x._count.articles) * 100);
+				// @ts-expect-error We need this proprety gone
+				delete x.totalFactuality;
+
+				return { ...x, credibility } as Omit<typeof x, "totalFactuality"> & {
+					credibility: number;
+				};
+			});
+
+			docs.sort((a, b) => b.credibility - a.credibility);
 
 			return { total, docs };
 		}),
