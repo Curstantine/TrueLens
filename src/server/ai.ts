@@ -14,7 +14,7 @@ const summarizationModel = cache(
 	() =>
 		new ChatGroq({
 			model: "meta-llama/llama-4-scout-17b-16e-instruct",
-			temperature: 0.85,
+			temperature: 1,
 			apiKey: env.GROQ_API_KEY,
 		}),
 );
@@ -23,7 +23,7 @@ const factCheckingModel = cache(
 	() =>
 		new ChatGroq({
 			model: "meta-llama/llama-4-maverick-17b-128e-instruct",
-			temperature: 0.6,
+			temperature: 1,
 			apiKey: env.GROQ_API_KEY,
 		}),
 );
