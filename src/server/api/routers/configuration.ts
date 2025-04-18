@@ -2,12 +2,11 @@ import { z } from "zod";
 import { ConfigurationKey, StoryStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
-import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const configurationRouter = createTRPCRouter({
-	getLastSync: publicProcedure.query(async () => {
+	getLastSync: publicProcedure.query(async ({ ctx: { db } }) => {
 		const data = await db.configuration.findUnique({
 			where: { key: ConfigurationKey.LAST_SYNC_DATE },
 			select: { value: true },
@@ -17,14 +16,14 @@ export const configurationRouter = createTRPCRouter({
 	}),
 	updateLastSync: adminProcedure
 		.input(z.object({ value: z.string().datetime() }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			return await db.configuration.update({
 				where: { key: ConfigurationKey.LAST_SYNC_DATE },
 				data: { value: input.value },
 			});
 		}),
 
-	getBreakingStoryId: publicProcedure.query(async () => {
+	getBreakingStoryId: publicProcedure.query(async ({ ctx: { db } }) => {
 		const data = await db.configuration.findUnique({
 			where: { key: ConfigurationKey.BREAKING_NEWS_STORY_ID },
 			select: { value: true },
@@ -34,7 +33,7 @@ export const configurationRouter = createTRPCRouter({
 	}),
 	updateBreakingStoryId: adminProcedure
 		.input(z.object({ value: objectId("Value must be a valid MongoDB ObjectID") }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			const story = await db.story.findUnique({
 				where: { id: input.value },
 				select: { status: true },

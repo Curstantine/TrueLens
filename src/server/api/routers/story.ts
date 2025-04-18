@@ -2,7 +2,6 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { type Article, ConfigurationKey, type Prisma, StoryStatus } from "@prisma/client";
 
-import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
@@ -29,7 +28,7 @@ export const storyRouter = createTRPCRouter({
 				cover: z.optional(z.string()),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			return await db.story.create({
 				data: {
 					title: input.title,
@@ -50,7 +49,7 @@ export const storyRouter = createTRPCRouter({
 				includeBreakingNews: z.boolean().default(false),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			let breakingNewsId: string | null = null;
 			if (!input.includeBreakingNews) {
 				const resp = await db.configuration.findUnique({
@@ -92,7 +91,7 @@ export const storyRouter = createTRPCRouter({
 		}),
 	approveStory: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			return await db.story.update({
 				where: { id: input.id },
 				data: { status: StoryStatus.PUBLISHED },
@@ -100,7 +99,7 @@ export const storyRouter = createTRPCRouter({
 		}),
 	getByIdReduced: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			const story = await db.story.findUnique({
 				where: { id: input.id },
 				select: {
@@ -119,7 +118,7 @@ export const storyRouter = createTRPCRouter({
 		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			const story = await db.story.findUnique({
 				where: { id: input.id },
 				include: {
@@ -173,7 +172,7 @@ export const storyRouter = createTRPCRouter({
 				factuality: Math.round((totalScore * 100) / story.articles.length),
 			};
 		}),
-	getAllOutOfSync: adminProcedure.query(async () => {
+	getAllOutOfSync: adminProcedure.query(async ({ ctx: { db } }) => {
 		return await db.story.findMany({
 			where: { modifiedAt: { gte: db.story.fields.synchronizedAt } },
 		});
@@ -186,7 +185,7 @@ export const storyRouter = createTRPCRouter({
 				offset: z.number().default(0),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			const isUrl = input.query?.startsWith("http") ?? false;
 			const data = await db.story.findMany({
 				take: input.limit,
@@ -218,7 +217,7 @@ export const storyRouter = createTRPCRouter({
 				status: z.nativeEnum(StoryStatus).optional(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			return await db.story.update({
 				where: { id: input.id },
 				data: {
@@ -233,11 +232,46 @@ export const storyRouter = createTRPCRouter({
 
 	delete: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.mutation(async ({ input }) => {
-			return await db.$transaction([
-				db.article.deleteMany({ where: { storyId: input.id } }),
-				db.comment.deleteMany({ where: { storyId: input.id } }),
-				db.story.delete({ where: { id: input.id } }),
-			]);
+		.mutation(async ({ input, ctx: { db } }) => {
+			return await db.$transaction(async (tx) => {
+				const articles = await tx.article.findMany({
+					where: { storyId: input.id },
+					select: {
+						id: true,
+						factuality: true,
+						outlet: { select: { id: true, totalFactuality: true } },
+					},
+				});
+
+				const factualityMapping = articles.reduce(
+					(acc, x) => {
+						acc[x.outlet.id] ??= x.outlet.totalFactuality;
+						if (x.outlet.id in acc) acc[x.outlet.id]! -= x.factuality;
+						return acc;
+					},
+					{} as Record<string, number>,
+				);
+
+				const entries = Object.entries(factualityMapping);
+				const actions = <Promise<unknown>[]>[];
+
+				for (let i = 0; i < entries.length; i++) {
+					const [key, value] = entries[i]!;
+					const action = tx.newsOutlet.update({
+						where: { id: key },
+						data: { totalFactuality: value },
+					});
+
+					actions.push(action);
+				}
+
+				await Promise.all([
+					actions,
+					tx.article.deleteMany({ where: { storyId: input.id } }),
+					tx.comment.deleteMany({ where: { storyId: input.id } }),
+				]);
+
+				return await tx.story.delete({ where: { id: input.id } });
+			});
 		}),
 });
