@@ -62,7 +62,7 @@ export function DeleteStoryButton({ id }: DeleteStoryButtonProps) {
 				description: e.message,
 			});
 		},
-		onSuccess: ([, , input]) => {
+		onSuccess: (input) => {
 			utils.story.getAll.invalidate();
 			utils.story.getById.invalidate({ id: input.id });
 			utils.story.getByIdReduced.invalidate({ id: input.id });

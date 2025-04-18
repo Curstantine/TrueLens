@@ -59,9 +59,9 @@ function Form({ data }: FormProps) {
 	const utils = api.useUtils();
 
 	const deleteStory = api.story.delete.useMutation({
-		onSuccess: () => {
+		onSuccess: (input) => {
 			utils.story.getAll.invalidate();
-			utils.story.getById.invalidate({ id: data.id });
+			utils.story.getById.invalidate({ id: input.id }, { refetchType: "none" });
 
 			toast.success("Story deleted successfully");
 			router.push("/admin/stories");

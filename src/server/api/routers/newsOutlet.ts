@@ -62,7 +62,7 @@ export const newsOutletRouter = createTRPCRouter({
 
 			const docs = data.map((x) => {
 				const credibility = Math.round((x.totalFactuality / x._count.articles) * 100);
-				// @ts-expect-error We need this proprety gone
+				// @ts-expect-error We need to remove this property
 				delete x.totalFactuality;
 
 				return { ...x, credibility } as Omit<typeof x, "totalFactuality"> & {

@@ -1,9 +1,8 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 
-import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { db } from "~/server/db";
 import { objectId } from "~/server/validation/mongo";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const reporterRouter = createTRPCRouter({
 	create: adminProcedure
@@ -15,7 +14,7 @@ export const reporterRouter = createTRPCRouter({
 				isSystem: z.boolean().default(false),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			const reporter = await db.reporter.findUnique({
 				where: { email: input.email },
 				select: { id: true },
@@ -45,7 +44,7 @@ export const reporterRouter = createTRPCRouter({
 				offset: z.number().min(0).default(0),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			return await db.reporter.findMany({
 				take: input.limit,
 				skip: input.offset,
@@ -53,7 +52,7 @@ export const reporterRouter = createTRPCRouter({
 		}),
 	getById: publicProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx: { db } }) => {
 			const reporter = await db.reporter.findUnique({ where: { id: input.id } });
 
 			if (!reporter) {
@@ -75,7 +74,7 @@ export const reporterRouter = createTRPCRouter({
 				isSystem: z.boolean().optional(),
 			}),
 		)
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			const reporter = await db.reporter.findUnique({
 				where: { id: input.id },
 				select: { id: true },
@@ -97,7 +96,7 @@ export const reporterRouter = createTRPCRouter({
 		}),
 	delete: adminProcedure
 		.input(z.object({ id: objectId("id must be a valid MongoDB ObjectId") }))
-		.mutation(async ({ input }) => {
+		.mutation(async ({ input, ctx: { db } }) => {
 			const reporter = await db.reporter.findUnique({
 				where: { id: input.id },
 				select: { id: true },
