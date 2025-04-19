@@ -5,7 +5,7 @@ import { TableRowSkeleton } from "~/app/_components/Table/Row";
 
 import ArrowRightAltRoundedIcon from "~/app/_components/icons/material/ArrowRightAltRounded";
 
-export default function UserTableSkeleton() {
+export default function OutletTableSkeleton() {
 	return (
 		<div>
 			<table className="w-full">

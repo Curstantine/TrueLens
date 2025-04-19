@@ -31,7 +31,7 @@ const factCheckingModel = cache(
 export async function summarize(article: SourceArticle): Promise<ArticleSummary> {
 	const model = summarizationModel()
 		.withStructuredOutput(ARTICLE_SUMMARY)
-		.withRetry({ stopAfterAttempt: 4 });
+		.withRetry({ stopAfterAttempt: 5 });
 	const prompt = `Return a summary of the news article in a readable point format. Try not to span to more than 6 points.
 	Return a valid JSON following the example format: {{ "summary": ["point 1", "point 2", "point 3"] }}`;
 
@@ -44,7 +44,7 @@ export async function summarize(article: SourceArticle): Promise<ArticleSummary>
 export async function factualize(articles: SummarizedArticle[]): Promise<StoryFactualityReport> {
 	const model = factCheckingModel()
 		.withStructuredOutput(STORY_FACTUALITY_REPORT)
-		.withRetry({ stopAfterAttempt: 2 });
+		.withRetry({ stopAfterAttempt: 5 });
 	const prompt = `Return a factuality report from each outlet. The factuality is calculated by averaging what has happened in each article.
 	The data must be returned in JSON format, paired by the temp_id, which should not be changed as they are used to identify the articles.
 	Factuality is a float between 0 and 1, where 0 is completely false and 1 is completely true.
