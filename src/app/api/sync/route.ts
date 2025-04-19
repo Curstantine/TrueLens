@@ -1,9 +1,9 @@
-import { randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join as joinPath, resolve as pathResolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
 
+import { ulid } from "ulid";
 import { wait } from "@jabascript/core";
 import { TRPCError } from "@trpc/server";
 import { NextResponse } from "next/server";
@@ -85,7 +85,7 @@ export async function POST() {
 				article.summary = (await summarize(article)).summary;
 
 				summarized[key] ??= [];
-				summarized[key]!.push({ ...article, factuality: 0, temp_id: randomUUID() });
+				summarized[key]!.push({ ...article, factuality: 0, temp_id: ulid() });
 
 				await wait(250);
 			}
@@ -111,7 +111,7 @@ export async function POST() {
 				articles[idx]!.factuality = data.factuality;
 			}
 		} catch (error) {
-			console.error("Failed to factualize articles:\n\t", error);
+			console.error("Failed to factualize articles:\n", error);
 			return NextResponse.json({ status: "error" });
 		}
 
@@ -158,7 +158,7 @@ export async function POST() {
 			);
 
 			if (currentReporter === undefined) {
-				log(`Creating reporter ${current.author}...`);
+				log(`Creating reporter ${current.author.name}...`);
 
 				try {
 					currentReporter = await getOrCreateReporter(current);
