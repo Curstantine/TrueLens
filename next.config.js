@@ -12,9 +12,6 @@ const config = {
 			{ protocol: "https", hostname: "lh3.googleusercontent.com" },
 		],
 	},
-	experimental: {
-		nodeMiddleware: true,
-	},
 };
 
 export default config;
