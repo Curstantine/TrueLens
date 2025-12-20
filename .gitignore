@@ -47,3 +47,4 @@ yarn-error.log*
 
 #news repo
 news_data/
+.direnv
